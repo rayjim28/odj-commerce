@@ -32,6 +32,7 @@ from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_passw
     customer_claims, create_customer_token)
 from payment import create_checkout, verify_webhook, StripeError
 from notifications import store_settings, queue_order_notice, queue_token_message, order_email
+from launch_readiness import launch_readiness
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 @asynccontextmanager
@@ -67,6 +68,12 @@ async def protect_private_pages(request: Request, call_next):
     """Sensitive responses must not be cached or indexed by search engines."""
     response = await call_next(request)
     path = request.url.path
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+    if os.getenv('APP_ENV') == 'production':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000'
     if path == '/admin' or path.startswith('/api/admin/'):
         response.headers['Cache-Control'] = 'no-store, private'
         response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
@@ -339,6 +346,11 @@ class SettingsInput(BaseModel):
     return_policy: str = Field(default='', max_length=2500)
     standard_shipping_cents: int = Field(ge=0, le=100000)
     express_shipping_cents: int = Field(ge=0, le=100000)
+
+@app.get('/api/admin/launch-readiness')
+def admin_launch_readiness(request: Request):
+    require_admin(request)
+    return launch_readiness()
 
 @app.get('/api/admin/settings')
 def get_admin_settings(request: Request):

@@ -38,3 +38,5 @@ static/uploads/
 .DS_Store
 *.log
 *.zip
+
+backups/

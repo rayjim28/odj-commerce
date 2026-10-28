@@ -19,12 +19,12 @@
     return;
   }
   let products = [], editingId = null, photos = [], busy = false;
-  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.']};
+  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.'],launch:['Launch readiness','Review the requirements for a safe public launch.']};
   function tab(which) {
     document.querySelectorAll('.admin-tab').forEach(el=>el.hidden=el.id!==`tab-${which}`);
     document.querySelectorAll('.side-nav').forEach(el=>el.classList.toggle('selected',el.dataset.tab===which));
     $('tab-title').textContent=names[which][0];$('tab-subtitle').textContent=names[which][1];
-    if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();
+    if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();if(which==='launch')loadLaunchReadiness();
   }
   document.querySelectorAll('.side-nav').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
   async function summary(){
@@ -170,6 +170,16 @@
       await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(data)});feedback.textContent='Store settings saved.';
     }catch(err){feedback.textContent=err.message;}finally{button.disabled=false;}
   });
+  async function loadLaunchReadiness(){
+    const area=$('launch-checks'),count=$('launch-count');
+    area.textContent='Checking…';
+    try{
+      const data=await api('/api/admin/launch-readiness');
+      count.textContent=`${data.ready_count} of ${data.total_count} checks configured · Not approved for launch`;
+      area.innerHTML=data.checks.map(c=>`<article class="launch-check launch-${esc(c.status)}"><div class="launch-check-top"><span class="launch-status" aria-hidden="true">${c.status==='ready'?'✓':c.status==='review'?'!':'○'}</span><span class="launch-check-group">${esc(c.group)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.note)}</p><span class="launch-status-text">${c.status==='ready'?'Configured (verify before launch)':c.status==='review'?'Requires owner review':'Needs setup'}</span></article>`).join('');
+    }catch(err){count.textContent='Unable to load';area.textContent=err.message;}
+  }
+  $('launch-refresh').addEventListener('click',loadLaunchReadiness);
   $('refresh-orders').addEventListener('click',loadOrders);
   $('logout').addEventListener('click',async()=>{try{await api('/api/admin/logout',{method:'POST'});}finally{location.reload();}});
   summary();

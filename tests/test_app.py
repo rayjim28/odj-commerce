@@ -613,3 +613,32 @@ def test_v6_customer_details_and_checkout_markup(client):
     html=client.get('/').text
     assert '/information/shipping' in html
     assert 'hello@example.com' not in html
+"""Safety checks for Phase 7A: sensitive configuration stays private."""
+import json
+
+def test_launch_requires_admin(client):
+    r=client.get('/api/admin/launch-readiness')
+    assert r.status_code == 401
+
+def test_launch_hides_secrets(authenticated, monkeypatch):
+    monkeypatch.setenv('STRIPE_SECRET_KEY', 'sk_live_DO_NOT_DISCLOSE')
+    monkeypatch.setenv('STRIPE_WEBHOOK_SECRET', 'whsec_DO_NOT_DISCLOSE')
+    monkeypatch.setenv('SESSION_SECRET', 'private_session_key_do_not_disclose_123456')
+    assert authenticated.post('/api/admin/login',json={'password':'StrongTestPassword!234'}).status_code == 200
+    data=authenticated.get('/api/admin/launch-readiness')
+    assert data.status_code == 200
+    report=data.json()
+    assert report['launch_approved'] is False
+    assert report['total_count'] >= 10
+    raw=json.dumps(report)
+    assert 'DO_NOT_DISCLOSE' not in raw
+    assert 'private_session_key' not in raw
+    assert 'stripe' in [c['key'] for c in report['checks']]
+
+def test_launch_page_and_security_headers(authenticated):
+    r=authenticated.get('/admin')
+    assert r.status_code==200
+    assert 'Launch checklist' in r.text
+    assert r.headers['X-Content-Type-Options']=='nosniff'
+    assert r.headers['X-Frame-Options']=='DENY'
+    assert r.headers['Cache-Control']=='no-store, private'

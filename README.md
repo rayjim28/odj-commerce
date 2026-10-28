@@ -34,3 +34,7 @@ The initial checkout now works as a **simulation without a Stripe account**. Sig
 ## Phase 6 (V6)
 
 Private customer order details, live owner-managed shipping and policy settings, secure password changes, optional email verification and forgot-password workflow, and a branded email outbox have been added. See `UPGRADE_TO_V6.md` for the safe non-destructive update, setup, and important limits on SMTP delivery.
+
+## Phase 7A — launch preparation (V7)
+
+Admin → **Launch checklist** provides a configuration-only launch audit without showing secrets. Run `python scripts/check_launch.py` for a terminal view, and `python scripts/backup_local.py` to back up local SQLite and product uploads to a private ignored ZIP. See `UPGRADE_TO_V7.md`. This is **not a public launch**; no Stripe account, live payment processing, production hosting, or email delivery is activated.
