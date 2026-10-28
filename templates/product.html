@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{product.name}} | ODJ Group</title>
+<meta name="description" content="{{product.description}}">
+<link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="product-page-body">
+<div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
+<header class="site-header"><div class="container nav-wrap">
+<a class="brand" href="/" aria-label="ODJ Group home"><span class="brand-monogram">ODJ<span class="brand-period">.</span></span><span class="brand-text">GROUP LLC <small>CLEANING ESSENTIALS</small></span></a>
+<nav class="main-nav" aria-label="Main navigation"><a href="/">Home</a><a class="nav-active" href="/#shop">Shop all</a><a href="/#about">Our promise</a></nav>
+<div class="nav-actions"><a class="account-nav" href="/account" aria-label="{% if customer %}My account{% else %}Sign in{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 21c0-5.5 14.4-5.5 14.4 0"/></svg><span>{% if customer %}My account{% else %}Sign in{% endif %}</span></a><a class="product-bag-link" href="/?cart=1" aria-label="Open shopping bag">Bag <span id="detail-bag-count">0</span></a></div>
+</div></header>
+<main>
+<div class="container"><nav class="product-crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/#shop">Shop</a><span>/</span><span aria-current="page">{{product.name}}</span></nav></div>
+<section class="container product-detail-shell">
+ <div class="product-detail-gallery"><div class="product-detail-image"><span class="product-badge">{{product.badge or ('ODJ FAVORITE' if product.featured else 'EVERYDAY ESSENTIAL')}}</span><img src="{{product.image_url or '/static/images/default.svg'}}" alt="{{product.name}}" id="detail-image"></div>
+ {% if product.additional_images %}<div class="product-image-thumbs" aria-label="Product photo gallery"><button type="button" class="detail-thumbnail selected" data-image="{{product.image_url or '/static/images/default.svg'}}" aria-label="View main product photo" aria-pressed="true"><img src="{{product.image_url or '/static/images/default.svg'}}" alt=""></button>{% for photo in product.additional_images %}<button type="button" class="detail-thumbnail" data-image="{{photo}}" aria-label="View product photo {{loop.index + 1}}" aria-pressed="false"><img src="{{photo}}" alt=""></button>{% endfor %}</div>{% endif %}
+ <div class="product-image-note"><span>✦ THE ODJ COLLECTION</span><span>CURATED FOR EVERYDAY</span></div></div>
+ <div class="product-detail-panel"><div class="product-detail-overline"><span class="detail-gold-line"></span>{{product.category | upper}} <span class="overline-index">/ ODJ GROUP</span></div>
+  <h1>{{product.name}}</h1><div class="product-detail-rating-line"><span>✦</span> CLEANING ESSENTIALS / PRODUCTS YOU CAN TRUST</div>
+  <div class="product-detail-price">${{ '%.2f'|format(product.price_cents / 100) }}</div>
+  <p class="product-detail-description">{{product.description}}</p>
+  <div class="product-detail-status"><span class="stock-dot {% if product.stock == 0 %}stock-none{% endif %}"></span><strong id="stock-label">{% if product.stock == 0 %}Currently sold out{% elif product.stock < 6 %}Only {{product.stock}} left in stock{% else %}In stock &amp; ready to order{% endif %}</strong>{% if product.stock > 0 %}<small>{{product.stock}} available</small>{% endif %}</div>
+  <div class="product-detail-quantity-title"><span>QUANTITY</span><span>SELECT YOUR AMOUNT</span></div>
+  <div class="product-detail-purchase"><div class="detail-quantity" aria-label="Quantity selector"><button id="detail-minus" type="button" aria-label="Decrease quantity" {% if product.stock == 0 %}disabled{% endif %}>−</button><output id="detail-qty" aria-live="polite">1</output><button id="detail-plus" type="button" aria-label="Increase quantity" {% if product.stock == 0 %}disabled{% endif %}>+</button></div><button class="btn btn-gold detail-add" id="detail-add" type="button" {% if product.stock == 0 %}disabled{% endif %}>{% if product.stock == 0 %}Sold out{% else %}Add to bag <span>↗</span>{% endif %}</button></div>
+  <div class="product-detail-feedback" id="detail-feedback" role="status" aria-live="polite"></div>
+  <div class="product-detail-next"><a id="detail-view-bag" href="/?cart=1">View shopping bag <span>↗</span></a><a href="/#shop">Continue shopping <span>↗</span></a></div>
+  <div class="product-detail-promise"><div><span>✧</span><div><strong>Quality selected</strong><small>Everyday essentials for your space</small></div></div><div><span>◇</span><div><strong>Secure checkout</strong><small>Stripe payment processing</small></div></div><div><span>↗</span><div><strong>Customer account</strong><small>{% if customer %}You're signed in{% else %}<a href="/account">Sign in</a> to complete checkout{% endif %}</small></div></div></div>
+ </div>
+</section>
+{% if related %}<section class="container related-products"><div class="related-products-head"><div><span class="section-kicker">THE COLLECTION CONTINUES</span><h2>Good things go <em>together.</em></h2></div><a href="/#shop">View all products ↗</a></div><div class="related-product-grid">{% for item in related %}<a class="related-product-card" href="/products/{{item.id}}"><div class="related-product-image"><img src="{{item.image_url or '/static/images/default.svg'}}" alt="{{item.name}}" loading="lazy"></div><div class="related-product-info"><div><small>{{item.category}}</small><h3>{{item.name}}</h3></div><strong>${{ '%.2f'|format(item.price_cents / 100) }}</strong></div></a>{% endfor %}</div></section>{% endif %}
+</main>
+<footer class="product-detail-footer"><div class="container"><a href="/" class="footer-brand">ODJ<span>.</span></a><p>PRODUCTS YOU CAN TRUST. EVERY SINGLE DAY.</p><span>© ODJ GROUP LLC · {{ now_year or '2026' }}</span></div></footer>
+<script>window.ODJ_DETAIL_PRODUCT = {{ product | tojson }};</script>
+<script src="/static/js/product.js" defer></script>
+</body></html>
