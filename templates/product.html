@@ -22,6 +22,9 @@
  <div class="product-detail-panel"><div class="product-detail-overline"><span class="detail-gold-line"></span>{{product.category | upper}} <span class="overline-index">/ ODJ GROUP</span></div>
   <h1>{{product.name}}</h1><div class="product-detail-rating-line"><span>✦</span> CLEANING ESSENTIALS / PRODUCTS YOU CAN TRUST</div>
   <div class="product-detail-price">${{ '%.2f'|format(product.price_cents / 100) }}</div>
+  {% if product.is_bundle %}<div class="v72-bundle-details"><strong>YOUR BUNDLE INCLUDES</strong>
+  {% for part in product.components %}<div><span>{{ part.qty }} × {{ part.name }}</span></div>{% endfor %}
+  {% if product.save_cents > 0 %}<p class="v72-savings">Individual product total: ${{ '%.2f'|format(product.retail_cents / 100) }} · Save ${{ '%.2f'|format(product.save_cents / 100) }} with this bundle.</p>{% endif %}</div>{% endif %}
   <p class="product-detail-description">{{product.description}}</p>
   <div class="product-detail-status"><span class="stock-dot {% if product.stock == 0 %}stock-none{% endif %}"></span><strong id="stock-label">{% if product.stock == 0 %}Currently sold out{% elif product.stock < 6 %}Only {{product.stock}} left in stock{% else %}In stock &amp; ready to order{% endif %}</strong>{% if product.stock > 0 %}<small>{{product.stock}} available</small>{% endif %}</div>
   <div class="product-detail-quantity-title"><span>QUANTITY</span><span>SELECT YOUR AMOUNT</span></div>

@@ -642,3 +642,168 @@ def test_launch_page_and_security_headers(authenticated):
     assert r.headers['X-Content-Type-Options']=='nosniff'
     assert r.headers['X-Frame-Options']=='DENY'
     assert r.headers['Cache-Control']=='no-store, private'
+
+# V7.1 homepage merchandising tests
+
+def test_v71_merchandising_only_uses_public_catalog():
+    catalog = [
+        {'id': 71, 'name':'Spin Mop Kit', 'category':'Mop systems', 'description':'',
+         'price_cents':3199,'stock':4,'featured':True,'image_url':'/static/images/default.svg'},
+        {'id': 72, 'name':'Mop Head 3-Pack','category':'Refills','description':'',
+         'price_cents':1299,'stock':3,'featured':False,'image_url':'/static/images/default.svg'},
+        {'id': 73, 'name':'Microfiber Cloths','category':'Accessories','description':'',
+         'price_cents':999,'stock':3,'featured':False,'image_url':'/static/images/default.svg'},
+    ]
+    data = main.build_home_merchandising(catalog)
+    assert data['spotlight']['id'] == 71
+    assert {p['id'] for p in data['companions']} == {72, 73}
+    assert {g['title'] for g in data['guides']} == {'Mop systems', 'Parts & refills', 'Cleaning extras'}
+    assert all(set(g['ids']).issubset({71, 72, 73}) for g in data['guides'])
+    assert main.build_home_merchandising([]) == {'spotlight':None,'guides':[],'companions':[]}
+
+
+def test_v71_home_uses_published_products_only(authenticated):
+    visible_id = create_item(authenticated, 'Spin Mop Kit', stock=4)
+    hidden_id = create_item(authenticated, 'Unpublished Secret Mop Head', stock=4)
+    r = authenticated.patch(f'/api/admin/products/{hidden_id}', json={
+        'name':'Unpublished Secret Mop Head', 'category':'Refills', 'description':'Private inventory',
+        'price_cents':1499, 'stock':4, 'image_url':'/static/images/default.svg',
+        'active':False, 'featured':False, 'badge':''})
+    assert r.status_code == 200
+    r = authenticated.get('/')
+    assert r.status_code == 200
+    assert f'href="/products/{visible_id}"' in r.text
+    assert 'Unpublished Secret Mop Head' not in r.text
+    assert 'id="faq"' in r.text
+    assert 'id="collections"' in r.text
+    assert 'id="merch-filter-status"' in r.text
+    assert 'data-merch-ids=' in r.text
+
+# V7.2 bundles and promotions
+
+def bundle_payload(p1,p2, price=1700, active=True):
+    return {'name':'Mop and refill starter set','description':'A mop plus replacement heads.',
+        'price_cents':price,'image_url':'','badge':'BUNDLE OFFER',
+        'featured':True,'active':active,
+        'components':[{'product_id':p1,'quantity':1},{'product_id':p2,'quantity':2}]}
+
+def test_v72_bundle_admin_publishing_and_merchandising(authenticated):
+    p1=create_item(authenticated,'Spin mop kit v72',stock=4)
+    p2=create_item(authenticated,'Replacement heads v72',stock=6)
+    payload=bundle_payload(p1,p2)
+    made=authenticated.post('/api/admin/bundles',json=payload)
+    assert made.status_code==200,made.text
+    b=made.json();bid=b['bundle_id']
+    assert b['id']==-bid and b['stock']==3 and b['save_cents']==(1234*3-1700)
+    assert b['is_bundle'] and len(b['components'])==2
+    assert any(x['id']==-bid for x in authenticated.get('/api/products').json())
+    assert 'Mop and refill starter set' in authenticated.get('/').text
+    assert authenticated.get(f'/products/{-bid}').status_code==200
+    assert 'YOUR BUNDLE INCLUDES' in authenticated.get(f'/products/{-bid}').text
+    assert authenticated.get(f'/api/admin/bundles').json()[0]['id']==-bid
+    changed={**payload,'active':False,'price_cents':1600}
+    assert authenticated.patch(f'/api/admin/bundles/{bid}',json=changed).status_code==200
+    assert not any(x['id']==-bid for x in authenticated.get('/api/products').json())
+    assert authenticated.get(f'/products/{-bid}').status_code==404
+
+
+def test_v72_bundle_drafts_and_component_safety(authenticated):
+    p1=create_item(authenticated,'Bundle component v72 1',stock=2)
+    p2=create_item(authenticated,'Bundle component v72 2',stock=2)
+    duplicate=bundle_payload(p1,p1)
+    assert authenticated.post('/api/admin/bundles',json=duplicate).status_code==400
+    invalid=bundle_payload(p1,p2,price=0,active=True)
+    assert authenticated.post('/api/admin/bundles',json=invalid).status_code==400
+    draft=bundle_payload(p1,p2,price=0,active=False)
+    r=authenticated.post('/api/admin/bundles',json=draft)
+    assert r.status_code==200,r.text
+    bid=r.json()['bundle_id']
+    assert authenticated.get('/api/admin/bundles').status_code==200
+    assert authenticated.get(f'/products/{-bid}').status_code==404
+    assert authenticated.post(f'/api/admin/bundles/{bid}/archive').status_code==200
+    assert authenticated.post(f'/api/admin/products/{p1}/archive').status_code==200
+    assert authenticated.patch(f'/api/admin/bundles/{bid}',json=bundle_payload(p1,p2)).status_code==400
+    assert authenticated.delete(f'/api/admin/products/{p1}').status_code==409
+
+
+def test_v72_bundle_and_individual_stock_aggregate(authenticated,monkeypatch):
+    monkeypatch.setenv('PAYMENT_MODE','demo')
+    p1=create_item(authenticated,'Aggregate stock mop',stock=2)
+    p2=create_item(authenticated,'Aggregate stock heads',stock=4)
+    bid=authenticated.post('/api/admin/bundles',json=bundle_payload(p1,p2)).json()['id']
+    good=authenticated.post('/api/checkout/quote',json={'items':[{'id':bid,'qty':1},{'id':p1,'qty':1}]})
+    assert good.status_code==200,good.text
+    assert good.json()['subtotal_cents']==1700+1234
+    assert good.json()['items'][0]['components']==[{'id':p1,'qty':1},{'id':p2,'qty':2}]
+    insufficient=authenticated.post('/api/checkout/quote',json={'items':[{'id':bid,'qty':2},{'id':p1,'qty':1}]})
+    assert insufficient.status_code==409
+    address={'name':'Test Customer','line1':'123 Test Road','city':'Washington','state':'DC','postal_code':'20001','country':'US'}
+    demo=authenticated.post('/api/checkout/demo',json={'items':[{'id':bid,'qty':1},{'id':p1,'qty':1}], 'shipping_option':'standard', 'shipping_address':address})
+    assert demo.status_code==200,demo.text
+    with SessionLocal() as db:
+        assert db.get(Product,p1).stock==2
+        assert db.get(Product,p2).stock==4
+        order=db.get(Order,demo.json()['order_id'])
+        assert order.status=='demo' and order.paid_total_cents==0
+
+
+def test_v72_stripe_reservation_kit_and_expiration(authenticated,monkeypatch):
+    monkeypatch.setenv('PAYMENT_MODE','stripe')
+    monkeypatch.setenv('STRIPE_SECRET_KEY','sk_test_placeholder_for_mocked_stripe')
+    p1=create_item(authenticated,'Reserve kit stock A',stock=5)
+    p2=create_item(authenticated,'Reserve kit stock B',stock=7)
+    bid=authenticated.post('/api/admin/bundles',json=bundle_payload(p1,p2)).json()['id']
+    async def fake_checkout(order,base_url):
+        return {'id':'cs_test_'+order.id,'url':'https://checkout.stripe.com/c/pay/test'}
+    monkeypatch.setattr(main,'create_checkout',fake_checkout)
+    checkout=authenticated.post('/api/checkout',json={'items':[{'id':bid,'qty':2},{'id':p2,'qty':1}]})
+    assert checkout.status_code==200,checkout.text
+    with SessionLocal() as db:
+        order=db.query(Order).order_by(Order.created_at.desc()).first()
+        assert db.get(Product,p1).stock==3
+        assert db.get(Product,p2).stock==2
+        oid=order.id;session_id=order.stripe_session_id
+    event={'id':'evt_bundle_expired_'+oid,'type':'checkout.session.expired','data':{'object':{'id':session_id,'client_reference_id':oid}}}
+    body,headers=sign_event(event)
+    assert authenticated.post('/api/stripe/webhook',content=body,headers=headers).status_code==200
+    assert authenticated.post('/api/stripe/webhook',content=body,headers=headers).status_code==200
+    with SessionLocal() as db:
+        assert db.get(Product,p1).stock==5
+        assert db.get(Product,p2).stock==7
+        assert db.get(Order,oid).status=='expired'
+
+
+def test_v72_bundle_endpoints_admin_only(client,authenticated):
+    p1=create_item(authenticated,'Private kit item 1')
+    p2=create_item(authenticated,'Private kit item 2')
+    client.cookies.clear()
+    assert client.get('/api/admin/bundles').status_code==401
+    assert client.post('/api/admin/bundles',json=bundle_payload(p1,p2)).status_code==401
+    assert client.get('/api/products').status_code==200
+
+def test_v72_bundle_paid_webhook_keeps_reserved_stock(authenticated,monkeypatch):
+    monkeypatch.setenv('PAYMENT_MODE','stripe')
+    monkeypatch.setenv('STRIPE_SECRET_KEY','sk_test_placeholder_for_mocked_stripe')
+    p1=create_item(authenticated,'Paid kit main component',stock=5)
+    p2=create_item(authenticated,'Paid kit replacement component',stock=8)
+    bid=authenticated.post('/api/admin/bundles',json=bundle_payload(p1,p2,price=1999)).json()['id']
+    async def fake_checkout(order,base_url):
+        return {'id':'cs_test_'+order.id,'url':'https://checkout.stripe.com/c/pay/test'}
+    monkeypatch.setattr(main,'create_checkout',fake_checkout)
+    checkout=authenticated.post('/api/checkout',json={'items':[{'id':bid,'qty':1}]})
+    assert checkout.status_code==200
+    with SessionLocal() as db:
+        order=db.query(Order).order_by(Order.created_at.desc()).first()
+        oid=order.id;session_id=order.stripe_session_id
+    event={'id':'evt_bundle_paid_'+oid,'type':'checkout.session.completed','data':{'object':{
+        'id':session_id,'client_reference_id':oid,'payment_status':'paid','amount_total':1999+795,
+        'customer_details':{'email':'checkout-buyer@example.com'}}}}
+    body,headers=sign_event(event)
+    assert authenticated.post('/api/stripe/webhook',content=body,headers=headers).status_code==200
+    assert authenticated.post('/api/stripe/webhook',content=body,headers=headers).status_code==200
+    with SessionLocal() as db:
+        assert db.get(Product,p1).stock==4
+        assert db.get(Product,p2).stock==6
+        order=db.get(Order,oid)
+        assert order.status=='paid' and order.inventory_reserved is False
+        assert order.subtotal_cents==1999

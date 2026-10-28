@@ -19,12 +19,12 @@
     return;
   }
   let products = [], editingId = null, photos = [], busy = false;
-  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.'],launch:['Launch readiness','Review the requirements for a safe public launch.']};
+  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.'],launch:['Launch readiness','Review the requirements for a safe public launch.'],bundles:['Bundles & offers','Create kits and set honest promotional prices.']};
   function tab(which) {
     document.querySelectorAll('.admin-tab').forEach(el=>el.hidden=el.id!==`tab-${which}`);
     document.querySelectorAll('.side-nav').forEach(el=>el.classList.toggle('selected',el.dataset.tab===which));
     $('tab-title').textContent=names[which][0];$('tab-subtitle').textContent=names[which][1];
-    if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();if(which==='launch')loadLaunchReadiness();
+    if(which==='bundles')loadBundles();if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();if(which==='launch')loadLaunchReadiness();
   }
   document.querySelectorAll('.side-nav').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
   async function summary(){
@@ -40,6 +40,77 @@
       }).join('') : '<tr><td colspan="5" class="empty-admin">No products yet. Click Add product to create your first draft.</td></tr>';
     } catch(err){$('inventory-body').innerHTML=`<tr><td colspan="5" class="empty-admin">${esc(err.message)}</td></tr>`;}
   }
+  // V7.2: bundle builder uses existing products; no independent bundle stock counter.
+  let bundles = [], editingBundle = null;
+  const bundleForm = $('bundle-form');
+  function bundleRow(item){
+    const options=products.map(p=>`<option value="${p.id}" ${p.id===item?.product_id?'selected':''}>${esc(p.name)}${!p.active?' (hidden)':''}</option>`).join('');
+    return `<div class="v72-component"><select aria-label="Included product" required><option value="">Choose product</option>${options}</select><input type="number" min="1" max="30" required aria-label="Units of product" value="${item?.quantity||1}"><button type="button" data-remove-bundle-row aria-label="Remove product">×</button></div>`;
+  }
+  function renderBundleRows(items){$('bundle-components').innerHTML=(items||[{},{ }]).map(bundleRow).join('');}
+  function showBundleForm(bundle){
+    editingBundle=bundle?.bundle_id||null;
+    bundleForm.hidden=false;bundleForm.reset();$('bundle-photo-upload').value='';$('bundle-form-status').textContent='';
+    $('bundle-form-title').textContent=bundle?'Edit bundle':'Create bundle';
+    for(const field of ['name','description','badge','image_url']) bundleForm.elements[field].value=bundle?.[field]||'';
+    bundleForm.elements.price.value=bundle?.price_cents?(bundle.price_cents/100).toFixed(2):'';
+    bundleForm.elements.active.checked=!!bundle?.active;
+    bundleForm.elements.featured.checked=!!bundle?.featured;
+    renderBundleRows(bundle?.components?.map(x=>({product_id:x.id,quantity:x.qty})));
+    bundleForm.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  async function loadBundles(){
+    try{
+      products=await api('/api/admin/products');
+      bundles=await api('/api/admin/bundles');
+      $('bundle-body').innerHTML=bundles.length?bundles.map(b=>`<tr><td><div class="admin-product"><img alt="" src="${esc(b.image_url||'/static/images/default.svg')}"><div><strong>${esc(b.name)}</strong><span>${b.components.map(c=>`${c.qty} × ${esc(c.name)}`).join(' · ')}</span></div></div></td><td><strong>${b.price_cents?money(b.price_cents):'Not set'}</strong>${b.save_cents?`<br><small class="v72-savings">Save ${money(b.save_cents)}</small>`:''}</td><td>${b.stock}</td><td><span class="status-pill ${b.active?'':'off'}">${b.active?'Live':'Draft / Hidden'}</span></td><td><div class="catalog-manage-actions"><button data-edit-bundle="${b.bundle_id}">Edit ↗</button>${b.active?`<button data-archive-bundle="${b.bundle_id}">Archive</button>`:''}</div></td></tr>`).join(''):'<tr><td colspan="5">No bundles yet. Create your first kit.</td></tr>';
+    }catch(err){$('bundle-body').textContent=err.message;}
+  }
+  $('new-bundle').addEventListener('click',()=>showBundleForm(null));
+  $('bundle-cancel').addEventListener('click',()=>{bundleForm.hidden=true;editingBundle=null;});
+  $('bundle-photo-upload').addEventListener('change',async event=>{
+    const file=event.target.files?.[0];if(!file)return;
+    const form=new FormData();form.append('file',file);
+    $('bundle-form-status').textContent='Uploading photo…';
+    try{
+      const response=await fetch('/api/admin/upload-image',{method:'POST',body:form,credentials:'same-origin'});
+      const data=await response.json();
+      if(!response.ok)throw Error(data.detail||'Photo upload failed.');
+      bundleForm.elements.image_url.value=data.url;
+      $('bundle-form-status').textContent='Photo uploaded. Save the bundle to use it.';
+    }catch(err){$('bundle-form-status').textContent=err.message;}
+  });
+  $('bundle-add-component').addEventListener('click',()=>{
+    if($('bundle-components').children.length>=10) return;
+    $('bundle-components').insertAdjacentHTML('beforeend',bundleRow({}));
+  });
+  $('bundle-components').addEventListener('click',e=>{
+    if(e.target.closest('[data-remove-bundle-row]') && $('bundle-components').children.length>2) e.target.closest('.v72-component').remove();
+  });
+  $('bundle-body').addEventListener('click',async e=>{
+    const edit=e.target.closest('[data-edit-bundle]'),archive=e.target.closest('[data-archive-bundle]');
+    if(edit)showBundleForm(bundles.find(b=>b.bundle_id===Number(edit.dataset.editBundle)));
+    if(archive&&confirm('Archive this bundle? Existing orders will stay in history.')){
+      try{await api(`/api/admin/bundles/${archive.dataset.archiveBundle}/archive`,{method:'POST'});await loadBundles();}catch(err){alert(err.message);}
+    }
+  });
+  bundleForm.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const f=bundleForm.elements;
+    const components=[...$('bundle-components').children].map(row=>({product_id:Number(row.querySelector('select').value),quantity:Number(row.querySelector('input').value)}));
+    const raw=f.price.value.trim();
+    const price_cents=raw?Math.round(Number(raw)*100):0;
+    const data={name:f.name.value.trim(),description:f.description.value.trim(),price_cents,
+      image_url:f.image_url.value.trim(),badge:f.badge.value.trim()||'BUNDLE OFFER',
+      active:f.active.checked,featured:f.featured.checked,components};
+    if(!Number.isInteger(price_cents)||price_cents<0){$('bundle-form-status').textContent='Enter a valid bundle price.';return;}
+    try{
+      const url=editingBundle?`/api/admin/bundles/${editingBundle}`:'/api/admin/bundles';
+      await api(url,{method:editingBundle?'PATCH':'POST',body:JSON.stringify(data)});
+      bundleForm.hidden=true;editingBundle=null;await loadBundles();summary();
+    }catch(err){$('bundle-form-status').textContent=err.message;}
+  });
+
   async function loadOrders(){
     try {
       const orders=await api('/api/admin/orders');

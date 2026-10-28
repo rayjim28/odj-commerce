@@ -11,6 +11,7 @@
   if(typeof cart !== 'object' || Array.isArray(cart)) cart = {};
   let category = 'all';
   let searchTerm = '';
+  let curatedIds = null;
   let toastTimeout;
 
   function save() { try { localStorage.setItem(key, JSON.stringify(cart)); } catch {} updateCounters(); }
@@ -54,10 +55,10 @@
   function closeCart(){byId('cart-drawer').classList.remove('open');byId('cart-drawer').setAttribute('aria-hidden','true');byId('drawer-backdrop').hidden=true;document.body.style.overflow='';}
   function productCard(p){
     const sold=p.stock===0;
-    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy"><span class="product-badge">${esc(p.badge||(p.featured?'ODJ FAVORITE':'EVERYDAY ESSENTIAL'))}</span></a><button class="product-quick-add" data-add="${p.id}" aria-label="Quick add ${esc(p.name)} to cart" ${sold?'disabled':''}>+</button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p><div class="product-card-actions"><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
+    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy"><span class="product-badge">${esc(p.badge||(p.featured?'ODJ FAVORITE':'EVERYDAY ESSENTIAL'))}</span></a><button class="product-quick-add" data-add="${p.id}" aria-label="Quick add ${esc(p.name)} to cart" ${sold?'disabled':''}>+</button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
   }
   function renderProducts(){
-    let list=products.filter(p=>(category==='all'||p.category===category)&&searchTerm.split(/\s+/).every(word=>(p.name+' '+p.description+' '+p.category).toLocaleLowerCase().includes(word)));
+    let list=products.filter(p=>(!curatedIds || curatedIds.has(p.id)) && (category==='all'||p.category===category)&&searchTerm.split(/\s+/).every(word=>(p.name+' '+p.description+' '+p.category).toLocaleLowerCase().includes(word)));
     const sort=byId('sort-select').value;
     if(sort==='low')list.sort((a,b)=>a.price_cents-b.price_cents);
     if(sort==='high')list.sort((a,b)=>b.price_cents-a.price_cents);
@@ -84,9 +85,19 @@
     if(btn.dataset.qty)changeQty(btn.dataset.qty,Number(btn.dataset.step));
     if(btn.dataset.remove){delete cart[btn.dataset.remove];save();renderDrawer();}
   });
-  byId('filters').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;category=b.dataset.category;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));renderProducts();});
+  function resetCurated(){curatedIds=null;byId('merch-filter-status').hidden=true;}
+  document.querySelectorAll('[data-merch-ids]').forEach(link=>link.addEventListener('click',()=>{
+    curatedIds=new Set((link.dataset.merchIds||'').split(',').map(Number).filter(Number.isInteger));
+    category='all';searchTerm='';byId('quick-search').value='';
+    document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));
+    byId('merch-filter-label').textContent=`Showing ${link.dataset.merchTitle || 'collection'} products`;
+    byId('merch-filter-status').hidden=false;
+    hideSuggestions();renderProducts();
+  }));
+  byId('clear-merch-filter').addEventListener('click',()=>{resetCurated();renderProducts();});
+  byId('filters').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;resetCurated();category=b.dataset.category;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));renderProducts();});
   byId('sort-select').addEventListener('change',renderProducts);
-  byId('reset-filter').addEventListener('click',()=>{category='all';searchTerm='';byId('quick-search').value='';document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));renderProducts();});
+  byId('reset-filter').addEventListener('click',()=>{resetCurated();category='all';searchTerm='';byId('quick-search').value='';document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));renderProducts();});
   // V6.1: live suggestions from the same public, published catalog as the storefront.
   // No admin, draft, or hidden products are ever passed to this search component.
   const searchInput = byId('quick-search');
@@ -140,6 +151,7 @@
     setSearchActive(-1);
   }
   function applySearch(){
+    resetCurated();
     searchTerm=searchInput.value.trim().toLocaleLowerCase();
     category='all';
     document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));
@@ -153,6 +165,7 @@
   }
   searchInput.addEventListener('focus', renderSuggestions);
   searchInput.addEventListener('input', () => {
+    resetCurated();
     searchTerm=searchInput.value.trim().toLocaleLowerCase();
     category='all';
     document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));

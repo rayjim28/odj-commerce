@@ -26,7 +26,7 @@ except ImportError:
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
-from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, now, engine
+from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, now, engine
 from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_password,
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
@@ -94,6 +94,44 @@ def serialize_product(p: Product):
       'sku':p.sku or '', 'badge':p.badge,'featured':p.featured,'active':p.active}
 
 
+def bundle_data(db: Session, b: Bundle):
+    """Negative catalog IDs distinguish bundles while preserving older cart API."""
+    components = []
+    available = 1_000_000
+    retail = 0
+    valid = bool(b.components)
+    for part in b.components:
+        product = db.get(Product, part.product_id)
+        if not product or not product.active or product.price_cents <= 0 or part.quantity < 1:
+            valid = False
+            available = 0
+            continue
+        components.append({'id':product.id, 'name':product.name, 'qty':part.quantity,
+                           'price_cents':product.price_cents, 'image_url':product.image_url})
+        retail += product.price_cents * part.quantity
+        available = min(available, product.stock // part.quantity)
+    if not valid:
+        available = 0
+    return {'id':-b.id,'bundle_id':b.id,'is_bundle':True,'name':b.name,
+      'slug':f'bundle-{b.id}', 'category':'Bundles & Offers', 'description':b.description,
+      'price_cents':b.price_cents, 'stock':max(0,available),
+      'image_url':b.image_url or (components[0]['image_url'] if components else '/static/images/default.svg'),
+      'additional_images':[], 'sku':'', 'badge':b.badge or 'BUNDLE OFFER',
+      'featured':b.featured, 'active':b.active, 'components':components,
+      'retail_cents':retail, 'save_cents':max(0,retail-b.price_cents) if valid and b.price_cents else 0,
+      'components_valid':valid}
+
+
+def public_catalog(db: Session):
+    result = [serialize_product(p) for p in db.scalars(select(Product).where(
+        Product.active.is_(True), Product.price_cents > 0).order_by(Product.featured.desc(), Product.id)).all()]
+    for bundle in db.scalars(select(Bundle).where(Bundle.active.is_(True), Bundle.price_cents > 0).order_by(Bundle.id)).all():
+        data = bundle_data(db,bundle)
+        if data['components_valid']:
+            result.append(data)
+    return result
+
+
 def serialize_order(o: Order):
     return {'id':o.id,'email':o.email,'status':o.status,'subtotal_cents':o.subtotal_cents,
         'shipping_cents':o.shipping_cents,'paid_total_cents':o.paid_total_cents,'items':o.items_snapshot,'shipping_details':o.shipping_details,
@@ -120,15 +158,40 @@ def base_url(request: Request) -> str:
     return (os.getenv('PUBLIC_BASE_URL') or str(request.base_url)).rstrip('/')
 
 
+def build_home_merchandising(products):
+    """Feature only published, priced catalog items; never invent product offers."""
+    available = [p for p in products if p['stock'] > 0]
+    highlighted = sorted(available, key=lambda p: (not p['featured'], p['id']))
+    spotlight = highlighted[0] if highlighted else None
+    themes = (
+        ('Mop systems', 'Start with the essentials for your floors.', ('mop', 'bucket', 'spin'), ('head', 'refill', 'replacement', 'handle')),
+        ('Parts & refills', 'Keep the right replacement items close by.', ('head', 'refill', 'replacement', 'handle'), ()),
+        ('Cleaning extras', 'The finishing touches for everyday upkeep.', ('cloth', 'brush', 'scrub', 'microfiber', 'wipes', 'cleaner'), ()),
+    )
+    guides = []
+    for title, subtitle, terms, excluded in themes:
+        matches = [p for p in products if any(w in (p['name'] + ' ' + p['category']).lower() for w in terms)
+                   and not any(w in p['name'].lower() for w in excluded)]
+        if matches:
+            guides.append({'title': title, 'subtitle': subtitle,
+                           'image_url': matches[0]['image_url'] or '/static/images/default.svg',
+                           'ids': [p['id'] for p in matches], 'count': len(matches)})
+    # Cross-sell adjacent catalog products as suggestions, not a promised compatible kit
+    # or a discount. Restrict to listed, currently in-stock items.
+    companion = [p for p in highlighted if spotlight and p['id'] != spotlight['id']]
+    return {'spotlight': spotlight, 'guides': guides, 'companions': companion[:3]}
+
+
 @app.get('/', response_class=HTMLResponse)
 def home(request: Request):
     with SessionLocal() as db:
-        products = [serialize_product(p) for p in db.scalars(select(Product).where(Product.active.is_(True), Product.price_cents > 0).order_by(Product.featured.desc(), Product.id)).all()]
+        products = public_catalog(db)
     categories = sorted(set(p['category'] for p in products))
     customer = signed_in_customer(request)
     with SessionLocal() as db:
         settings = store_settings(db)
     return templates.TemplateResponse(request, 'index.html', {'products':products,'categories':categories,'settings':settings,
+        'merch':build_home_merchandising(products), 'bundles':[p for p in products if p.get('is_bundle') and p['stock']>0][:3],
         'customer':customer, 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
 
 
@@ -136,6 +199,17 @@ def home(request: Request):
 @app.get('/products/{product_id}', response_class=HTMLResponse)
 def product_detail(product_id: int, request: Request):
     with SessionLocal() as db:
+        if product_id < 0:
+            bundle = db.get(Bundle, -product_id)
+            if not bundle or not bundle.active or bundle.price_cents < 1:
+                raise HTTPException(404, 'This bundle is unavailable.')
+            data = bundle_data(db,bundle)
+            if not data['components_valid']:
+                raise HTTPException(404, 'This bundle is unavailable.')
+            related = [p for p in public_catalog(db) if p['id'] != product_id][:3]
+            customer = signed_in_customer(request)
+            return templates.TemplateResponse(request, 'product.html', {
+                'product':data, 'related':related, 'customer':customer, 'now_year':datetime.now().year})
         product = db.get(Product, product_id)
         if not product or not product.active or product.price_cents <= 0:
             raise HTTPException(status_code=404, detail='This product is unavailable.')
@@ -517,11 +591,11 @@ def email_queue_status(request: Request):
 @app.get('/api/products')
 def get_products():
     with SessionLocal() as db:
-        return [serialize_product(p) for p in db.scalars(select(Product).where(Product.active.is_(True), Product.price_cents > 0).order_by(Product.id)).all()]
+        return public_catalog(db)
 
 
 class CartLine(BaseModel):
-    id: int = Field(gt=0)
+    id: int = Field(ne=0)
     qty: int = Field(ge=1, le=30)
 
 class CheckoutRequest(BaseModel):
@@ -534,8 +608,8 @@ def release_reservation(db: Session, order: Order, next_status: str):
     if order.status == 'paid':
         return
     if order.inventory_reserved:
-        for line in order.items_snapshot:
-            db.execute(update(Product).where(Product.id == line['id']).values(stock=Product.stock + line['qty']))
+        for product_id, units in stock_requirements(order.items_snapshot).items():
+            db.execute(update(Product).where(Product.id == product_id).values(stock=Product.stock + units))
         order.inventory_reserved = False
     order.status = next_status
 
@@ -568,16 +642,44 @@ def shipping_price(choice: str) -> int:
     return cents
 
 
+def stock_requirements(lines):
+    """Aggregate overlapping product/bundle quantities to avoid overselling."""
+    required = {}
+    for line in lines:
+        components = line.get('components') if line['id'] < 0 else None
+        if components:
+            for part in components:
+                required[part['id']] = required.get(part['id'], 0) + part['qty'] * line['qty']
+        else:
+            required[line['id']] = required.get(line['id'], 0) + line['qty']
+    return required
+
+
 def quote_lines(db: Session, items: list[CartLine]):
     if len({line.id for line in items}) != len(items):
-        raise HTTPException(400, 'Duplicate product lines.')
+        raise HTTPException(400, 'Duplicate cart lines.')
     result = []
     for line in items:
-        product = db.get(Product, line.id)
-        if not product or not product.active or product.price_cents < 1 or product.stock < line.qty:
-            raise HTTPException(409, 'An item is unavailable or low in stock. Please review your bag.')
-        result.append({'id':product.id, 'name':product.name, 'qty':line.qty,
-                       'price_cents':product.price_cents, 'image_url':product.image_url})
+        if line.id < 0:
+            b = db.get(Bundle, -line.id)
+            if not b or not b.active or b.price_cents < 1:
+                raise HTTPException(409, 'A bundle is no longer available.')
+            data = bundle_data(db,b)
+            if not data['components_valid'] or data['stock'] < line.qty:
+                raise HTTPException(409, 'A bundle is unavailable or low in stock.')
+            result.append({'id':line.id, 'name':b.name, 'qty':line.qty,
+                'price_cents':b.price_cents,'image_url':data['image_url'],
+                'components':[{'id':part['id'],'qty':part['qty']} for part in data['components']]})
+        else:
+            product = db.get(Product,line.id)
+            if not product or not product.active or product.price_cents < 1 or product.stock < line.qty:
+                raise HTTPException(409, 'An item is unavailable or low in stock. Please review your bag.')
+            result.append({'id':product.id,'name':product.name,'qty':line.qty,
+                'price_cents':product.price_cents,'image_url':product.image_url})
+    for pid,units in stock_requirements(result).items():
+        product = db.get(Product,pid)
+        if not product or not product.active or product.stock < units:
+            raise HTTPException(409,'Not enough stock for all items and bundles in this bag.')
     return result
 
 @app.get('/checkout', response_class=HTMLResponse)
@@ -653,19 +755,16 @@ async def checkout(payload: CheckoutRequest, request: Request):
     shipping = shipping_price(payload.shipping_option)
     order_id = str(uuid.uuid4())
     with SessionLocal() as db:
-        lines = []
         try:
-            for line in payload.items:
-                # Conditional UPDATE is atomic and prevents multiple buyers claiming the last item.
-                result = db.execute(update(Product).where(
-                    Product.id == line.id, Product.active.is_(True), Product.price_cents > 0, Product.stock >= line.qty
-                ).values(stock=Product.stock - line.qty))
-                if result.rowcount != 1:
-                    raise HTTPException(409, f'An item is unavailable or has insufficient stock. Refresh your cart.')
-                item = db.get(Product, line.id)
-                if not item or item.price_cents < 1:
-                    raise HTTPException(409, 'An item is not available.')
-                lines.append({'id':item.id,'name':item.name,'qty':line.qty,'price_cents':item.price_cents})
+            # Quote server-side prices, then atomically reserve every underlying product.
+            # A kit plus an individual component counts against the same stock pool.
+            lines = quote_lines(db, payload.items)
+            for product_id, units in stock_requirements(lines).items():
+                reserved = db.execute(update(Product).where(
+                    Product.id == product_id, Product.active.is_(True), Product.stock >= units
+                ).values(stock=Product.stock - units))
+                if reserved.rowcount != 1:
+                    raise HTTPException(409, 'Inventory changed. Refresh your shopping bag.')
             subtotal = sum(item['qty'] * item['price_cents'] for item in lines)
             order = Order(id=order_id, customer_id=customer.id, email=customer.email, status='pending', subtotal_cents=subtotal,
                           shipping_cents=shipping, inventory_reserved=True, items_snapshot=lines, payment_mode='stripe', fulfillment_status='unfulfilled')
@@ -851,6 +950,77 @@ def add_product(payload: ProductInput, request: Request):
         return serialize_product(p)
 
 
+class BundlePartInput(BaseModel):
+    product_id: int = Field(gt=0)
+    quantity: int = Field(ge=1, le=30)
+
+class BundleInput(BaseModel):
+    name: str = Field(min_length=2, max_length=160)
+    description: str = Field(default='', max_length=2000)
+    price_cents: int = Field(ge=0, le=100000000)
+    image_url: str = Field(default='', max_length=500)
+    badge: str = Field(default='BUNDLE OFFER', max_length=50)
+    featured: bool = False
+    active: bool = False
+    components: list[BundlePartInput] = Field(min_length=2, max_length=10)
+
+
+def validate_bundle(db: Session, data: BundleInput):
+    if not check_image(data.image_url):
+        raise HTTPException(400, 'Use an uploaded image or a valid HTTPS image.')
+    ids = [part.product_id for part in data.components]
+    if len(ids) != len(set(ids)):
+        raise HTTPException(400, 'Choose different products for each bundle component.')
+    for pid in ids:
+        if not db.get(Product, pid):
+            raise HTTPException(400, 'One of the bundle components does not exist.')
+    if data.active:
+        if data.price_cents <= 0:
+            raise HTTPException(400, 'Set a price before publishing the bundle.')
+        for pid in ids:
+            product = db.get(Product,pid)
+            if not product.active or product.price_cents <= 0:
+                raise HTTPException(400, 'Publish and price all component products before activating this bundle.')
+
+@app.get('/api/admin/bundles')
+def admin_bundles(request: Request):
+    require_admin(request)
+    with SessionLocal() as db:
+        return [bundle_data(db,b) for b in db.scalars(select(Bundle).order_by(Bundle.id.desc())).all()]
+
+@app.post('/api/admin/bundles')
+def add_bundle(data: BundleInput, request: Request):
+    require_admin(request)
+    with SessionLocal() as db:
+        validate_bundle(db,data)
+        b = Bundle(**data.model_dump(exclude={'components'}))
+        b.components = [BundleComponent(product_id=i.product_id, quantity=i.quantity) for i in data.components]
+        db.add(b); db.commit(); db.refresh(b)
+        return bundle_data(db,b)
+
+@app.patch('/api/admin/bundles/{bundle_id}')
+def edit_bundle(bundle_id: int, data: BundleInput, request: Request):
+    require_admin(request)
+    with SessionLocal() as db:
+        b = db.get(Bundle,bundle_id)
+        if not b: raise HTTPException(404, 'Bundle not found.')
+        validate_bundle(db,data)
+        for field,value in data.model_dump(exclude={'components'}).items():
+            setattr(b,field,value)
+        b.components = [BundleComponent(product_id=i.product_id,quantity=i.quantity) for i in data.components]
+        db.commit(); db.refresh(b)
+        return bundle_data(db,b)
+
+@app.post('/api/admin/bundles/{bundle_id}/archive')
+def archive_bundle(bundle_id: int,request: Request):
+    require_admin(request)
+    with SessionLocal() as db:
+        b = db.get(Bundle,bundle_id)
+        if not b: raise HTTPException(404,'Bundle not found.')
+        b.active=False; db.commit(); db.refresh(b)
+        return bundle_data(db,b)
+
+
 @app.post('/api/admin/upload-image')
 async def upload_product_image(request: Request, file: UploadFile = File(...)):
     require_admin(request)
@@ -898,6 +1068,8 @@ def delete_unpublished_product(product_id: int, request: Request):
             raise HTTPException(404, 'Product not found.')
         if product.active:
             raise HTTPException(409, 'Archive this product before deleting it.')
+        if db.scalar(select(BundleComponent).where(BundleComponent.product_id == product_id)):
+            raise HTTPException(409, 'This product belongs to a bundle. Remove it from bundles first.')
         # Never hard-delete a product referenced by an order; failed checkout stock
         # reservations and historical order snapshots may still depend on its ID.
         for (items,) in db.execute(select(Order.items_snapshot)):

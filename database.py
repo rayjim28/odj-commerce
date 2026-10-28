@@ -37,6 +37,27 @@ class Product(Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
+class Bundle(Base):
+    __tablename__ = 'bundles'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default='')
+    price_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    image_url: Mapped[str] = mapped_column(String(500), default='')
+    badge: Mapped[str] = mapped_column(String(50), default='BUNDLE OFFER')
+    featured: Mapped[bool] = mapped_column(Boolean, default=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    components: Mapped[list['BundleComponent']] = relationship(back_populates='bundle', cascade='all, delete-orphan', lazy='selectin')
+
+class BundleComponent(Base):
+    __tablename__ = 'bundle_components'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    bundle_id: Mapped[int] = mapped_column(ForeignKey('bundles.id', ondelete='CASCADE'), nullable=False, index=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey('products.id'), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    bundle: Mapped[Bundle] = relationship(back_populates='components')
+
 class Customer(Base):
     __tablename__ = 'customers'
     id: Mapped[int] = mapped_column(primary_key=True)

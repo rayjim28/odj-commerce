@@ -2,15 +2,15 @@
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ODJ Group | Cleaning Essentials, Elevated</title>
-<meta name="description" content="Explore dependable cleaning essentials from ODJ Group LLC. Everyday products, elevated shopping.">
+<meta name="description" content="Shop ODJ Group cleaning essentials, including mop systems, replacement parts and practical accessories. Find the right tools for your everyday routine.">
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=6-1">
+<link rel="stylesheet" href="/static/style.css?v=7-2">
 </head><body>
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
 <header class="site-header" id="top">
   <div class="container nav-wrap">
     <a class="brand" href="/" aria-label="ODJ Group home"><span class="brand-monogram">ODJ<span class="brand-period">.</span></span><span class="brand-text">GROUP LLC <small>CLEANING ESSENTIALS</small></span></a>
-    <nav class="main-nav" aria-label="Main navigation"><a class="nav-active" href="#top">Home</a><a href="#shop">Shop all</a><a href="#about">Our promise</a></nav>
+    <nav class="main-nav" aria-label="Main navigation"><a class="nav-active" href="#top">Home</a><a href="#shop">Shop all</a><a href="#collections">Collections</a><a href="#faq">FAQs</a></nav>
     <div class="header-search" id="header-search" role="search">
       <label class="sr-only" for="quick-search">Search ODJ products</label>
       <span class="header-search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 5 5"/></svg></span>
@@ -29,29 +29,68 @@
 <section class="hero">
   <div class="hero-noise"></div><div class="hero-orbit hero-orbit-a"></div><div class="hero-orbit hero-orbit-b"></div>
   <div class="container hero-inner">
-    <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE ODJ STANDARD <span class="eyebrow-number">/ 001</span></div>
-      <h1>The little things<br>make a <em>big</em><br>difference<span class="gold-period">.</span></h1>
-      <p>Thoughtfully selected cleaning essentials for the spaces you live, work, and thrive in. Everyday quality, without the everyday compromise.</p>
-      <div class="hero-ctas"><a class="btn btn-gold" href="#shop">Shop the collection <span>↗</span></a><a class="text-link" href="#about">Discover ODJ <span>↗</span></a></div>
-      <div class="hero-social"><span class="hero-line"></span><span>EVERYDAY QUALITY</span><span class="hero-bullet">✦</span><span>PRODUCTS YOU CAN TRUST</span></div>
+    <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> CLEANING ESSENTIALS, CONSIDERED <span class="eyebrow-number">/ 001</span></div>
+      <h1>A better clean<br>starts with the<br><em>right tools.</em></h1>
+      <p>Mop systems, replacement parts, and practical cleaning accessories—brought together to make finding what you need simpler.</p>
+      <div class="hero-ctas"><a class="btn btn-gold" href="#shop">Shop cleaning essentials <span>↗</span></a><a class="text-link" href="#collections">Explore collections <span>↗</span></a></div>
+      <div class="hero-social"><span class="hero-line"></span><span>MOP SYSTEMS</span><span class="hero-bullet">✦</span><span>REFILLS &amp; ACCESSORIES</span></div>
     </div>
     <div class="hero-art"><div class="hero-art-halo"></div><div class="hero-art-border"></div><img src="/static/images/odj-cleaning-logo.webp" alt="ODJ Group LLC Cleaning Essentials, products you can trust" class="hero-logo"/><div class="hero-art-small"><span class="star-icon">✦</span> MADE FOR REAL LIFE <small>01 / COLLECTION</small></div><div class="hero-art-caption"><span>THE ODJ</span><strong>COLLECTION</strong><span>EST. WITH PURPOSE</span></div></div>
   </div><div class="hero-index">01 — 03 <span>SCROLL TO EXPLORE ↓</span></div>
 </section>
-<section class="promise-bar"><div class="container promise-grid"><div><span class="promise-symbol">✧</span><span><strong>Everyday quality</strong><small>Essentials made simple</small></span></div><div><span class="promise-symbol">↗</span><span><strong>Checkout options</strong><small>Stripe integration in preparation</small></span></div><div><span class="promise-symbol">◇</span><span><strong>Thoughtful selection</strong><small>Products for real life</small></span></div><div><span class="promise-symbol">✦</span><span><strong>ODJ Group LLC</strong><small>Products you can trust</small></span></div></div></section>
+<section class="v71-benefit-strip" aria-label="Why shop ODJ">
+ <div class="container v71-benefit-grid">
+  <div><span class="v71-benefit-symbol" aria-hidden="true">01</span><span><strong>Find what fits your routine</strong><small>Shop focused cleaning essentials, not endless aisles.</small></span></div>
+  <div><span class="v71-benefit-symbol" aria-hidden="true">02</span><span><strong>Keep your setup going</strong><small>Browse replacements and everyday accessories.</small></span></div>
+  <div><span class="v71-benefit-symbol" aria-hidden="true">03</span><span><strong>Shop with the details</strong><small>Review product information and prices before checkout.</small></span></div>
+ </div>
+</section>
+{% if merch.spotlight %}
+<section class="v71-feature-section" aria-labelledby="v71-feature-heading"><div class="container v71-feature-grid">
+ <div class="v71-feature-photo"><a href="/products/{{ merch.spotlight.id }}" aria-label="See {{ merch.spotlight.name }} details"><img src="{{ merch.spotlight.image_url or '/static/images/default.svg' }}" alt="{{ merch.spotlight.name }}" loading="lazy"></a><span class="v71-photo-label">FROM THE ODJ COLLECTION</span></div>
+ <div class="v71-feature-copy"><div class="section-kicker">THE FEATURED PICK</div><h2 id="v71-feature-heading">A good place<br>to <em>start.</em></h2><h3>{{ merch.spotlight.name }}</h3><p>{{ merch.spotlight.description or 'Explore the details and see whether this item is right for your cleaning routine.' }}</p><div class="v71-feature-price">${{ '%.2f'|format(merch.spotlight.price_cents / 100) }}</div><a class="btn btn-gold" href="/products/{{ merch.spotlight.id }}">Explore this product <span aria-hidden="true">↗</span></a></div>
+</div></section>
+{% endif %}
+{% if merch.guides %}
+<section class="v71-collections" id="collections" aria-labelledby="v71-collections-title"><div class="container">
+ <div class="v71-section-head"><div><span class="section-kicker">SHOP BY WHAT YOU NEED</span><h2 id="v71-collections-title">Find your <em>routine.</em></h2><p>Start with a system, find replacement parts, or discover small essentials for the finishing touches.</p></div><a href="#shop" class="v71-view-all">Browse everything <span aria-hidden="true">↗</span></a></div>
+ <div class="v71-collections-grid">
+ {% for guide in merch.guides %}<a href="#shop" class="v71-collection-card" data-merch-ids="{{ guide.ids|join(',') }}" data-merch-title="{{ guide.title }}" aria-label="Browse {{ guide.title }}: {{ guide.count }} products">
+  <div class="v71-collection-copy"><small>COLLECTION / 0{{ loop.index }}</small><h3>{{ guide.title }}</h3><p>{{ guide.subtitle }}</p><span class="v71-collection-more">{{ guide.count }} {{ 'product' if guide.count == 1 else 'products' }} <b aria-hidden="true">↗</b></span></div>
+  <img src="{{ guide.image_url }}" alt="" loading="lazy">
+ </a>{% endfor %}
+ </div>
+</div></section>
+{% endif %}
+{% if bundles %}<section class="v72-home-bundles"><div class="container"><div class="v71-section-head"><div><span class="section-kicker">ODJ BUNDLES &amp; OFFERS</span><h2>Better <em>together.</em></h2><p>Curated cleaning kits with clear contents, prices, and availability.</p></div></div><div class="v72-home-grid">{% for bundle in bundles %}<a class="v72-home-bundle" href="/products/{{bundle.id}}"><img src="{{bundle.image_url}}" alt="{{bundle.name}}"><span><small>ODJ BUNDLE</small><strong>{{bundle.name}}</strong><span>${{ '%.2f'|format(bundle.price_cents / 100) }}{% if bundle.save_cents > 0 %} · Save ${{ '%.2f'|format(bundle.save_cents / 100) }}{% endif %}</span><b>Explore this kit ↗</b></span></a>{% endfor %}</div></div></section>{% endif %}
 <section class="shop-section" id="shop"><div class="container">
- <div class="shop-top"><div><div class="section-kicker">✦ CURATED FOR EVERYDAY</div><h2>Shop the <em>essentials.</em></h2><p>A good clean starts with the right products. Find your everyday favorites here.</p></div><div class="shop-label">THE COLLECTION <span> / 2026</span></div></div>
+ <div class="shop-top"><div><div class="section-kicker">✦ CURATED FOR EVERYDAY</div><h2>Shop the <em>essentials.</em></h2><p>Explore our live catalog. Every item shown here is available to view and priced by the store owner.</p></div><div class="shop-label">THE ODJ COLLECTION</div></div>
  <div class="shop-toolbar"><div class="filters" id="filters"><button data-category="all" class="filter active">All products</button>{% for category in categories %}<button class="filter" data-category="{{category}}">{{category}}</button>{% endfor %}</div><div class="shop-sort"><span id="product-results">{{ products | length }} products</span><select id="sort-select" aria-label="Sort products"><option value="featured">Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="name">Name: A–Z</option></select></div></div>
+ <div class="v71-filter-active" id="merch-filter-status" hidden><span id="merch-filter-label"></span><button type="button" id="clear-merch-filter">Show all products <span aria-hidden="true">×</span></button></div>
  <div id="product-grid" class="product-grid">
  {% for product in products %}<article class="product-card" data-product-id="{{product.id}}"><div class="product-image"><a class="product-image-link" href="/products/{{product.id}}" aria-label="View details for {{product.name}}"><img src="{{product.image_url or '/static/images/default.svg'}}" alt="{{product.name}}" loading="lazy"><span class="product-badge">{{product.badge or ('ODJ FAVORITE' if product.featured else 'EVERYDAY ESSENTIAL')}}</span></a><button class="product-quick-add" data-add="{{product.id}}" aria-label="Quick add {{product.name}} to cart" {% if product.stock == 0 %}disabled{% endif %}>+</button></div><div class="product-info"><span class="product-category">{{product.category}}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/{{product.id}}">{{product.name}}</a></h3><strong>${{ '%.2f'|format(product.price_cents / 100) }}</strong></div><p>{{product.description}}</p><div class="product-card-actions"><a class="product-view-link" href="/products/{{product.id}}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="{{product.id}}" {% if product.stock == 0 %}disabled{% endif %}>{{'Sold out' if product.stock == 0 else 'Add to bag'}} <span>+</span></button></div></div></article>{% endfor %}
  </div>
  <div class="no-results" id="no-results" hidden><span>✳</span><h3>Nothing in this collection yet.</h3><p>Try another category or search term.</p><button class="btn btn-outline" id="reset-filter">View all products</button></div>
  </div></section>
+{% if merch.companions|length >= 1 %}
+<section class="v71-companions" aria-labelledby="v71-companions-title"><div class="container">
+ <div class="v71-section-head"><div><span class="section-kicker">KEEP YOUR ROUTINE MOVING</span><h2 id="v71-companions-title">Explore what <em>goes next.</em></h2><p>Looking at {{ merch.spotlight.name }}? Here are more ODJ essentials to consider. Check product details for compatibility before ordering.</p></div></div>
+ <div class="v71-companion-grid">{% for product in merch.companions %}
+  <a class="v71-companion-card" href="/products/{{ product.id }}"><div class="v71-companion-image"><img src="{{ product.image_url or '/static/images/default.svg' }}" alt="{{ product.name }}" loading="lazy"></div><div class="v71-companion-info"><span>{{ product.category }}</span><strong>{{ product.name }}</strong><small>${{ '%.2f'|format(product.price_cents / 100) }} <span aria-hidden="true">↗</span></small></div></a>
+ {% endfor %}</div>
+</div></section>
+{% endif %}
+<section class="v71-faq" id="faq" aria-labelledby="v71-faq-heading"><div class="container v71-faq-grid"><div class="v71-faq-intro"><span class="section-kicker">GOOD TO KNOW</span><h2 id="v71-faq-heading">Questions?<br><em>We've got answers.</em></h2><p>Just the basics to help you shop with confidence. Need something specific? Reach out to ODJ.</p><a href="/information/contact" class="btn btn-outline-dark">Contact ODJ <span aria-hidden="true">↗</span></a></div><div class="v71-faq-questions">
+ <details><summary>Do I need an account to purchase? <span aria-hidden="true">+</span></summary><p>Yes. You can explore products and build a bag as a guest, but you'll need to sign in or create an account to place an order.</p></details>
+ <details><summary>How do I find the right replacement part? <span aria-hidden="true">+</span></summary><p>Review the product description and specifications for compatibility. If you're unsure about a handle, bucket, or mop head, <a href="/information/contact">contact us before ordering</a>.</p></details>
+ <details><summary>Where do I see shipping costs? <span aria-hidden="true">+</span></summary><p>Available shipping choices and their costs appear at checkout. You can also review the <a href="/information/shipping">shipping information</a>. Payment is currently in demo mode while the store prepares for launch.</p></details>
+ <details><summary>What is the return policy? <span aria-hidden="true">+</span></summary><p>Please check our current <a href="/information/returns">returns and refunds information</a> for the policy set by ODJ Group.</p></details>
+ </div></div></section>
 <section class="editorial" id="about"><div class="container editorial-grid"><div class="editorial-image"><img src="/static/images/odj-group-logo.webp" alt="ODJ Group global e-commerce, distribution and logistics logo" loading="lazy"><div class="editorial-image-overlay"><span>ODJ / GROUP</span><span>BEYOND EVERYDAY</span></div></div><div class="editorial-copy"><div class="section-kicker gold">A NAME BEHIND EVERY DETAIL</div><h2>More than<br><em>just clean.</em></h2><p>ODJ Group connects everyday needs with products that make a difference. Our cleaning essentials collection is built around one simple idea: make quality easier to find.</p><div class="editorial-signature"><span class="signature-mark">ODJ.</span><span>PRODUCTS YOU CAN TRUST<br>EVERY SINGLE DAY</span></div><a class="btn btn-outline-dark" href="#shop">Explore the shop <span>↗</span></a></div></div></section>
 <section class="bottom-cta"><div class="container"><span>GOOD THINGS START HERE</span><h2>Make room for <em>better.</em></h2><a class="btn btn-gold" href="#shop">Shop ODJ essentials <span>↗</span></a></div></section>
 </main>
 <footer class="footer"><div class="container"><div class="footer-top"><div><a class="footer-brand" href="#top">ODJ<span>.</span></a><p>Cleaning essentials. Products you can trust.<br>Part of ODJ Group LLC.</p></div><div class="footer-links"><div><strong>EXPLORE</strong><a href="#shop">Shop all</a><a href="#about">Our promise</a><a href="#top">Back to top</a></div><div><strong>INFORMATION</strong><a href="/information/contact">Customer support</a><a href="/information/shipping">Shipping policy</a><a href="/information/returns">Returns &amp; refunds</a></div></div></div><div class="footer-bottom"><span>© <span id="copyright-year">2026</span> ODJ GROUP LLC. ALL RIGHTS RESERVED.</span><span>POWERED BY ODJ CHECKOUT <span class="footer-sparkle">✦</span></span></div></div></footer>
 <div class="drawer-backdrop" id="drawer-backdrop" hidden></div><aside class="cart-drawer" id="cart-drawer" aria-label="Shopping cart" aria-modal="true" role="dialog" aria-hidden="true"><div class="drawer-head"><div><small>YOUR SELECTION</small><h2>Shopping bag <span id="drawer-count">(0)</span></h2></div><button class="close-cart" id="close-cart" aria-label="Close cart">×</button></div><div class="drawer-items" id="drawer-items"></div><div class="drawer-bottom"><div class="drawer-subtotal"><span>Subtotal</span><strong id="cart-subtotal">$0.00</strong></div><p>Shipping and applicable tax calculated at checkout.</p><button class="btn btn-gold checkout-button" id="checkout-button" type="button">Secure checkout <span class="checkout-arrow" aria-hidden="true">↗</span></button><div id="checkout-message" class="checkout-message" role="status"></div><div class="payments-caption">🔒 Checkout details protected · Stripe coming soon</div></div></aside>
 <div class="toast" id="toast" aria-live="polite"></div>
-<script>window.ODJ_PRODUCTS = {{products | tojson}}; window.ODJ_CUSTOMER = {{customer_json | tojson}};</script><script src="/static/js/store.js?v=6-1" defer></script>
+<script>window.ODJ_PRODUCTS = {{products | tojson}}; window.ODJ_CUSTOMER = {{customer_json | tojson}};</script><script src="/static/js/store.js?v=7-1" defer></script>
 </body></html>

@@ -14,7 +14,7 @@
   const mode = window.ODJ_CHECKOUT_MODE;
   const selectedShipping = () => document.querySelector('input[name="shipping"]:checked')?.value || 'standard';
   const cartLines = () => Object.entries(cart)
-    .filter(([id, qty]) => /^\d+$/.test(id) && Number(id) > 0 && Number.isInteger(Number(qty)) && Number(qty) >= 1 && Number(qty) <= 30)
+    .filter(([id, qty]) => /^-?\d+$/.test(id) && Number(id) !== 0 && Number.isInteger(Number(qty)) && Number(qty) >= 1 && Number(qty) <= 30)
     .slice(0, 40).map(([id, qty]) => ({id: Number(id), qty: Number(qty)}));
   const catalogItem = id => catalog && catalog.find(p => p.id === id);
   const photoUrl = url => typeof url === 'string' && /^(\/static\/|\/media\/)/.test(url) ? url : '/static/images/default.svg';

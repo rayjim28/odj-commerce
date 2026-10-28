@@ -38,3 +38,11 @@ Private customer order details, live owner-managed shipping and policy settings,
 ## Phase 7A — launch preparation (V7)
 
 Admin → **Launch checklist** provides a configuration-only launch audit without showing secrets. Run `python scripts/check_launch.py` for a terminal view, and `python scripts/backup_local.py` to back up local SQLite and product uploads to a private ignored ZIP. See `UPGRADE_TO_V7.md`. This is **not a public launch**; no Stripe account, live payment processing, production hosting, or email delivery is activated.
+
+### V7.1 — Customer-first homepage merchandising
+
+The homepage now includes a featured public product, catalog-based shop-by-need tiles, related product suggestions, concise buying benefits, and a policy-linked FAQ. These sections automatically use the live published catalog rather than displaying draft inventory, fabricated sales, or promised discounts. Existing product, account, checkout, and admin workflows are unchanged. See `UPGRADE_TO_V7_1.md` for installation steps.
+
+## V7.2 — Bundles & Offers
+
+Create fixed-price multi-product bundles through **Admin → Bundles & Offers**. Draft bundles stay private; live bundles use existing product inventory, show verified price savings and appear on the homepage and product catalog. See `UPGRADE_TO_V7_2.md` for safe installation and test-mode Stripe setup. Never commit `.env` or live credentials.
