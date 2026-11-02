@@ -54,13 +54,13 @@ def order_email(order, kind='order_confirmation'):
         tracking = '<p>Carrier: '+html.escape(order.carrier or 'Pending')+'<br>Tracking: '+html.escape(order.tracking_number or 'Not available')+'<br>Status: '+html.escape(order.fulfillment_status or 'processing')+'</p>'
     body = ('<p>Order <strong>#'+html.escape(order.id[:8].upper())+'</strong></p>'
          +'<table style="width:100%">'+rows+'</table>'
-         +'<p>Subtotal: '+money(order.subtotal_cents)+'<br>Shipping: '+money(order.shipping_cents)
-         +'<br><strong>Order total: '+money(order.subtotal_cents+order.shipping_cents)+'</strong></p>'
+         +'<p>Subtotal: '+money(order.subtotal_cents)+(('<br>Promotion: −'+money(order.discount_cents)) if (order.discount_cents or 0) else '')+'<br>Shipping: '+money(order.shipping_cents)
+         +'<br><strong>Order total: '+money(order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0))+'</strong></p>'
          +(('<p>Shipping address: '+addr+'</p>') if addr else '')+tracking)
     notice='DEMO ONLY — NOT PAID. NO REAL PURCHASE OR SHIPMENT.' if demo else ''
     return {'subject':('ODJ TEST ORDER' if demo else 'ODJ '+ ('Shipping update' if kind == 'shipping_update' else 'Order confirmation'))+' #'+order.id[:8].upper(),
             'html':email_layout(header,body,notice),
-            'text':header+'\nOrder #'+order.id[:8].upper()+'\nTotal: '+money(order.subtotal_cents+order.shipping_cents)+('\nDEMO ONLY — NO PAYMENT' if demo else '')}
+            'text':header+'\nOrder #'+order.id[:8].upper()+'\nTotal: '+money(order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0))+('\nDEMO ONLY — NO PAYMENT' if demo else '')}
 
 
 def queue_message(db, key, kind, recipient, subject, body_html, body_text):
@@ -85,3 +85,17 @@ def queue_token_message(db, kind, customer, url, key):
     link=html.escape(url, quote=True)
     built=email_layout(heading,'<p>If you requested this, use the secure link below. '+('It expires in 30 minutes.' if kind=='password_reset' else 'It expires in 24 hours.')+'</p><p><a href="'+link+'" style="color:#ffce83">'+heading+'</a></p><p>If not, ignore this email.</p>')
     queue_message(db,key,kind,customer.email,'ODJ Group · '+heading,built,heading+'\n'+url+'\nIgnore if not requested.')
+
+
+def newsletter_email(kind, link):
+    """Only signed, server-authored URLs are included. Email sending is opt-in and separately configured."""
+    safe=html.escape(link,quote=True)
+    if kind == 'confirm_newsletter':
+        heading='Confirm your ODJ updates'
+        content='<p>Confirm that you asked to receive ODJ product news and offers.</p><p><a style="color:#e6bd7c" href="'+safe+'">Confirm my subscription</a></p><p>If you did not sign up, ignore this message.</p>'
+        text_body=heading+'\n'+link+'\nIgnore if not requested.'
+    else:
+        heading='Welcome to the ODJ collection'
+        content='<p>Thanks for joining. We’ll share occasional cleaning essentials, product updates and offers when available.</p><p><a style="color:#e6bd7c" href="'+safe+'">Unsubscribe at any time</a></p>'
+        text_body=heading+'\nUnsubscribe: '+link
+    return {'subject':'ODJ Group · '+heading,'html':email_layout(heading,content),'text':text_body}

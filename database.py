@@ -78,6 +78,8 @@ class Order(Base):
     status: Mapped[str] = mapped_column(String(30), default='pending')
     subtotal_cents: Mapped[int] = mapped_column(Integer, default=0)
     shipping_cents: Mapped[int] = mapped_column(Integer, default=0)
+    discount_cents: Mapped[int] = mapped_column(Integer, default=0)
+    promo_code: Mapped[str] = mapped_column(String(24), default='')
     paid_total_cents: Mapped[int] = mapped_column(Integer, default=0)
     stripe_session_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
     inventory_reserved: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -115,6 +117,31 @@ class EmailOutbox(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
+class NewsletterSubscriber(Base):
+    __tablename__ = 'newsletter_subscribers'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    status: Mapped[str] = mapped_column(String(20), default='pending', nullable=False)
+    consent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    confirmed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    unsubscribed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+class Favorite(Base):
+    __tablename__ = 'favorites'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey('customers.id'), nullable=False, index=True)
+    product_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    __table_args__ = (__import__('sqlalchemy').UniqueConstraint('customer_id','product_id', name='uq_customer_favorite'),)
+
+class Promotion(Base):
+    __tablename__ = 'promotions'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(24), nullable=False, unique=True)
+    percent_off: Mapped[int] = mapped_column(Integer, nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
 class WebhookEvent(Base):
     __tablename__ = 'stripe_webhook_events'
     event_id: Mapped[str] = mapped_column(String(255), primary_key=True)
@@ -144,6 +171,8 @@ def create_tables():
     # V5 fields are additive; never modify or remove existing orders/accounts/products.
     fields = {col['name'] for col in inspect(engine).get_columns('orders')}
     additions = {
+        'discount_cents': 'INTEGER DEFAULT 0',
+        'promo_code': "VARCHAR(24) DEFAULT ''",
         'payment_mode': "VARCHAR(20) DEFAULT 'stripe'",
         'fulfillment_status': "VARCHAR(24) DEFAULT 'unfulfilled'",
         'tracking_number': "VARCHAR(120) DEFAULT ''",

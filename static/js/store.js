@@ -55,7 +55,7 @@
   function closeCart(){byId('cart-drawer').classList.remove('open');byId('cart-drawer').setAttribute('aria-hidden','true');byId('drawer-backdrop').hidden=true;document.body.style.overflow='';}
   function productCard(p){
     const sold=p.stock===0;
-    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy"><span class="product-badge">${esc(p.badge||(p.featured?'ODJ FAVORITE':'EVERYDAY ESSENTIAL'))}</span></a><button class="product-quick-add" data-add="${p.id}" aria-label="Quick add ${esc(p.name)} to cart" ${sold?'disabled':''}>+</button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
+    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy"><span class="product-badge">${esc(p.badge||(p.featured?'ODJ FAVORITE':'EVERYDAY ESSENTIAL'))}</span></a><button class="product-quick-add" data-add="${p.id}" aria-label="Quick add ${esc(p.name)} to cart" ${sold?'disabled':''}>+</button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><button type="button" class="v73-favorite-action" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites">♡ Save</button><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
   }
   function renderProducts(){
     let list=products.filter(p=>(!curatedIds || curatedIds.has(p.id)) && (category==='all'||p.category===category)&&searchTerm.split(/\s+/).every(word=>(p.name+' '+p.description+' '+p.category).toLocaleLowerCase().includes(word)));
@@ -68,7 +68,18 @@
     byId('product-grid').innerHTML=list.map(productCard).join('');
     byId('no-results').hidden=!!list.length;
   }
+  async function saveFavorite(button){
+    if(!window.ODJ_CUSTOMER?.signedIn){location.assign('/account');return;}
+    button.disabled=true;
+    try{
+      const res=await fetch('/api/account/favorites/'+encodeURIComponent(button.dataset.favorite),{method:'POST',credentials:'same-origin'});
+      if(!res.ok)throw Error('Could not save favorite.');
+      button.textContent='♥ Saved';toast('Saved to your favorites.');
+    }catch(err){toast(err.message);}finally{button.disabled=false;}
+  }
   byId('product-grid').addEventListener('click',e=>{
+    const favoriteButton=e.target.closest('[data-favorite]');
+    if(favoriteButton){saveFavorite(favoriteButton);return;}
     const addButton=e.target.closest('[data-add]');
     if(addButton){add(addButton.dataset.add);return;}
     // Image, title and 'View details' are real links. Clicking card whitespace also opens details.
@@ -203,6 +214,16 @@
     }
     if(!validLines().length){toast('Add a product to your bag first.');return;}
     window.location.assign('/checkout');
+  });
+  const newsForm=byId('newsletter-form');
+  if(newsForm)newsForm.addEventListener('submit',async e=>{
+    e.preventDefault();const status=byId('newsletter-feedback');const btn=newsForm.querySelector('button');
+    btn.disabled=true;status.textContent='Saving your request…';
+    try{
+      const r=await fetch('/api/newsletter/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({email:byId('newsletter-email').value,consent:byId('newsletter-consent').checked})});
+      const d=await r.json();if(!r.ok)throw Error(d.detail||'Signup unavailable.');
+      status.textContent=d.message;newsForm.reset();
+    }catch(err){status.textContent=err.message;}finally{btn.disabled=false;}
   });
   byId('copyright-year').textContent=new Date().getFullYear();
   if(new URLSearchParams(location.search).has('checkout_cancelled'))toast('Checkout cancelled. Your bag is still here.');

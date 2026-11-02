@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy import select, update, func, text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from fastapi import FastAPI, Request, HTTPException, UploadFile, File
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -26,12 +26,12 @@ except ImportError:
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
-from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, now, engine
+from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, now, engine
 from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_password,
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
 from payment import create_checkout, verify_webhook, StripeError
-from notifications import store_settings, queue_order_notice, queue_token_message, order_email
+from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email
 from launch_readiness import launch_readiness
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
@@ -77,14 +77,14 @@ async def protect_private_pages(request: Request, call_next):
     if path == '/admin' or path.startswith('/api/admin/'):
         response.headers['Cache-Control'] = 'no-store, private'
         response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
-    elif path in ('/account', '/checkout') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/')):
+    elif path.startswith('/newsletter/') or path in ('/account', '/checkout') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/')):
         response.headers['Cache-Control'] = 'no-store, private'
     return response
 
 @app.get('/robots.txt', include_in_schema=False)
 def robots_txt():
     from fastapi.responses import PlainTextResponse
-    return PlainTextResponse('User-agent: *\nDisallow: /admin\nDisallow: /api/admin/\nDisallow: /account\nDisallow: /api/account/\n')
+    return PlainTextResponse('User-agent: *\nDisallow: /admin\nDisallow: /api/admin/\nDisallow: /account\nDisallow: /api/account/\nDisallow: /newsletter/\n')
 
 
 def serialize_product(p: Product):
@@ -115,7 +115,7 @@ def bundle_data(db: Session, b: Bundle):
     return {'id':-b.id,'bundle_id':b.id,'is_bundle':True,'name':b.name,
       'slug':f'bundle-{b.id}', 'category':'Bundles & Offers', 'description':b.description,
       'price_cents':b.price_cents, 'stock':max(0,available),
-      'image_url':b.image_url or (components[0]['image_url'] if components else '/static/images/default.svg'),
+      'image_url':b.image_url or (components[0]['image_url'] if components and components[0]['image_url'] else '/static/images/odj-bundle-placeholder.svg'),
       'additional_images':[], 'sku':'', 'badge':b.badge or 'BUNDLE OFFER',
       'featured':b.featured, 'active':b.active, 'components':components,
       'retail_cents':retail, 'save_cents':max(0,retail-b.price_cents) if valid and b.price_cents else 0,
@@ -134,7 +134,7 @@ def public_catalog(db: Session):
 
 def serialize_order(o: Order):
     return {'id':o.id,'email':o.email,'status':o.status,'subtotal_cents':o.subtotal_cents,
-        'shipping_cents':o.shipping_cents,'paid_total_cents':o.paid_total_cents,'items':o.items_snapshot,'shipping_details':o.shipping_details,
+        'shipping_cents':o.shipping_cents,'discount_cents':o.discount_cents or 0,'promo_code':o.promo_code or '', 'paid_total_cents':o.paid_total_cents,'items':o.items_snapshot,'shipping_details':o.shipping_details,
         'created_at':o.created_at.isoformat() if o.created_at else None,
         'payment_mode':o.payment_mode or 'stripe',
         'fulfillment_status':o.fulfillment_status or 'unfulfilled',
@@ -588,6 +588,199 @@ def email_queue_status(request: Request):
         # No email bodies, reset links, secrets, or signed tokens ever returned to dashboard.
         return [{'id':e.id,'kind':e.kind,'status':e.status,'created_at':e.created_at.isoformat() if e.created_at else None} for e in result]
 
+# ---- V7.3: customer retention (no payment-provider dependency) ----
+class NewsletterRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=255)
+    consent: bool = False
+
+newsletter_attempts: dict[str, list[float]] = {}
+
+def newsletter_url(email: str, action: str) -> str:
+    signer=token_signer('newsletter-'+action)
+    if not signer:
+        raise HTTPException(503, 'Newsletter setup requires a configured session secret.')
+    return signer.dumps({'email':email})
+
+def newsletter_claims(token: str, action: str, age: int):
+    signer=token_signer('newsletter-'+action)
+    if not signer:
+        raise HTTPException(503, 'Newsletter setup is not configured.')
+    try:
+        value=signer.loads(token, max_age=age)
+        return normalize_email(value['email'])
+    except (BadSignature, SignatureExpired, KeyError, ValueError, TypeError):
+        raise HTTPException(400, 'This newsletter link is invalid or expired.')
+
+@app.post('/api/newsletter/subscribe')
+def newsletter_subscribe(payload: NewsletterRequest, request: Request):
+    if not origin_allowed(request):
+        raise HTTPException(403, 'Invalid request origin.')
+    if not payload.consent:
+        raise HTTPException(422, 'Check the box to consent to receiving ODJ updates.')
+    throttle(request, newsletter_attempts, 8, 3600)
+    email=normalize_email(payload.email)
+    with SessionLocal() as db:
+        sub=db.scalar(select(NewsletterSubscriber).where(NewsletterSubscriber.email==email))
+        if not sub:
+            sub=NewsletterSubscriber(email=email,status='pending')
+            db.add(sub)
+        elif sub.status=='unsubscribed':
+            sub.status='pending';sub.consent_at=now();sub.confirmed_at=None
+        # No unsolicited marketing: a confirmation email must be accepted first.
+        if sub.status == 'pending':
+            link=base_url(request)+'/newsletter/confirm?token='+newsletter_url(email,'confirm')
+            built=newsletter_email('confirm_newsletter',link)
+            queue_message(db,'newsletter:confirm:'+email+':'+uuid.uuid4().hex,
+                'confirm_newsletter',email,built['subject'],built['html'],built['text'])
+        db.commit()
+    return {'ok':True,'message':'Check your inbox to confirm your subscription once email delivery is enabled. No marketing emails are sent before confirmation.'}
+
+@app.get('/newsletter/confirm',response_class=HTMLResponse)
+def confirm_newsletter_confirmation(token: str=''):
+    from html import escape
+    newsletter_claims(token,'confirm',7*86400)
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Confirm ODJ emails?</h1><p>Receive occasional product news and offers. Unsubscribe at any time.</p><form method="post" action="/newsletter/confirm"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Confirm subscription</button></form></main>')
+
+@app.post('/newsletter/confirm',response_class=HTMLResponse)
+def confirm_newsletter(request: Request,token: str=Form(...)):
+    email=newsletter_claims(token,'confirm',7*86400)
+    with SessionLocal() as db:
+        sub=db.scalar(select(NewsletterSubscriber).where(NewsletterSubscriber.email==email))
+        if not sub or sub.status=='unsubscribed':
+            raise HTTPException(400,'Subscription is not pending.')
+        if sub.status!='confirmed':
+            sub.status='confirmed';sub.confirmed_at=now()
+            link=base_url(request)+'/newsletter/unsubscribe?token='+newsletter_url(email,'unsubscribe')
+            built=newsletter_email('welcome_newsletter',link)
+            queue_message(db,'newsletter:welcome:'+email+':'+sub.confirmed_at.isoformat(),
+                'welcome_newsletter',email,built['subject'],built['html'],built['text'])
+            db.commit()
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Welcome to ODJ.</h1><p>Your email subscription is confirmed.</p><a style="color:#e8bd72" href="/">Return to the shop ↗</a></main>')
+
+@app.get('/newsletter/unsubscribe',response_class=HTMLResponse)
+def unsubscribe_newsletter_confirmation(token: str=''):
+    from html import escape
+    newsletter_claims(token,'unsubscribe',365*86400*2)
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribe from ODJ updates?</h1><form method="post" action="/newsletter/unsubscribe"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Unsubscribe</button></form><p><a style="color:#e8bd72" href="/">Keep my subscription ↗</a></p></main>')
+
+@app.post('/newsletter/unsubscribe',response_class=HTMLResponse)
+def unsubscribe_newsletter(token: str=Form(...)):
+    email=newsletter_claims(token,'unsubscribe',365*86400*2)
+    with SessionLocal() as db:
+        sub=db.scalar(select(NewsletterSubscriber).where(NewsletterSubscriber.email==email))
+        if sub:
+            sub.status='unsubscribed';sub.unsubscribed_at=now()
+            # Drop queued marketing emails; preserve password reset/security emails.
+            for mail in db.scalars(select(EmailOutbox).where(EmailOutbox.recipient==email,
+                EmailOutbox.kind.in_(['welcome_newsletter','confirm_newsletter']),EmailOutbox.status=='pending')).all():
+                mail.status='cancelled'
+            db.commit()
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribed.</h1><p>You will no longer receive ODJ marketing messages.</p><a style="color:#e8bd72" href="/">Return to shop ↗</a></main>')
+
+@app.get('/api/account/marketing')
+def account_marketing_status(request: Request):
+    customer=require_customer(request)
+    with SessionLocal() as db:
+        sub=db.scalar(select(NewsletterSubscriber).where(NewsletterSubscriber.email==customer.email))
+        return {'status':sub.status if sub else 'not_subscribed'}
+
+@app.post('/api/account/marketing/unsubscribe')
+def account_marketing_unsubscribe(request: Request):
+    if not origin_allowed(request):raise HTTPException(403,'Invalid request origin.')
+    customer=require_customer(request)
+    with SessionLocal() as db:
+        sub=db.scalar(select(NewsletterSubscriber).where(NewsletterSubscriber.email==customer.email))
+        if sub:
+            sub.status='unsubscribed';sub.unsubscribed_at=now()
+            for mail in db.scalars(select(EmailOutbox).where(EmailOutbox.recipient==customer.email,
+                EmailOutbox.kind.in_(['welcome_newsletter','confirm_newsletter']),EmailOutbox.status=='pending')).all():
+                mail.status='cancelled'
+            db.commit()
+    return {'status':'unsubscribed'}
+
+@app.get('/api/account/favorites')
+def customer_favorites(request: Request):
+    customer=require_customer(request)
+    with SessionLocal() as db:
+        ids=db.scalars(select(Favorite.product_id).where(Favorite.customer_id==customer.id)).all()
+        active={p['id']:p for p in public_catalog(db)}
+        return {'items':[active[pid] for pid in ids if pid in active]}
+
+@app.post('/api/account/favorites/{product_id}')
+def add_favorite(product_id: int,request: Request):
+    if not origin_allowed(request):raise HTTPException(403,'Invalid request origin.')
+    customer=require_customer(request)
+    with SessionLocal() as db:
+        if product_id not in {p['id'] for p in public_catalog(db)}:
+            raise HTTPException(404,'Product not available.')
+        if not db.scalar(select(Favorite).where(Favorite.customer_id==customer.id,Favorite.product_id==product_id)):
+            db.add(Favorite(customer_id=customer.id,product_id=product_id));db.commit()
+    return {'saved':True}
+
+@app.delete('/api/account/favorites/{product_id}')
+def delete_favorite(product_id: int, request: Request):
+    if not origin_allowed(request):raise HTTPException(403,'Invalid request origin.')
+    customer=require_customer(request)
+    with SessionLocal() as db:
+        row=db.scalar(select(Favorite).where(Favorite.customer_id==customer.id,Favorite.product_id==product_id))
+        if row:db.delete(row);db.commit()
+    return {'saved':False}
+
+class PromotionInput(BaseModel):
+    code: str = Field(min_length=4,max_length=24)
+    percent_off: int = Field(ge=1,le=50)
+    active: bool = False
+
+@app.get('/api/admin/promotions')
+def admin_promotions(request: Request):
+    require_admin(request)
+    with SessionLocal() as db:
+        return [{'id':p.id,'code':p.code,'percent_off':p.percent_off,'active':p.active}
+                for p in db.scalars(select(Promotion).order_by(Promotion.id.desc())).all()]
+
+@app.post('/api/admin/promotions')
+def admin_add_promotion(payload: PromotionInput, request: Request):
+    require_admin(request)
+    code=payload.code.strip().upper()
+    if not re.fullmatch(r'[A-Z0-9-]{4,24}',code):
+        raise HTTPException(422,'Use 4–24 letters, numbers, or hyphens.')
+    with SessionLocal() as db:
+        if db.scalar(select(Promotion).where(Promotion.code==code)):
+            raise HTTPException(409,'That promotion code already exists.')
+        item=Promotion(code=code,percent_off=payload.percent_off,active=payload.active)
+        db.add(item);db.commit();return {'id':item.id,'code':code}
+
+@app.patch('/api/admin/promotions/{promo_id}')
+def admin_edit_promotion(promo_id: int,payload: PromotionInput,request: Request):
+    require_admin(request)
+    code=payload.code.strip().upper()
+    if not re.fullmatch(r'[A-Z0-9-]{4,24}',code):raise HTTPException(422,'Invalid promotion code.')
+    with SessionLocal() as db:
+        item=db.get(Promotion,promo_id)
+        if not item:raise HTTPException(404,'Promotion not found.')
+        collision=db.scalar(select(Promotion).where(Promotion.code==code,Promotion.id!=promo_id))
+        if collision:raise HTTPException(409,'That code already exists.')
+        item.code=code;item.percent_off=payload.percent_off;item.active=payload.active
+        db.commit()
+    return {'updated':True}
+
+@app.get('/api/admin/newsletter')
+def admin_newsletter(request: Request):
+    require_admin(request)
+    with SessionLocal() as db:
+        values={v:db.scalar(select(func.count()).select_from(NewsletterSubscriber).where(NewsletterSubscriber.status==v)) or 0
+                for v in ('pending','confirmed','unsubscribed')}
+    return {'counts':values,'email_delivery_configured':bool(os.getenv('SMTP_HOST') and os.getenv('SMTP_FROM'))}
+
+def demo_discount(db: Session, subtotal: int, code: str) -> int:
+    code=code.strip().upper()
+    if not code:return 0
+    if not re.fullmatch(r'[A-Z0-9-]{4,24}',code):raise HTTPException(422,'Enter a valid promotion code.')
+    item=db.scalar(select(Promotion).where(Promotion.code==code,Promotion.active.is_(True)))
+    if not item or (item.expires_at and item.expires_at.replace(tzinfo=timezone.utc)<now()):
+        raise HTTPException(422,'This promotion code is unavailable.')
+    return (subtotal*item.percent_off)//100
+
 @app.get('/api/products')
 def get_products():
     with SessionLocal() as db:
@@ -601,6 +794,7 @@ class CartLine(BaseModel):
 class CheckoutRequest(BaseModel):
     items: list[CartLine] = Field(min_length=1, max_length=40)
     shipping_option: str = Field(default='standard')
+    promo_code: str = Field(default='', max_length=24)
 
 
 def release_reservation(db: Session, order: Order, next_status: str):
@@ -698,10 +892,13 @@ def checkout_quote(payload: QuoteRequest, request: Request):
     require_customer(request)
     with SessionLocal() as db:
         lines = quote_lines(db, payload.items)
-    subtotal = sum(l['price_cents'] * l['qty'] for l in lines)
+        subtotal = sum(l['price_cents'] * l['qty'] for l in lines)
+        discount = demo_discount(db,subtotal,payload.promo_code) if payment_mode()=='demo' else 0
+    if payment_mode()!='demo' and payload.promo_code.strip():
+        raise HTTPException(409,'Promotion codes are not yet enabled for Stripe checkout.')
     shipping = shipping_price(payload.shipping_option)
     return {'items':lines, 'subtotal_cents':subtotal, 'shipping_cents':shipping,
-            'total_before_tax_cents':subtotal+shipping, 'mode':payment_mode(),
+            'discount_cents':discount,'total_before_tax_cents':subtotal+shipping-discount, 'mode':payment_mode(),
             'tax_note':'Tax, if applicable, will be calculated in Stripe checkout.' if payment_mode() == 'stripe' else 'No taxes or charges collected in demo mode.'}
 
 @app.post('/api/checkout/demo')
@@ -717,9 +914,11 @@ def demo_checkout(payload: DemoOrderRequest, request: Request):
     with SessionLocal() as db:
         lines = quote_lines(db, payload.items)
         subtotal = sum(l['qty'] * l['price_cents'] for l in lines)
+        discount = demo_discount(db,subtotal,payload.promo_code)
         shipping = shipping_price(payload.shipping_option)
         order = Order(id=str(uuid.uuid4()), email=customer.email, customer_id=customer.id,
             status='demo', payment_mode='demo', subtotal_cents=subtotal, shipping_cents=shipping,
+            discount_cents=discount,promo_code=payload.promo_code.strip().upper() if discount else '',
             paid_total_cents=0, inventory_reserved=False, items_snapshot=lines,
             shipping_details={'address':address, 'service':payload.shipping_option},
             fulfillment_status='unfulfilled')
@@ -750,6 +949,8 @@ async def checkout(payload: CheckoutRequest, request: Request):
         raise HTTPException(400, 'Duplicate product lines.')
     if payment_mode() != 'stripe':
         raise HTTPException(503, 'Real payment is not enabled. Use demo checkout.')
+    if payload.promo_code.strip():
+        raise HTTPException(409,'Promotions are only previewed in demo mode until Stripe is configured.')
     if not os.getenv('STRIPE_SECRET_KEY', '').startswith(('sk_test_', 'sk_live_')):
         raise HTTPException(503, 'Stripe test or live credentials are not configured.')
     shipping = shipping_price(payload.shipping_option)

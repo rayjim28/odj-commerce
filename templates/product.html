@@ -4,7 +4,7 @@
 <title>{{product.name}} | ODJ Group</title>
 <meta name="description" content="{{product.description}}">
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style.css?v=7-3">
 </head>
 <body class="product-page-body">
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -29,7 +29,7 @@
   <div class="product-detail-status"><span class="stock-dot {% if product.stock == 0 %}stock-none{% endif %}"></span><strong id="stock-label">{% if product.stock == 0 %}Currently sold out{% elif product.stock < 6 %}Only {{product.stock}} left in stock{% else %}In stock &amp; ready to order{% endif %}</strong>{% if product.stock > 0 %}<small>{{product.stock}} available</small>{% endif %}</div>
   <div class="product-detail-quantity-title"><span>QUANTITY</span><span>SELECT YOUR AMOUNT</span></div>
   <div class="product-detail-purchase"><div class="detail-quantity" aria-label="Quantity selector"><button id="detail-minus" type="button" aria-label="Decrease quantity" {% if product.stock == 0 %}disabled{% endif %}>−</button><output id="detail-qty" aria-live="polite">1</output><button id="detail-plus" type="button" aria-label="Increase quantity" {% if product.stock == 0 %}disabled{% endif %}>+</button></div><button class="btn btn-gold detail-add" id="detail-add" type="button" {% if product.stock == 0 %}disabled{% endif %}>{% if product.stock == 0 %}Sold out{% else %}Add to bag <span>↗</span>{% endif %}</button></div>
-  <div class="product-detail-feedback" id="detail-feedback" role="status" aria-live="polite"></div>
+  <button type="button" class="v73-detail-favorite" id="detail-favorite">♡ Save to favorites</button><div class="product-detail-feedback" id="detail-feedback" role="status" aria-live="polite"></div>
   <div class="product-detail-next"><a id="detail-view-bag" href="/?cart=1">View shopping bag <span>↗</span></a><a href="/#shop">Continue shopping <span>↗</span></a></div>
   <div class="product-detail-promise"><div><span>✧</span><div><strong>Quality selected</strong><small>Everyday essentials for your space</small></div></div><div><span>◇</span><div><strong>Secure checkout</strong><small>Stripe payment processing</small></div></div><div><span>↗</span><div><strong>Customer account</strong><small>{% if customer %}You're signed in{% else %}<a href="/account">Sign in</a> to complete checkout{% endif %}</small></div></div></div>
  </div>
@@ -38,5 +38,5 @@
 </main>
 <footer class="product-detail-footer"><div class="container"><a href="/" class="footer-brand">ODJ<span>.</span></a><p>PRODUCTS YOU CAN TRUST. EVERY SINGLE DAY.</p><span>© ODJ GROUP LLC · {{ now_year or '2026' }}</span></div></footer>
 <script>window.ODJ_DETAIL_PRODUCT = {{ product | tojson }};</script>
-<script src="/static/js/product.js" defer></script>
+<script src="/static/js/product.js?v=7-3" defer></script>
 </body></html>

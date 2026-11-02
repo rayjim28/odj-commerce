@@ -57,6 +57,59 @@
     try{const r=await fetch('/api/account/resend-verification',{method:'POST'});if(!r.ok)throw Error('Please try again later.');b.textContent='Verification requested';}
     catch(err){b.textContent=err.message;b.disabled=false;}
   });
+  const marketingStatus=$('marketing-status');
+  if(marketingStatus){
+    const optOut=$('marketing-opt-out');
+    fetch('/api/account/marketing').then(r=>r.json()).then(d=>{
+      const statuses={confirmed:'Subscribed to ODJ updates.',pending:'Confirmation pending; marketing emails are not active.',unsubscribed:'Unsubscribed.',not_subscribed:'Not subscribed.'};
+      marketingStatus.textContent=statuses[d.status]||'Not subscribed.';
+      optOut.hidden=!['confirmed','pending'].includes(d.status);
+    }).catch(()=>{marketingStatus.textContent='Could not load marketing preferences.';});
+    optOut.addEventListener('click',async()=>{
+      optOut.disabled=true;
+      try{const r=await fetch('/api/account/marketing/unsubscribe',{method:'POST'});if(!r.ok)throw Error('Unable to update preferences.');optOut.hidden=true;marketingStatus.textContent='Unsubscribed.';}
+      catch(err){marketingStatus.textContent=err.message;optOut.disabled=false;}
+    });
+  }
+  const favorites=$('favorite-items');
+  const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n/100);
+  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  async function loadFavorites(){
+    if(!favorites)return;
+    try{
+      const r=await fetch('/api/account/favorites');if(!r.ok)throw Error('Unable to load favorites.');
+      const d=await r.json();
+      favorites.innerHTML=d.items.length?d.items.map(p=>`<article class="v73-fav-item"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt=""><div><a href="/products/${p.id}">${esc(p.name)}</a><small>${money(p.price_cents)}</small></div><button type="button" data-unsave="${p.id}">Remove</button></article>`).join(''):'<p>No saved products yet. <a href="/#shop">Explore cleaning essentials ↗</a></p>';
+    }catch(err){favorites.textContent=err.message;}
+  }
+  if(favorites){
+    loadFavorites();
+    favorites.addEventListener('click',async e=>{
+      const b=e.target.closest('[data-unsave]');if(!b)return;b.disabled=true;
+      try{const r=await fetch('/api/account/favorites/'+b.dataset.unsave,{method:'DELETE'});if(!r.ok)throw Error('Could not remove favorite.');await loadFavorites();}
+      catch(err){b.disabled=false;alert(err.message);}
+    });
+  }
+  document.querySelectorAll('[data-buy-again]').forEach(b=>b.addEventListener('click',async()=>{
+    b.disabled=true;
+    try{
+      const [orderResponse,catalogResponse]=await Promise.all([fetch('/api/account/orders/'+encodeURIComponent(b.dataset.buyAgain)),fetch('/api/products')]);
+      if(!orderResponse.ok||!catalogResponse.ok)throw Error('Could not review these products.');
+      const order=await orderResponse.json(),catalog=await catalogResponse.json();
+      const available=new Map(catalog.map(p=>[p.id,p]));
+      let cart={};try{cart=JSON.parse(localStorage.getItem('odj-cart-v1'))||{};}catch{}
+      if(typeof cart!=='object'||Array.isArray(cart))cart={};
+      let count=0;
+      for(const line of order.items){
+        const p=available.get(Number(line.id));if(!p||p.stock<=0)continue;
+        const current=Math.max(0,Number(cart[p.id])||0);
+        const next=Math.min(p.stock,30,current+Number(line.qty||0));
+        if(next>current){cart[p.id]=next;count+=next-current;}
+      }
+      if(!count)throw Error('Those items are currently unavailable or already at their stock limit in your bag.');
+      localStorage.setItem('odj-cart-v1',JSON.stringify(cart));location.assign('/?cart=1');
+    }catch(err){alert(err.message);b.disabled=false;}
+  }));
   if ($('account-logout')) $('account-logout').addEventListener('click', async () => {
     const response = await fetch('/api/account/logout',{method:'POST'});
     if (response.ok) location.assign('/account');

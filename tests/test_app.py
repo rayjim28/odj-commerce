@@ -459,7 +459,7 @@ def test_v51_checkout_editing_assets_and_public_products(authenticated, monkeypa
         {'id':available,'qty':3}]}).status_code == 409
     html = authenticated.get('/checkout').text
     assert 'checkout-count' in html and 'Edit bag' in html
-    assert '/static/js/checkout.js?v=5-1' in html
+    assert '/static/js/checkout.js?v=7-3' in html
     js = authenticated.get('/static/js/checkout.js').text
     for feature in ('data-qty-id', 'data-remove-id', 'checkout-item-photo', 'reloadCatalog', 'refreshQuote'):
         assert feature in js
@@ -807,3 +807,174 @@ def test_v72_bundle_paid_webhook_keeps_reserved_stock(authenticated,monkeypatch)
         order=db.get(Order,oid)
         assert order.status=='paid' and order.inventory_reserved is False
         assert order.subtotal_cents==1999
+
+# V7.2.1 — compact bundle merchandising, customer transparency, and safe Stripe diagnostics.
+def test_v721_bundle_home_card_shows_contents_and_uses_compact_layout(authenticated):
+    p1 = create_item(authenticated, 'Spin mop starter', stock=5)
+    p2 = create_item(authenticated, 'Replacement mop head', stock=8)
+    bid = authenticated.post('/api/admin/bundles', json=bundle_payload(p1,p2,price=1800)).json()['id']
+    page = authenticated.get('/').text
+    assert 'v73-bundle-info' in page
+    assert 'Spin mop starter' in page and 'Replacement mop head' in page
+    assert f'/products/{bid}' in page
+    assert 'Includes' in page
+    assert 'grid-template-columns:repeat(auto-fill' in (main.ROOT / 'static/style.css').read_text()
+
+
+def test_v721_fallback_uses_odj_image_instead_of_old_monogram(authenticated):
+    p1 = create_item(authenticated, 'No-image mop', stock=5)
+    p2 = create_item(authenticated, 'No-image refill', stock=5)
+    # Product images are explicitly unset; this is a generic brand placeholder, not an invented photo.
+    for pid in (p1, p2):
+        r = authenticated.patch(f'/api/admin/products/{pid}', json={
+            'name': 'No-image mop' if pid == p1 else 'No-image refill',
+            'category': 'Test', 'description':'', 'price_cents':1234,
+            'stock':5, 'image_url':'', 'badge':'', 'featured':False, 'active':True
+        })
+        assert r.status_code == 200, r.text
+    bundle = authenticated.post('/api/admin/bundles', json=bundle_payload(p1,p2,price=1800)).json()
+    assert bundle['image_url'] == '/static/images/odj-bundle-placeholder.svg'
+    assert authenticated.get(bundle['image_url']).status_code == 200
+
+
+def test_v721_stripe_diagnostics_never_expose_secrets():
+    from scripts.diagnose_stripe import inspect_settings, key_kind
+    secret = 'sk_test_' + 's'*36
+    webhook = 'whsec_' + 'p'*36
+    checks, allowed = inspect_settings({'PAYMENT_MODE':'demo','STRIPE_SECRET_KEY':secret,
+                                        'STRIPE_WEBHOOK_SECRET':webhook, 'APP_ENV':'development'})
+    assert allowed
+    output = ' '.join(message for _, message in checks)
+    assert secret not in output and webhook not in output
+    assert 'demo' in output
+    assert key_kind('pk_test_' + 'm'*35) == 'publishable'
+    checks, allowed = inspect_settings({'PAYMENT_MODE':'stripe','STRIPE_SECRET_KEY':'sk_live_'+'s'*36})
+    assert not allowed and any(status=='STOP' for status,_ in checks)
+
+# ---- V7.3 retention and promotions ----
+
+def test_v73_newsletter_requires_consent_and_queues_confirmation(authenticated):
+    from database import NewsletterSubscriber, EmailOutbox
+    import uuid
+    email='odjoptin-'+uuid.uuid4().hex[:8]+'@example.net'
+    rejected=authenticated.post('/api/newsletter/subscribe',json={'email':email,'consent':False})
+    assert rejected.status_code==422
+    with SessionLocal() as db:
+        assert db.query(NewsletterSubscriber).filter_by(email=email).count()==0
+    accepted=authenticated.post('/api/newsletter/subscribe',json={'email':email,'consent':True})
+    assert accepted.status_code==200
+    with SessionLocal() as db:
+        sub=db.query(NewsletterSubscriber).filter_by(email=email).one()
+        assert sub.status=='pending' and sub.confirmed_at is None
+        msg=db.query(EmailOutbox).filter_by(recipient=email,kind='confirm_newsletter').first()
+        assert msg.status=='pending' and 'Confirm' in msg.subject
+        assert not db.query(EmailOutbox).filter_by(recipient=email,kind='welcome_newsletter').count()
+
+
+def test_v73_newsletter_confirmation_and_unsubscribe(authenticated):
+    import uuid
+    from database import NewsletterSubscriber, EmailOutbox
+    email='odjconfirm-'+uuid.uuid4().hex[:8]+'@example.net'
+    assert authenticated.post('/api/newsletter/subscribe',json={'email':email,'consent':True}).status_code==200
+    token=main.newsletter_url(email,'confirm')
+    assert authenticated.get('/newsletter/confirm?token='+token).status_code==200
+    with SessionLocal() as db:
+        assert db.query(NewsletterSubscriber).filter_by(email=email).one().status=='pending'
+    assert authenticated.post('/newsletter/confirm',data={'token':token}).status_code==200
+    with SessionLocal() as db:
+        assert db.query(NewsletterSubscriber).filter_by(email=email).one().status=='confirmed'
+        assert db.query(EmailOutbox).filter_by(recipient=email,kind='welcome_newsletter').count()==1
+    token=main.newsletter_url(email,'unsubscribe')
+    assert authenticated.get('/newsletter/unsubscribe?token='+token).status_code==200
+    with SessionLocal() as db:
+        assert db.query(NewsletterSubscriber).filter_by(email=email).one().status=='confirmed'
+    assert authenticated.post('/newsletter/unsubscribe',data={'token':token}).status_code==200
+    with SessionLocal() as db:
+        assert db.query(NewsletterSubscriber).filter_by(email=email).one().status=='unsubscribed'
+        assert db.query(EmailOutbox).filter_by(recipient=email,kind='welcome_newsletter').one().status=='cancelled'
+    # Old confirmation cannot reinstate a revoked opt-in.
+    assert authenticated.post('/newsletter/confirm',data={'token':main.newsletter_url(email,'confirm')}).status_code==400
+
+
+def test_v73_favorites_are_private_and_only_available_catalog_items(authenticated):
+    pid=create_item(authenticated,'ODJ favorite mop',stock=7)
+    r=authenticated.post(f'/api/account/favorites/{pid}')
+    assert r.status_code==200 and r.json()['saved']
+    assert authenticated.post(f'/api/account/favorites/{pid}').status_code==200
+    assert len([p for p in authenticated.get('/api/account/favorites').json()['items'] if p['id']==pid])==1
+    authenticated.cookies.clear()
+    assert authenticated.get('/api/account/favorites').status_code==401
+    assert authenticated.post(f'/api/account/favorites/{pid}').status_code==401
+    login=authenticated.post('/api/account/login',json={'email':'checkout-buyer@example.com','password':'CustomerPassword12345!'})
+    assert login.status_code==200
+    assert authenticated.delete(f'/api/account/favorites/{pid}').status_code==200
+    assert pid not in [p['id'] for p in authenticated.get('/api/account/favorites').json()['items']]
+
+
+def test_v73_archived_products_are_not_public_favorites(authenticated):
+    pid=create_item(authenticated,'ODJ saved then archived',stock=2)
+    assert authenticated.post(f'/api/account/favorites/{pid}').status_code==200
+    assert authenticated.post(f'/api/admin/products/{pid}/archive').status_code==200
+    assert pid not in [p['id'] for p in authenticated.get('/api/account/favorites').json()['items']]
+    assert authenticated.post(f'/api/account/favorites/{pid}').status_code==404
+
+
+def test_v73_promo_admin_only_and_discount_calculated_server_side(authenticated,monkeypatch):
+    import uuid
+    monkeypatch.setenv('PAYMENT_MODE','demo')
+    pid=create_item(authenticated,'Promo soap',stock=5)
+    code='ODJ'+uuid.uuid4().hex[:7].upper()
+    r=authenticated.post('/api/admin/promotions',json={'code':code,'percent_off':25,'active':True})
+    assert r.status_code==200, r.text
+    quote=authenticated.post('/api/checkout/quote',json={'items':[{'id':pid,'qty':2}],'promo_code':code})
+    assert quote.status_code==200,quote.text
+    data=quote.json()
+    assert data['subtotal_cents']==2468 and data['discount_cents']==617
+    assert data['total_before_tax_cents']==2468-617+data['shipping_cents']
+    assert authenticated.post('/api/checkout/quote',json={'items':[{'id':pid,'qty':1}],'promo_code':'NOTREAL'}).status_code==422
+    authenticated.cookies.clear()
+    assert authenticated.get('/api/admin/promotions').status_code==401
+
+
+def test_v73_demo_checkout_promotion_is_recorded_and_never_paid(authenticated,monkeypatch):
+    import uuid
+    monkeypatch.setenv('PAYMENT_MODE','demo')
+    pid=create_item(authenticated,'Demo discount kit',stock=8)
+    code='ODJ'+uuid.uuid4().hex[:7].upper()
+    assert authenticated.post('/api/admin/promotions',json={'code':code,'percent_off':10,'active':True}).status_code==200
+    address={'name':'Demo Buyer','line1':'123 Sample Street','city':'Annapolis','state':'MD','postal_code':'21401','country':'US'}
+    r=authenticated.post('/api/checkout/demo',json={'items':[{'id':pid,'qty':2}],'shipping_option':'standard','shipping_address':address,'promo_code':code})
+    assert r.status_code==200,r.text
+    with SessionLocal() as db:
+        order=db.get(Order,r.json()['order_id'])
+        assert order.status=='demo' and order.paid_total_cents==0
+        assert order.subtotal_cents==2468 and order.discount_cents==246
+        assert order.promo_code==code and db.get(Product,pid).stock==8
+    page=authenticated.get('/account/orders/'+r.json()['order_id'])
+    assert page.status_code==200 and 'Discount' in page.text and code in page.text
+
+
+def test_v73_stripe_mode_does_not_apply_unconfigured_discount(authenticated,monkeypatch):
+    monkeypatch.setenv('PAYMENT_MODE','stripe')
+    pid=create_item(authenticated,'Stripe reserved offer',stock=4)
+    r=authenticated.post('/api/checkout/quote',json={'items':[{'id':pid,'qty':1}],'promo_code':'ODJFAKE'})
+    assert r.status_code==409
+    r=authenticated.post('/api/checkout',json={'items':[{'id':pid,'qty':1}],'promo_code':'ODJFAKE'})
+    assert r.status_code in (409,503)
+    with SessionLocal() as db:
+        assert db.get(Product,pid).stock==4
+
+def test_v73_account_can_opt_out_and_public_pages_render(authenticated):
+    from database import NewsletterSubscriber
+    email='checkout-buyer@example.com'
+    assert authenticated.get('/').status_code == 200
+    assert 'newsletter-form' in authenticated.get('/').text
+    assert 'marketing-status' in authenticated.get('/account').text
+    assert 'data-buy-again=' in authenticated.get('/account').text
+    assert 'promo-code' in authenticated.get('/checkout').text
+    assert authenticated.post('/api/newsletter/subscribe',json={'email':email,'consent':True}).status_code==200
+    result=authenticated.post('/api/account/marketing/unsubscribe')
+    assert result.status_code==200 and result.json()['status']=='unsubscribed'
+    assert authenticated.get('/api/account/marketing').json()['status']=='unsubscribed'
+    with SessionLocal() as db:
+        assert db.query(NewsletterSubscriber).filter_by(email=email).one().status=='unsubscribed'

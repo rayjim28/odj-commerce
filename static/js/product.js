@@ -44,3 +44,19 @@
   }));
   update();
 })();
+
+// V7.3: favorites belong to the signed-in account, not browser-only storage.
+(() => {
+  const button=document.getElementById('detail-favorite');
+  if(!button)return;
+  button.addEventListener('click',async()=>{
+    button.disabled=true;
+    try {
+      const response=await fetch('/api/account/favorites/'+encodeURIComponent(window.ODJ_DETAIL_PRODUCT.id),{method:'POST',credentials:'same-origin'});
+      if(response.status===401){window.location.assign('/account');return;}
+      if(!response.ok)throw new Error('Could not save this product.');
+      button.textContent='♥ Saved to your favorites';
+    }catch(err){document.getElementById('detail-feedback').textContent=err.message;}
+    finally{button.disabled=false;}
+  });
+})();

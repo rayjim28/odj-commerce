@@ -19,14 +19,36 @@
     return;
   }
   let products = [], editingId = null, photos = [], busy = false;
-  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.'],launch:['Launch readiness','Review the requirements for a safe public launch.'],bundles:['Bundles & offers','Create kits and set honest promotional prices.']};
+  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.'],launch:['Launch readiness','Review the requirements for a safe public launch.'],bundles:['Bundles & offers','Create kits and set honest promotional prices.'],retention:['Marketing & retention','Manage newsletter signups and demo promotions.']};
   function tab(which) {
     document.querySelectorAll('.admin-tab').forEach(el=>el.hidden=el.id!==`tab-${which}`);
     document.querySelectorAll('.side-nav').forEach(el=>el.classList.toggle('selected',el.dataset.tab===which));
     $('tab-title').textContent=names[which][0];$('tab-subtitle').textContent=names[which][1];
-    if(which==='bundles')loadBundles();if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();if(which==='launch')loadLaunchReadiness();
+    if(which==='retention')loadRetention();if(which==='bundles')loadBundles();if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();if(which==='launch')loadLaunchReadiness();
   }
   document.querySelectorAll('.side-nav').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
+  async function loadRetention(){
+    try{
+      const [sub,promos]=await Promise.all([api('/api/admin/newsletter'),api('/api/admin/promotions')]);
+      const n=sub.counts;
+      $('newsletter-admin-summary').textContent=`${n.pending} pending · ${n.confirmed} confirmed · ${n.unsubscribed} unsubscribed. Email delivery: ${sub.email_delivery_configured?'configured':'not configured'}.`;
+      $('promotion-list').innerHTML=promos.length?promos.map(p=>`<div class="v73-promo-admin"><strong>${esc(p.code)}</strong><span>${p.percent_off}% off · ${p.active?'Enabled':'Disabled'}</span><button type="button" data-toggle-promo="${p.id}" data-code="${esc(p.code)}" data-percent="${p.percent_off}" data-active="${p.active}">${p.active?'Disable':'Enable'}</button></div>`).join(''):'<p>No promotion codes yet.</p>';
+    }catch(err){$('newsletter-admin-summary').textContent=err.message;}
+  }
+  $('promotion-form').addEventListener('submit',async e=>{
+    e.preventDefault();const form=e.target;const button=form.querySelector('[type=submit]');button.disabled=true;
+    try{
+      await api('/api/admin/promotions',{method:'POST',body:JSON.stringify({code:form.elements.code.value.trim(),percent_off:Number(form.elements.percent_off.value),active:form.elements.active.checked})});
+      form.reset();$('promotion-feedback').textContent='Promotion created.';await loadRetention();
+    }catch(err){$('promotion-feedback').textContent=err.message;}finally{button.disabled=false;}
+  });
+  $('promotion-list').addEventListener('click',async e=>{
+    const button=e.target.closest('[data-toggle-promo]');if(!button)return;button.disabled=true;
+    try{
+      await api('/api/admin/promotions/'+button.dataset.togglePromo,{method:'PATCH',body:JSON.stringify({code:button.dataset.code,percent_off:Number(button.dataset.percent),active:button.dataset.active!=='true'})});
+      await loadRetention();
+    }catch(err){alert(err.message);button.disabled=false;}
+  });
   async function summary(){
     try {const d=await api('/api/admin/summary');$('stat-products').textContent=d.products;$('stat-orders').textContent=d.orders;$('stat-revenue').textContent=money(d.revenue_cents);$('stat-stock').textContent=d.stock;}
     catch(err){console.error(err);}
@@ -80,6 +102,11 @@
       $('bundle-form-status').textContent='Photo uploaded. Save the bundle to use it.';
     }catch(err){$('bundle-form-status').textContent=err.message;}
   });
+  $('bundle-clear-photo').addEventListener('click',()=>{
+    bundleForm.elements.image_url.value='';
+    $('bundle-photo-upload').value='';
+    $('bundle-form-status').textContent='Custom image cleared. Save this bundle to use the included product image or ODJ placeholder.';
+  });
   $('bundle-add-component').addEventListener('click',()=>{
     if($('bundle-components').children.length>=10) return;
     $('bundle-components').insertAdjacentHTML('beforeend',bundleRow({}));
@@ -125,7 +152,7 @@
         const controls=changeable?`<div class="order-actions"><select data-fulfillment="${esc(o.id)}" aria-label="Fulfillment status for order ${esc(o.id.slice(0,8))}" ${allowedStatus==='delivered'?'disabled':''}>${statuses.map(status=>`<option value="${status}" ${status===allowedStatus?'selected':''}>${status[0].toUpperCase()+status.slice(1)}</option>`).join('')}</select><input data-carrier="${esc(o.id)}" aria-label="Shipping carrier" maxlength="80" placeholder="Carrier (e.g. USPS)" value="${esc(o.carrier||'')}"><input data-tracking="${esc(o.id)}" aria-label="Tracking number" maxlength="120" placeholder="Tracking number" value="${esc(o.tracking_number||'')}"><button data-save-fulfillment="${esc(o.id)}">Save fulfillment</button><small>${simulated?'Demo only · no real shipment or charge':'Paid order · update with real shipment information'}</small></div>`:
           '<span class="orders-note">Awaiting payment</span>';
         const preview=`<a class="v6-preview-email" href="/api/admin/orders/${encodeURIComponent(o.id)}/email-preview" target="_blank" rel="noopener">Preview email ↗</a>`;
-        return `<tr><td><strong>#${esc(o.id.slice(0,8))}</strong><br><small>${esc((o.created_at||'').slice(0,10))}</small></td><td>${esc(o.email||'No email')}<br><small class="order-address">${address}</small></td><td>${(o.items||[]).map(item=>`${esc(item.name)} × ${Number(item.qty)||0}`).join('<br>')}</td><td><strong>${money(o.subtotal_cents+o.shipping_cents)}</strong>${simulated?'<br><small>Not charged</small>':''}</td><td><span class="status-pill ${esc(o.status)}">${esc(o.status.replace('_',' '))}</span></td><td>${controls}<div>${preview}</div></td></tr>`;
+        return `<tr><td><strong>#${esc(o.id.slice(0,8))}</strong><br><small>${esc((o.created_at||'').slice(0,10))}</small></td><td>${esc(o.email||'No email')}<br><small class="order-address">${address}</small></td><td>${(o.items||[]).map(item=>`${esc(item.name)} × ${Number(item.qty)||0}`).join('<br>')}</td><td><strong>${money(o.subtotal_cents+o.shipping_cents-(o.discount_cents||0))}</strong>${simulated?'<br><small>Not charged</small>':''}</td><td><span class="status-pill ${esc(o.status)}">${esc(o.status.replace('_',' '))}</span></td><td>${controls}<div>${preview}</div></td></tr>`;
       }).join('') : '<tr><td colspan="6" class="empty-admin">No orders placed yet.</td></tr>';
     } catch(err){ $('orders-body').innerHTML=`<tr><td colspan="6" class="empty-admin">${esc(err.message)}</td></tr>`; }
   }

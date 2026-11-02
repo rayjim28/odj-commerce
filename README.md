@@ -46,3 +46,7 @@ The homepage now includes a featured public product, catalog-based shop-by-need 
 ## V7.2 — Bundles & Offers
 
 Create fixed-price multi-product bundles through **Admin → Bundles & Offers**. Draft bundles stay private; live bundles use existing product inventory, show verified price savings and appear on the homepage and product catalog. See `UPGRADE_TO_V7_2.md` for safe installation and test-mode Stripe setup. Never commit `.env` or live credentials.
+
+## V7.3 — Marketing & Customer Retention
+
+Following the owner's `what i need` requirements, this release adds consent-based newsletter signups, confirmation/welcome email **queueing** (actual SMTP sending disabled until configured), customer favorites, Buy Again, account opt-out controls, and demo-only coupon codes in Admin → Marketing & Retention. Payments remain intentionally in demo mode. Read [UPGRADE_TO_V7_3.md](UPGRADE_TO_V7_3.md) for install/test steps and known limitations.

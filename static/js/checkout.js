@@ -9,6 +9,7 @@
   if (!cart || typeof cart !== 'object' || Array.isArray(cart)) cart = {};
   let catalog = null;
   let quote = null;
+  let promoCode = '';
   let busy = false;
   let revision = 0;
   const mode = window.ODJ_CHECKOUT_MODE;
@@ -78,6 +79,8 @@
     $('checkout-shipping').textContent = '—';
     $('checkout-total').textContent = '—';
     $('checkout-tax').textContent = '';
+    $('checkout-discount-row').hidden=true;
+    $('checkout-discount').textContent='—';
     $('standard-rate').textContent = '—';
     $('express-rate').textContent = '—';
   }
@@ -110,12 +113,14 @@
     }
     setFeedback('Updating order total…');
     try {
-      const result = await request('/api/checkout/quote', {items: lines, shipping_option: selectedShipping()});
+      const result = await request('/api/checkout/quote', {items: lines, shipping_option: selectedShipping(), promo_code: promoCode});
       if (thisRevision !== revision) return; // Ignore outdated responses from rapid + / − taps.
       quote = result;
       $('checkout-subtotal').textContent = money(result.subtotal_cents);
       $('checkout-shipping').textContent = money(result.shipping_cents);
       $('checkout-total').textContent = money(result.total_before_tax_cents);
+      $('checkout-discount-row').hidden=!(result.discount_cents>0);
+      $('checkout-discount').textContent='−'+money(result.discount_cents||0);
       $('checkout-tax').textContent = result.tax_note || '';
       $(selectedShipping() === 'standard' ? 'standard-rate' : 'express-rate').textContent = money(result.shipping_cents);
       setFeedback('');
@@ -159,6 +164,13 @@
     if (!busy) refreshQuote();
   }));
 
+  $('promo-apply').addEventListener('click',async()=>{
+    promoCode=$('promo-code').value.trim().toUpperCase();
+    $('promo-feedback').textContent=promoCode?'Checking code…':'No promotion applied.';
+    await refreshQuote();
+    if(quote){$('promo-feedback').textContent=promoCode?(quote.discount_cents?'Code applied in demo checkout.':'No discount applied.'):'No promotion applied.';}
+    else $('promo-feedback').textContent='Check the code or clear it and try again.';
+  });
   $('checkout-submit').addEventListener('click', async () => {
     if (busy || !quote || !cartLines().length) return;
     let address = null;
@@ -174,8 +186,8 @@
     try {
       const lines = cartLines();
       const result = mode === 'demo'
-        ? await request('/api/checkout/demo', {items: lines, shipping_option: selectedShipping(), shipping_address: address})
-        : await request('/api/checkout', {items: lines, shipping_option: selectedShipping()});
+        ? await request('/api/checkout/demo', {items: lines, shipping_option: selectedShipping(), shipping_address: address, promo_code: promoCode})
+        : await request('/api/checkout', {items: lines, shipping_option: selectedShipping(), promo_code: promoCode});
       if (mode === 'demo') {
         if (!result.url || !/^\/demo-order\/[a-f0-9-]{36}$/.test(result.url)) throw Error('Unexpected demo destination.');
         localStorage.removeItem(storageKey);
