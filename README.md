@@ -50,3 +50,7 @@ Create fixed-price multi-product bundles through **Admin → Bundles & Offers**.
 ## V7.3 — Marketing & Customer Retention
 
 Following the owner's `what i need` requirements, this release adds consent-based newsletter signups, confirmation/welcome email **queueing** (actual SMTP sending disabled until configured), customer favorites, Buy Again, account opt-out controls, and demo-only coupon codes in Admin → Marketing & Retention. Payments remain intentionally in demo mode. Read [UPGRADE_TO_V7_3.md](UPGRADE_TO_V7_3.md) for install/test steps and known limitations.
+
+### V7.4 — store insights, mobile checkout and SEO
+
+See [UPGRADE_TO_V7_4.md](UPGRADE_TO_V7_4.md) for installation, feature limits, and tests. The admin-only analytics panel aggregates anonymous interaction events and separates demo activity from confirmed paid revenue. Checkout has a mobile progress display, and the application provides a public-product sitemap and structured product metadata for use after launch. **Payments remain in demo mode.**

@@ -459,7 +459,7 @@ def test_v51_checkout_editing_assets_and_public_products(authenticated, monkeypa
         {'id':available,'qty':3}]}).status_code == 409
     html = authenticated.get('/checkout').text
     assert 'checkout-count' in html and 'Edit bag' in html
-    assert '/static/js/checkout.js?v=7-3' in html
+    assert '/static/js/checkout.js?v=7-4' in html
     js = authenticated.get('/static/js/checkout.js').text
     for feature in ('data-qty-id', 'data-remove-id', 'checkout-item-photo', 'reloadCatalog', 'refreshQuote'):
         assert feature in js

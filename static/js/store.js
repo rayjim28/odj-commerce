@@ -29,7 +29,7 @@
     const p=productById(id);if(!p||p.stock<=0){toast('This item is currently out of stock.');return;}
     const current=Number(cart[p.id]||0);
     if(current>=p.stock){toast('You have the maximum available quantity.');return;}
-    cart[p.id]=current+1;save();toast(`${p.name} added to bag`);
+    cart[p.id]=current+1;save();window.odjTrack?.('add_to_cart',p.id);toast(`${p.name} added to bag`);
   }
   function changeQty(id,step){
     const p=productById(id);if(!p)return;
@@ -55,7 +55,7 @@
   function closeCart(){byId('cart-drawer').classList.remove('open');byId('cart-drawer').setAttribute('aria-hidden','true');byId('drawer-backdrop').hidden=true;document.body.style.overflow='';}
   function productCard(p){
     const sold=p.stock===0;
-    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy"><span class="product-badge">${esc(p.badge||(p.featured?'ODJ FAVORITE':'EVERYDAY ESSENTIAL'))}</span></a><button class="product-quick-add" data-add="${p.id}" aria-label="Quick add ${esc(p.name)} to cart" ${sold?'disabled':''}>+</button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><button type="button" class="v73-favorite-action" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites">♡ Save</button><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
+    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy" decoding="async"><span class="product-badge">${esc(p.badge||(p.featured?'ODJ FAVORITE':'EVERYDAY ESSENTIAL'))}</span></a><button class="product-quick-add" data-add="${p.id}" aria-label="Quick add ${esc(p.name)} to cart" ${sold?'disabled':''}>+</button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><button type="button" class="v73-favorite-action" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites">♡ Save</button><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
   }
   function renderProducts(){
     let list=products.filter(p=>(!curatedIds || curatedIds.has(p.id)) && (category==='all'||p.category===category)&&searchTerm.split(/\s+/).every(word=>(p.name+' '+p.description+' '+p.category).toLocaleLowerCase().includes(word)));
@@ -222,10 +222,11 @@
     try{
       const r=await fetch('/api/newsletter/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({email:byId('newsletter-email').value,consent:byId('newsletter-consent').checked})});
       const d=await r.json();if(!r.ok)throw Error(d.detail||'Signup unavailable.');
-      status.textContent=d.message;newsForm.reset();
+      status.textContent=d.message;window.odjTrack?.('newsletter_signup');newsForm.reset();
     }catch(err){status.textContent=err.message;}finally{btn.disabled=false;}
   });
   byId('copyright-year').textContent=new Date().getFullYear();
+  window.odjTrack?.('page_view');
   if(new URLSearchParams(location.search).has('checkout_cancelled'))toast('Checkout cancelled. Your bag is still here.');
   if(new URLSearchParams(location.search).has('cart'))openCart();
   updateCounters();

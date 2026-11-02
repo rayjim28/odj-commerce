@@ -19,14 +19,30 @@
     return;
   }
   let products = [], editingId = null, photos = [], busy = false;
-  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.'],launch:['Launch readiness','Review the requirements for a safe public launch.'],bundles:['Bundles & offers','Create kits and set honest promotional prices.'],retention:['Marketing & retention','Manage newsletter signups and demo promotions.']};
+  const names = {overview:['Good to see you.',"Here's a snapshot of your store."],inventory:['Product inventory','Manage prices, photos, drafts, and quantities.'],orders:['Customer orders','Track what your customers have purchased.'],settings:['Store settings','Control shipping, policies, and contact details.'],launch:['Launch readiness','Review the requirements for a safe public launch.'],bundles:['Bundles & offers','Create kits and set honest promotional prices.'],retention:['Marketing & retention','Manage newsletter signups and demo promotions.'],analytics:['Store insights','Anonymous shopping activity and verified sales.']};
   function tab(which) {
     document.querySelectorAll('.admin-tab').forEach(el=>el.hidden=el.id!==`tab-${which}`);
     document.querySelectorAll('.side-nav').forEach(el=>el.classList.toggle('selected',el.dataset.tab===which));
     $('tab-title').textContent=names[which][0];$('tab-subtitle').textContent=names[which][1];
-    if(which==='retention')loadRetention();if(which==='bundles')loadBundles();if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();if(which==='launch')loadLaunchReadiness();
+    if(which==='analytics')loadAnalytics();if(which==='retention')loadRetention();if(which==='bundles')loadBundles();if(which==='inventory')loadProducts();if(which==='orders')loadOrders();if(which==='settings')loadSettings();if(which==='launch')loadLaunchReadiness();
   }
   document.querySelectorAll('.side-nav').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
+  async function loadAnalytics(){
+    const stats=$('v74-analytics-stats');
+    stats.textContent='Loading insights…';
+    try{
+      const data=await api('/api/admin/analytics');
+      const tiles=[['Storefront views',data.counts.page_view],['Product views',data.counts.product_view],['Add to bag',data.counts.add_to_cart],['Checkout starts',data.counts.checkout_start],['Newsletter requests',data.counts.newsletter_signup],['Demo orders',data.demo_orders],['Verified paid orders',data.paid_orders],['Verified revenue',money(data.verified_revenue_cents)],['Avg. paid order',money(data.average_paid_order_cents)],['Confirmed newsletter',data.newsletter_confirmed_total],['Repeat paid buyers',data.repeat_paid_buyers]];
+      stats.innerHTML=tiles.map(([name,value])=>`<div class="v74-stat"><span>${esc(name)}</span><strong>${esc(value)}</strong></div>`).join('');
+      const maximum=Math.max(1,...data.daily.map(x=>x.events));
+      $('v74-daily-chart').innerHTML=data.daily.map(day=>`<div class="v74-chart-day" title="${esc(day.day)}: ${day.events} interactions"><span class="v74-bar" style="height:${Math.max(day.events?5:1,Math.round(100*day.events/maximum))}%"></span><small>${esc(day.day.slice(5))}</small></div>`).join('');
+      const list=(items,type)=>items.length?items.map(p=>`<div class="v74-product-line"><strong>${esc(p.name)}</strong><span>${type==='popular'?`${p.views} views · ${p.adds} bag adds`:`${p.units} paid units · ${money(p.gross_cents)} item gross`}</span></div>`).join(''):'<p class="v74-empty">No data yet.</p>';
+      $('v74-popular-products').innerHTML=list(data.popular_products,'popular');
+      $('v74-paid-products').innerHTML=list(data.paid_product_sales,'paid');
+      $('v74-analytics-note').textContent=data.note + ' Newsletter total covers all time; other metrics cover the last 30 days. Ad attribution is not connected.';
+    }catch(err){stats.textContent=err.message;}
+  }
+  $('refresh-analytics').addEventListener('click',loadAnalytics);
   async function loadRetention(){
     try{
       const [sub,promos]=await Promise.all([api('/api/admin/newsletter'),api('/api/admin/promotions')]);

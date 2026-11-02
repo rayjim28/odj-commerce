@@ -13,6 +13,21 @@
   let busy = false;
   let revision = 0;
   const mode = window.ODJ_CHECKOUT_MODE;
+  function updateProgress() {
+    const shipping = $('v74-step-shipping');
+    const payment = $('v74-step-payment');
+    if (!shipping || !payment) return;
+    const addressReady = mode !== 'demo' || !!$('shipping-address')?.checkValidity();
+    const ready = !!quote && cartLines().length > 0 && addressReady;
+    shipping.classList.toggle('done', ready);
+    shipping.classList.toggle('current', !ready);
+    if (ready) shipping.removeAttribute('aria-current');
+    else shipping.setAttribute('aria-current','step');
+    payment.classList.toggle('current', ready);
+    if (ready) payment.setAttribute('aria-current','step');
+    else payment.removeAttribute('aria-current');
+    $('v74-payment-status').textContent = ready ? 'Ready' : 'Next';
+  }
   const selectedShipping = () => document.querySelector('input[name="shipping"]:checked')?.value || 'standard';
   const cartLines = () => Object.entries(cart)
     .filter(([id, qty]) => /^-?\d+$/.test(id) && Number(id) !== 0 && Number.isInteger(Number(qty)) && Number(qty) >= 1 && Number(qty) <= 30)
@@ -81,6 +96,7 @@
     $('checkout-tax').textContent = '';
     $('checkout-discount-row').hidden=true;
     $('checkout-discount').textContent='—';
+    updateProgress();
     $('standard-rate').textContent = '—';
     $('express-rate').textContent = '—';
   }
@@ -125,8 +141,10 @@
       $(selectedShipping() === 'standard' ? 'standard-rate' : 'express-rate').textContent = money(result.shipping_cents);
       setFeedback('');
       $('checkout-submit').disabled = busy;
+      updateProgress();
     } catch (err) {
       if (thisRevision !== revision) return;
+      updateProgress();
       quote = null;
       setFeedback(err.message);
       if (/unavailable|stock/i.test(err.message)) {
@@ -164,6 +182,7 @@
     if (!busy) refreshQuote();
   }));
 
+  $('shipping-address')?.addEventListener('input',updateProgress);
   $('promo-apply').addEventListener('click',async()=>{
     promoCode=$('promo-code').value.trim().toUpperCase();
     $('promo-feedback').textContent=promoCode?'Checking code…':'No promotion applied.';
@@ -203,6 +222,7 @@
     }
   });
 
+  window.odjTrack?.('checkout_start');
   (async () => {
     try { await reloadCatalog(); await refreshQuote(); }
     catch (err) {

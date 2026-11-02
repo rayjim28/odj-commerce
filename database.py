@@ -142,6 +142,14 @@ class Promotion(Base):
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
+class StoreEvent(Base):
+    """Minimal first-party interaction counters; deliberately no personal identifiers."""
+    __tablename__ = 'store_events'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(24), index=True, nullable=False)
+    product_id: Mapped[Optional[int]] = mapped_column(Integer, index=True, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True, default=now)
+
 class WebhookEvent(Base):
     __tablename__ = 'stripe_webhook_events'
     event_id: Mapped[str] = mapped_column(String(255), primary_key=True)

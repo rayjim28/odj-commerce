@@ -1,13 +1,14 @@
 """ODJ Group e-commerce — FastAPI + SQLAlchemy + hosted Stripe Checkout."""
 import os, re, uuid, json, time, secrets, hashlib, hmac
 from pathlib import Path
-from datetime import datetime, timezone
+from typing import Optional
+from datetime import datetime, timezone, timedelta
 from contextlib import asynccontextmanager
 from sqlalchemy import select, update, func, text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps, UnidentifiedImageError
 from io import BytesIO
@@ -26,7 +27,7 @@ except ImportError:
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
-from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, now, engine
+from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, StoreEvent, now, engine
 from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_password,
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
@@ -72,6 +73,10 @@ async def protect_private_pages(request: Request, call_next):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+    if payment_mode() == 'demo':
+        response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    if path.startswith('/static/') or path.startswith('/media/'):
+        response.headers['Cache-Control'] = 'public, max-age=3600'
     if os.getenv('APP_ENV') == 'production':
         response.headers['Strict-Transport-Security'] = 'max-age=31536000'
     if path == '/admin' or path.startswith('/api/admin/'):
@@ -84,7 +89,111 @@ async def protect_private_pages(request: Request, call_next):
 @app.get('/robots.txt', include_in_schema=False)
 def robots_txt():
     from fastapi.responses import PlainTextResponse
-    return PlainTextResponse('User-agent: *\nDisallow: /admin\nDisallow: /api/admin/\nDisallow: /account\nDisallow: /api/account/\nDisallow: /newsletter/\n')
+    if payment_mode() == 'demo':
+        return PlainTextResponse('User-agent: *\nDisallow: /\nDisallow: /admin\nDisallow: /api/admin/\nDisallow: /account\nDisallow: /newsletter/\n')
+    root = os.getenv('PUBLIC_BASE_URL', '').rstrip('/')
+    sitemap = f'Sitemap: {root}/sitemap.xml\n' if root.startswith('https://') else ''
+    return PlainTextResponse('User-agent: *\nDisallow: /admin\nDisallow: /api/\nDisallow: /account\nDisallow: /checkout\nDisallow: /newsletter/\n' + sitemap)
+
+
+def public_origin(request: Request) -> str:
+    """Canonical URL only when the store owner has configured an HTTPS public domain."""
+    root = os.getenv('PUBLIC_BASE_URL', '').rstrip('/')
+    return root if root.startswith('https://') and ' ' not in root else ''
+
+@app.get('/sitemap.xml', include_in_schema=False)
+def sitemap_xml(request: Request):
+    """Only index published listings; never accounts, customer data, or draft offers."""
+    from xml.sax.saxutils import escape
+    root = public_origin(request) or str(request.base_url).rstrip('/')
+    with SessionLocal() as db:
+        ids = [p['id'] for p in public_catalog(db)]
+    paths = ['/', '/information/shipping', '/information/returns', '/information/contact']
+    paths += [f'/products/{id}' for id in ids]
+    urls = ''.join('<url><loc>' + escape(root + path) + '</loc></url>' for path in paths)
+    return Response('<?xml version="1.0" encoding="UTF-8"?>\n'
+                    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + '</urlset>',
+                    media_type='application/xml', headers={'Cache-Control':'public, max-age=300'})
+
+class AnalyticsInput(BaseModel):
+    event: str = Field(max_length=24)
+    product_id: Optional[int] = None
+
+ANALYTICS_EVENTS = ('page_view', 'product_view', 'add_to_cart', 'checkout_start', 'newsletter_signup')
+
+@app.post('/api/analytics/event', status_code=204)
+def record_analytics(payload: AnalyticsInput, request: Request):
+    """Anonymous page/interactions only: no IPs, emails, device identifiers, or user cookies saved."""
+    if not origin_allowed(request):
+        raise HTTPException(403, 'Invalid request origin.')
+    if payload.event not in ANALYTICS_EVENTS:
+        raise HTTPException(422, 'Unknown event type.')
+    if payload.event in ('product_view','add_to_cart'):
+        if payload.product_id is None or payload.product_id == 0:
+            raise HTTPException(422, 'Product identifier required.')
+        with SessionLocal() as db:
+            if not any(p['id'] == payload.product_id for p in public_catalog(db)):
+                raise HTTPException(404, 'Product unavailable.')
+    elif payload.product_id is not None:
+        raise HTTPException(422, 'Product identifier not allowed for this event.')
+    with SessionLocal() as db:
+        db.add(StoreEvent(event_type=payload.event, product_id=payload.product_id))
+        db.commit()
+    return Response(status_code=204)
+
+
+def analytics_summary(db: Session, days: int = 30):
+    since = now() - timedelta(days=days)
+    rows = db.scalars(select(StoreEvent).where(StoreEvent.created_at >= since)).all()
+    counts = {name:0 for name in ANALYTICS_EVENTS}
+    product_counts = {}
+    daily = {}
+    for event in rows:
+        counts[event.event_type] = counts.get(event.event_type,0) + 1
+        stamp = event.created_at.date().isoformat() if event.created_at else now().date().isoformat()
+        daily[stamp] = daily.get(stamp,0) + 1
+        if event.product_id is not None:
+            per = product_counts.setdefault(event.product_id, {'views':0,'adds':0})
+            if event.event_type=='product_view':per['views']+=1
+            if event.event_type=='add_to_cart':per['adds']+=1
+    paid = db.scalars(select(Order).where(Order.status == 'paid', Order.paid_at >= since)).all()
+    demo = db.scalar(select(func.count()).select_from(Order).where(Order.status == 'demo', Order.created_at >= since)) or 0
+    revenue = sum(o.paid_total_cents for o in paid)
+    paid_items = {}
+    for order in paid:
+        for item in order.items_snapshot or []:
+            pid=item.get('id')
+            if not isinstance(pid,int):continue
+            slot=paid_items.setdefault(pid, {'units':0,'gross_cents':0})
+            slot['units'] += int(item.get('qty',0))
+            slot['gross_cents'] += int(item.get('price_cents',0)) * int(item.get('qty',0))
+    repeat_buyers = len([customer_id for customer_id in {o.customer_id for o in paid if o.customer_id is not None} if sum(1 for o in paid if o.customer_id == customer_id) >= 2])
+    names={p['id']:p['name'] for p in public_catalog(db)}
+    # Include historical products in paid orders even after archival.
+    for p in db.scalars(select(Product)).all():names.setdefault(p.id,p.name)
+    for b in db.scalars(select(Bundle)).all():names.setdefault(-b.id,b.name)
+    popular=[{'id':pid,'name':names.get(pid,'Archived product'),'views':v['views'],'adds':v['adds']} for pid,v in product_counts.items()]
+    popular.sort(key=lambda v:(v['views'],v['adds']),reverse=True)
+    sold=[{'id':pid,'name':names.get(pid,'Archived product'),'units':v['units'],'gross_cents':v['gross_cents']} for pid,v in paid_items.items()]
+    sold.sort(key=lambda v:v['gross_cents'],reverse=True)
+    confirmed = db.scalar(select(func.count()).select_from(NewsletterSubscriber).where(NewsletterSubscriber.status=='confirmed')) or 0
+    return {'days':days,'counts':counts,'daily':[{'day':(now().date()-timedelta(days=i)).isoformat(),'events':daily.get((now().date()-timedelta(days=i)).isoformat(),0)} for i in range(13,-1,-1)],
+        'popular_products':popular[:8], 'paid_product_sales':sold[:8], 'paid_orders':len(paid),'demo_orders':demo,
+        'verified_revenue_cents':revenue, 'average_paid_order_cents':round(revenue/len(paid)) if paid else 0,
+        'newsletter_confirmed_total':confirmed, 'repeat_paid_buyers':repeat_buyers,
+        'note':'Anonymous interactions, not unique visitors. Checkout starts and cart adds can repeat; abandonment cannot be measured per customer. Demo orders and estimated item gross are not paid revenue.'}
+
+@app.get('/api/admin/analytics')
+def admin_analytics(request: Request):
+    require_admin(request)
+    with SessionLocal() as db:
+        return analytics_summary(db)
+
+
+def seo_images(data: dict, request: Request):
+    root = public_origin(request)
+    urls = [data.get('image_url','')] + list(data.get('additional_images') or [])
+    return [(root + url if url.startswith('/') else url) for url in urls if url and (url.startswith('/') or url.startswith('https://'))]
 
 
 def serialize_product(p: Product):
@@ -192,7 +301,7 @@ def home(request: Request):
         settings = store_settings(db)
     return templates.TemplateResponse(request, 'index.html', {'products':products,'categories':categories,'settings':settings,
         'merch':build_home_merchandising(products), 'bundles':[p for p in products if p.get('is_bundle') and p['stock']>0][:3],
-        'customer':customer, 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
+        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
 
 
 
@@ -209,7 +318,7 @@ def product_detail(product_id: int, request: Request):
             related = [p for p in public_catalog(db) if p['id'] != product_id][:3]
             customer = signed_in_customer(request)
             return templates.TemplateResponse(request, 'product.html', {
-                'product':data, 'related':related, 'customer':customer, 'now_year':datetime.now().year})
+                'product':data, 'related':related, 'customer':customer, 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
         product = db.get(Product, product_id)
         if not product or not product.active or product.price_cents <= 0:
             raise HTTPException(status_code=404, detail='This product is unavailable.')
@@ -225,7 +334,7 @@ def product_detail(product_id: int, request: Request):
             ).order_by(Product.featured.desc(), Product.id).limit(3 - len(related))).all()]
     customer = signed_in_customer(request)
     return templates.TemplateResponse(request, 'product.html', {
-        'product': data, 'related': related, 'customer': customer,
+        'product': data, 'related': related, 'customer': customer, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
         'customer_json': {'signedIn': bool(customer)}
     })
 

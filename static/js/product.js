@@ -32,6 +32,7 @@
       message.textContent = 'Your browser could not save the shopping bag. Enable local storage and try again.';
       return;
     }
+    window.odjTrack?.('add_to_cart',product.id);
     message.textContent = `${quantity} × ${product.name} added to your bag. ✓`;
     update();
   });
@@ -43,6 +44,7 @@
     });
   }));
   update();
+  window.odjTrack?.('product_view',product.id);
 })();
 
 // V7.3: favorites belong to the signed-in account, not browser-only storage.
