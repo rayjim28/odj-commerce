@@ -1,5 +1,5 @@
 """ODJ Group e-commerce — FastAPI + SQLAlchemy + hosted Stripe Checkout."""
-import os, re, uuid, json, time, secrets, hashlib, hmac
+import os, re, uuid, json, time, secrets, hashlib, hmac, base64, binascii
 from pathlib import Path
 from typing import Optional
 from datetime import datetime, timezone, timedelta
@@ -27,7 +27,7 @@ except ImportError:
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
-from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, StoreEvent, now, engine
+from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, StoreEvent, LoginFailure, now, engine
 from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_password,
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
@@ -54,6 +54,13 @@ async def lifespan(app: FastAPI):
             errors.append('Set MEDIA_DIR to a persistent storage location.')
         if errors:
             raise RuntimeError('Production configuration incomplete: ' + ' '.join(errors))
+    if os.getenv('APP_ENV') == 'staging':
+        from staging_security import staging_config_errors
+        staging_errors = staging_config_errors()
+        if staging_errors:
+            raise RuntimeError('Staging configuration incomplete: ' + ' '.join(staging_errors))
+        if payment_mode() != 'demo':
+            raise RuntimeError('Staging must use PAYMENT_MODE=demo in this release.')
     create_tables()
     yield
 
@@ -66,6 +73,16 @@ templates = Jinja2Templates(directory=ROOT / 'templates')
 
 @app.middleware('http')
 async def protect_private_pages(request: Request, call_next):
+    # Entire staging site (including media, API endpoints and static assets) stays private.
+    # Don't leak a public page or API response before checking staging access.
+    if os.getenv('APP_ENV', '').lower() == 'staging':
+        from staging_security import staging_authorized
+        if not staging_authorized(request.headers.get('authorization', '')):
+            return Response(status_code=401, headers={
+                'WWW-Authenticate': 'Basic realm="ODJ private staging", charset="UTF-8"',
+                'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow',
+                'X-Content-Type-Options': 'nosniff',
+            })
     """Sensitive responses must not be cached or indexed by search engines."""
     response = await call_next(request)
     path = request.url.path
@@ -73,11 +90,11 @@ async def protect_private_pages(request: Request, call_next):
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
-    if payment_mode() == 'demo':
+    if payment_mode() == 'demo' or os.getenv('APP_ENV') == 'staging':
         response.headers['X-Robots-Tag'] = 'noindex, nofollow'
     if path.startswith('/static/') or path.startswith('/media/'):
         response.headers['Cache-Control'] = 'public, max-age=3600'
-    if os.getenv('APP_ENV') == 'production':
+    if os.getenv('APP_ENV') in ('production','staging'):
         response.headers['Strict-Transport-Security'] = 'max-age=31536000'
     if path == '/admin' or path.startswith('/api/admin/'):
         response.headers['Cache-Control'] = 'no-store, private'
@@ -389,7 +406,7 @@ def customer_cookie(response, customer):
     if not token:
         raise HTTPException(503, 'Account login is not configured. Run the local setup script.')
     response.set_cookie(CUSTOMER_COOKIE, token, max_age=CUSTOMER_MAX_AGE,
-        httponly=True, secure=os.getenv('APP_ENV') == 'production', samesite='lax', path='/')
+        httponly=True, secure=os.getenv('APP_ENV') in ('production','staging'), samesite='lax', path='/')
     return response
 
 
@@ -1160,7 +1177,46 @@ def admin(request: Request):
     return templates.TemplateResponse(request,'admin.html',{'authenticated':is_admin(request), 'checkout_mode':payment_mode()})
 
 
-login_attempts: dict[str,list[float]] = {}
+login_attempts: dict[str,list[float]] = {}  # retained for compatibility with older development tests
+
+def _failure_key(request: Request, scope: str) -> str:
+    # Never persist raw IPs, usernames, or emails in the rate-limit table.
+    secret = os.getenv('SESSION_SECRET', '')
+    peer = request.client.host if request.client else 'unknown'
+    return hmac.new(secret.encode(), (scope + ':' + peer).encode(), hashlib.sha256).hexdigest()
+
+
+def _check_admin_failures(request: Request):
+    key = _failure_key(request, 'admin-login')
+    with SessionLocal() as db:
+        item = db.get(LoginFailure, key)
+        if item and item.expires_at > time.time() and item.attempts >= 8:
+            raise HTTPException(429, 'Too many attempts. Try again in 15 minutes.')
+    return key
+
+
+def _record_admin_failure(key: str):
+    # Single atomic UPSERT works with SQLite and PostgreSQL under concurrent requests.
+    ts = time.time()
+    expiry = ts + 900
+    with engine.begin() as conn:
+        conn.execute(text("""INSERT INTO login_failures (key, attempts, expires_at)
+            VALUES (:key, 1, :expires)
+            ON CONFLICT (key) DO UPDATE SET
+              attempts = CASE WHEN login_failures.expires_at <= :ts THEN 1
+                              ELSE login_failures.attempts + 1 END,
+              expires_at = CASE WHEN login_failures.expires_at <= :ts THEN :expires
+                                ELSE login_failures.expires_at END"""),
+            {'key':key, 'expires':expiry, 'ts':ts})
+
+
+def _clear_admin_failures(key: str):
+    with SessionLocal() as db:
+        row = db.get(LoginFailure, key)
+        if row:
+            db.delete(row)
+            db.commit()
+
 class LoginInput(BaseModel):
     password: str = Field(min_length=1, max_length=500)
 
@@ -1172,19 +1228,14 @@ def admin_login(payload: LoginInput, request: Request):
     stored = os.getenv('ADMIN_PASSWORD_HASH', '')
     if not token or not stored:
         raise HTTPException(503, 'Admin sign-in is temporarily unavailable. Contact the store owner.')
-    ip = request.client.host if request.client else 'unknown'
-    ts = time.time()
-    attempts = [t for t in login_attempts.get(ip, []) if ts - t < 900]
-    if len(attempts) >= 8:
-        raise HTTPException(429, 'Too many attempts. Try again in 15 minutes.')
+    key = _check_admin_failures(request)
     if not verify_password(payload.password, stored):
-        attempts.append(ts)
-        login_attempts[ip] = attempts
+        _record_admin_failure(key)
         raise HTTPException(401, 'Incorrect password.')
-    login_attempts.pop(ip, None)
+    _clear_admin_failures(key)
     response = JSONResponse({'ok':True})
     response.set_cookie(COOKIE_NAME, token, max_age=MAX_AGE, httponly=True,
-        secure=os.getenv('APP_ENV') == 'production', samesite='strict', path='/')
+        secure=os.getenv('APP_ENV') in ('production','staging'), samesite='strict', path='/')
     return response
 
 @app.post('/api/admin/logout')

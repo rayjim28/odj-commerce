@@ -2,6 +2,8 @@
 Usage: python scripts/backup_local.py
 """
 import sqlite3
+import json
+import hashlib
 import zipfile
 import tempfile
 from datetime import datetime, timezone
@@ -18,6 +20,7 @@ if __name__ == '__main__':
     BACKUPS.mkdir(exist_ok=True)
     name = 'odj-local-' + datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%SZ') + '.zip'
     target = BACKUPS / name
+    digests = {}
     with tempfile.TemporaryDirectory() as temp:
         staged = Path(temp) / 'store.db'
         source = sqlite3.connect(f'file:{DB}?mode=ro', uri=True)
@@ -31,10 +34,15 @@ if __name__ == '__main__':
             source.close()
         with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED) as output:
             output.write(staged, 'store.db')
+            digests['store.db'] = hashlib.sha256(staged.read_bytes()).hexdigest()
             if MEDIA.exists():
                 for f in MEDIA.rglob('*'):
                     if f.is_file() and not f.is_symlink():
-                        output.write(f, 'media/' + f.relative_to(MEDIA).as_posix())
+                        relative = 'media/' + f.relative_to(MEDIA).as_posix()
+                        output.write(f, relative)
+                        digests[relative] = hashlib.sha256(f.read_bytes()).hexdigest()
+            output.writestr('manifest.json', json.dumps({'version': 1, 'sha256': digests}, indent=2))
     target.chmod(0o600)
     print('Created PRIVATE local backup:', target)
     print('Contains customer data. Keep it private, secure it, and NEVER add it to GitHub.')
+    print('Verify with: python scripts/verify_backup.py ' + str(target))

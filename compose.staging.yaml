@@ -1,0 +1,13 @@
+# Overlay on compose.yaml. Run with -p odj-staging so volumes do not mix with live.
+# Set DOMAIN to a staging subdomain; use separate accounts and demo product data.
+services:
+  web:
+    environment:
+      APP_ENV: staging
+      PAYMENT_MODE: demo
+      STAGING_ACCESS_USER: ${STAGING_ACCESS_USER:?Set a staging username}
+      STAGING_ACCESS_PASSWORD: ${STAGING_ACCESS_PASSWORD:?Set a staging password}
+      PUBLIC_BASE_URL: https://${DOMAIN:?Set a staging hostname}
+  caddy:
+    environment:
+      DOMAIN: ${DOMAIN:?Set a staging hostname}

@@ -54,3 +54,7 @@ Following the owner's `what i need` requirements, this release adds consent-base
 ### V7.4 — store insights, mobile checkout and SEO
 
 See [UPGRADE_TO_V7_4.md](UPGRADE_TO_V7_4.md) for installation, feature limits, and tests. The admin-only analytics panel aggregates anonymous interaction events and separates demo activity from confirmed paid revenue. Checkout has a mobile progress display, and the application provides a public-product sitemap and structured product metadata for use after launch. **Payments remain in demo mode.**
+
+### V7.5 — private staging and operations safeguards
+
+This release adds optional protected staging (`APP_ENV=staging`, **demo-only checkout**), database-backed failed admin login counters, verifiable private SQLite backups, optional PostgreSQL backup helper, read-only operations diagnostics, and GitHub CI. See [UPGRADE_TO_V7_5.md](UPGRADE_TO_V7_5.md) for setup, test commands and important limitations. **Nothing is deployed or made public by applying the update.** Stripe remains on hold.

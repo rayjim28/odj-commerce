@@ -150,6 +150,13 @@ class StoreEvent(Base):
     product_id: Mapped[Optional[int]] = mapped_column(Integer, index=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True, default=now)
 
+class LoginFailure(Base):
+    """Failed admin login rate limit; stores only a keyed digest, not raw IPs."""
+    __tablename__ = 'login_failures'
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    expires_at: Mapped[float] = mapped_column(__import__('sqlalchemy').Float, nullable=False)
+
 class WebhookEvent(Base):
     __tablename__ = 'stripe_webhook_events'
     event_id: Mapped[str] = mapped_column(String(255), primary_key=True)

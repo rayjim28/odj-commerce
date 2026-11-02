@@ -12,31 +12,14 @@ store.db.*
 .DS_Store
 media/
 
-# Python
-.venv/
-__pycache__/
-*.pyc
-.pytest_cache/
-
-# Private configuration
-.env
-.env.*
-*.pem
-*.key
-
-# Database and backups
-*.db
-*.db-*
-*.sqlite*
 *.bak
-
-# Uploaded customer/product files
-uploads/
-static/uploads/
-
-# Miscellaneous
-.DS_Store
-*.log
-*.zip
-
+*.pre-v6.bak
+# Phase 7 private local backups
 backups/
+*.backup
+*.db.backup
+
+!.env.staging.example
+# V7.5 transient operator files
+*.dump
+*.sql.gz

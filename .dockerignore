@@ -7,3 +7,10 @@ __pycache__
 .pytest_cache
 media
 __screenshots__
+
+backups/
+*.bak
+*.backup
+*.db.*
+.env.*
+!.env.example
