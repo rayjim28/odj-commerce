@@ -1,13 +1,60 @@
-# Overlay on compose.yaml. Run with -p odj-staging so volumes do not mix with live.
-# Set DOMAIN to a staging subdomain; use separate accounts and demo product data.
+# ODJ private staging (V7.6). Standalone: do NOT layer over compose.yaml.
+# docker compose --env-file .env.staging -p odj-staging -f compose.staging.yaml up -d --build
+# Requires a staging-only hostname whose DNS points to this host. No payment service.
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: odj_staging
+      POSTGRES_USER: odj_staging
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set staging database password}
+    volumes:
+      - odj_staging_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odj_staging -d odj_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
   web:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env.staging
     environment:
       APP_ENV: staging
       PAYMENT_MODE: demo
-      STAGING_ACCESS_USER: ${STAGING_ACCESS_USER:?Set a staging username}
-      STAGING_ACCESS_PASSWORD: ${STAGING_ACCESS_PASSWORD:?Set a staging password}
-      PUBLIC_BASE_URL: https://${DOMAIN:?Set a staging hostname}
+      MEDIA_DIR: /data/odj-media
+      PUBLIC_BASE_URL: https://${DOMAIN:?Set staging hostname}
+      DATABASE_URL: postgresql+psycopg://odj_staging:${POSTGRES_PASSWORD:?Set staging database password}@db:5432/odj_staging
+    volumes:
+      - odj_staging_media:/data/odj-media
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1',8000),3); s.close()"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
   caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
     environment:
-      DOMAIN: ${DOMAIN:?Set a staging hostname}
+      DOMAIN: ${DOMAIN:?Set staging hostname}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - odj_staging_caddy_data:/data
+      - odj_staging_caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+volumes:
+  odj_staging_pg:
+  odj_staging_media:
+  odj_staging_caddy_data:
+  odj_staging_caddy_config:

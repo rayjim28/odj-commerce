@@ -1,3 +1,5 @@
+> **V7.6 supersedes the old staging Compose-overlay instructions below.** For new staging use `UPGRADE_TO_V7_6.md` and its standalone `compose.staging.yaml` only.
+
 # ODJ V7.5 — Operations, security and private staging groundwork
 
 This update continues the owner's `what i need.zip` request for a customer-first mobile e-commerce experience with **testing before launch**. It does not redesign the shop or publish it. **Keep `PAYMENT_MODE=demo`; no Stripe setup is required or activated.**

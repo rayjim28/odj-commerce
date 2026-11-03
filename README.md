@@ -58,3 +58,7 @@ See [UPGRADE_TO_V7_4.md](UPGRADE_TO_V7_4.md) for installation, feature limits, a
 ### V7.5 — private staging and operations safeguards
 
 This release adds optional protected staging (`APP_ENV=staging`, **demo-only checkout**), database-backed failed admin login counters, verifiable private SQLite backups, optional PostgreSQL backup helper, read-only operations diagnostics, and GitHub CI. See [UPGRADE_TO_V7_5.md](UPGRADE_TO_V7_5.md) for setup, test commands and important limitations. **Nothing is deployed or made public by applying the update.** Stripe remains on hold.
+
+### V7.6 — isolated private online staging kit
+
+A standalone staging Compose configuration, separate secret generator, deployment checker, and HTTPS access probe are included. See [UPGRADE_TO_V7_6.md](UPGRADE_TO_V7_6.md) for setup and limitations. **This ZIP does not deploy or publish anything**; a staging host and domain must be provided separately. No real customer data, Stripe payments, or outbound email are enabled. Existing local store data are unchanged.

@@ -20,3 +20,4 @@ jobs:
       - run: python -m pytest -q tests/test_v74.py
       - run: python -m pytest -q tests/test_v75.py
       - run: python -m compileall -q main.py database.py security.py staging_security.py scripts
+      - run: python -m pytest -q tests/test_v76.py
