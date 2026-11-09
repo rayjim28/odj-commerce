@@ -37,7 +37,7 @@ def launch_readiness():
               'Review shipping timeframes, refunds, and consumer policy requirements.', 'Store'),
         _item('shipping', 'Shipping rates', False,
               'Sample rates exist; confirm costs and destinations with the business owner.', 'Store', review=True),
-        _item('stripe', 'Live payment account', stripe_key.startswith('sk_live_') and stripe_hook.startswith('whsec_') and os.getenv('PAYMENT_MODE') == 'stripe',
+        _item('stripe', 'Live payment account', stripe_key.startswith(('sk_live_', 'rk_live_')) and stripe_hook.startswith('whsec_') and os.getenv('PAYMENT_MODE') == 'stripe',
               'Stripe live secret, signed webhook, and payment mode must be configured server-side. Configuration is not provider verification.', 'Payments'),
         _item('tax', 'Sales tax configuration', os.getenv('STRIPE_AUTOMATIC_TAX','false').lower() == 'true',
               'Confirm Stripe Tax registrations, product tax codes, and jurisdiction obligations with the owner.', 'Payments', review=True),
