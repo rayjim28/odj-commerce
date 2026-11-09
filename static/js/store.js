@@ -42,9 +42,15 @@
     const lines=validLines();
     const total=lines.reduce((sum,l)=>sum+l.qty*l.product.price_cents,0);
     byId('cart-subtotal').textContent=money(total);
-    byId('checkout-button').disabled=!lines.length;
-    byId('checkout-message').textContent='';
-    byId('checkout-button').innerHTML = (window.ODJ_CUSTOMER && window.ODJ_CUSTOMER.signedIn) ? 'Review checkout <span class="checkout-arrow" aria-hidden="true">↗</span>' : 'Sign in to checkout <span class="checkout-arrow" aria-hidden="true">↗</span>';
+    if (window.ODJ_PUBLIC_PREVIEW === true) {
+      byId('checkout-button').disabled = true;
+      byId('checkout-message').textContent = 'Ordering will open soon. No purchases are being accepted.';
+      byId('checkout-button').textContent = 'Checkout coming soon';
+    } else {
+      byId('checkout-button').disabled=!lines.length;
+      byId('checkout-message').textContent='';
+      byId('checkout-button').innerHTML = (window.ODJ_CUSTOMER && window.ODJ_CUSTOMER.signedIn) ? 'Review checkout <span class="checkout-arrow" aria-hidden="true">↗</span>' : 'Sign in to checkout <span class="checkout-arrow" aria-hidden="true">↗</span>';
+    }
     if(!lines.length){byId('drawer-items').innerHTML='<div class="cart-empty"><div class="cart-empty-icon">✧</div><h3>Your bag is feeling empty.</h3><p>Good things start with the right essentials.<br>Explore the collection and find your favorites.</p></div>';return;}
     byId('drawer-items').innerHTML=lines.map(({product:p,qty})=>`<div class="cart-line">
       <img alt="${esc(p.name)}" src="${esc(p.image_url||'/static/images/default.svg')}">
@@ -209,6 +215,7 @@
     if(!searchShell.contains(event.target) && !byId('search-trigger').contains(event.target)) hideSuggestions();
   });
   byId('checkout-button').addEventListener('click', () => {
+    if(window.ODJ_PUBLIC_PREVIEW === true){toast('Online orders coming soon.');return;}
     if(!window.ODJ_CUSTOMER || !window.ODJ_CUSTOMER.signedIn){
       window.location.assign('/account?next=checkout');return;
     }
