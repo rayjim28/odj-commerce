@@ -64,6 +64,12 @@ async def lifespan(app: FastAPI):
     create_tables()
     yield
 
+def public_storefront_preview() -> bool:
+    """Opt-in public browse-only preview. Never enables payments or bypasses admin auth."""
+    return (os.getenv('APP_ENV', '').lower() == 'staging' and
+            os.getenv('PUBLIC_STOREFRONT', '').strip().lower() in ('1', 'true', 'yes', 'on'))
+
+
 app = FastAPI(title='ODJ Group Storefront', lifespan=lifespan, docs_url=None if os.getenv('APP_ENV') == 'production' else '/docs')
 app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
 MEDIA_DIR = Path(os.getenv('MEDIA_DIR') or (ROOT / 'media')).resolve()
@@ -75,7 +81,7 @@ templates = Jinja2Templates(directory=ROOT / 'templates')
 async def protect_private_pages(request: Request, call_next):
     # Entire staging site (including media, API endpoints and static assets) stays private.
     # Don't leak a public page or API response before checking staging access.
-    if os.getenv('APP_ENV', '').lower() == 'staging':
+    if os.getenv('APP_ENV', '').lower() == 'staging' and not public_storefront_preview():
         from staging_security import staging_authorized
         if not staging_authorized(request.headers.get('authorization', '')):
             return Response(status_code=401, headers={
@@ -83,6 +89,16 @@ async def protect_private_pages(request: Request, call_next):
                 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow',
                 'X-Content-Type-Options': 'nosniff',
             })
+    # Public preview is browse-only. Block transactions, account creation and email
+    # collection server-side even if someone bypasses the storefront UI.
+    if public_storefront_preview():
+        path = request.url.path
+        if (path in ('/checkout', '/account', '/api/checkout', '/api/account/register')
+                or path.startswith(('/api/checkout/', '/api/account/', '/account/', '/demo-order/',
+                                    '/api/newsletter/', '/newsletter/'))):
+            return JSONResponse(status_code=503,
+                content={'detail': 'ODJ Group is open for browsing. Ordering and accounts are coming soon.'},
+                headers={'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow'})
     """Sensitive responses must not be cached or indexed by search engines."""
     response = await call_next(request)
     path = request.url.path
@@ -318,7 +334,7 @@ def home(request: Request):
         settings = store_settings(db)
     return templates.TemplateResponse(request, 'index.html', {'products':products,'categories':categories,'settings':settings,
         'merch':build_home_merchandising(products), 'bundles':[p for p in products if p.get('is_bundle') and p['stock']>0][:3],
-        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
+        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'public_preview':public_storefront_preview(), 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
 
 
 
@@ -335,7 +351,7 @@ def product_detail(product_id: int, request: Request):
             related = [p for p in public_catalog(db) if p['id'] != product_id][:3]
             customer = signed_in_customer(request)
             return templates.TemplateResponse(request, 'product.html', {
-                'product':data, 'related':related, 'customer':customer, 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
+                'product':data, 'related':related, 'customer':customer, 'public_preview':public_storefront_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
         product = db.get(Product, product_id)
         if not product or not product.active or product.price_cents <= 0:
             raise HTTPException(status_code=404, detail='This product is unavailable.')
@@ -351,7 +367,7 @@ def product_detail(product_id: int, request: Request):
             ).order_by(Product.featured.desc(), Product.id).limit(3 - len(related))).all()]
     customer = signed_in_customer(request)
     return templates.TemplateResponse(request, 'product.html', {
-        'product': data, 'related': related, 'customer': customer, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
+        'product': data, 'related': related, 'customer': customer, 'public_preview':public_storefront_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
         'customer_json': {'signedIn': bool(customer)}
     })
 
