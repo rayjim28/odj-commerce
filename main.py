@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
         errors = []
         if os.getenv('PAYMENT_MODE', 'demo').lower() != 'stripe':
             errors.append('Demo checkout is prohibited in production.')
-        if not os.getenv('STRIPE_SECRET_KEY', '').startswith('sk_live_') or not os.getenv('STRIPE_WEBHOOK_SECRET', '').startswith('whsec_'):
+        if not os.getenv('STRIPE_SECRET_KEY', '').startswith(('sk_live_', 'rk_live_')) or not os.getenv('STRIPE_WEBHOOK_SECRET', '').startswith('whsec_'):
             errors.append('Configure production Stripe secret and webhook signing key.')
         if not os.getenv('DATABASE_URL', '').startswith(('postgresql://','postgresql+psycopg://','postgres://')):
             errors.append('Set a production PostgreSQL DATABASE_URL.')
@@ -1093,7 +1093,7 @@ async def checkout(payload: CheckoutRequest, request: Request):
         raise HTTPException(503, 'Real payment is not enabled. Use demo checkout.')
     if payload.promo_code.strip():
         raise HTTPException(409,'Promotions are only previewed in demo mode until Stripe is configured.')
-    if not os.getenv('STRIPE_SECRET_KEY', '').startswith(('sk_test_', 'sk_live_')):
+    if not os.getenv('STRIPE_SECRET_KEY', '').startswith(('sk_test_', 'sk_live_', 'rk_test_', 'rk_live_')):
         raise HTTPException(503, 'Stripe test or live credentials are not configured.')
     shipping = shipping_price(payload.shipping_option)
     order_id = str(uuid.uuid4())
