@@ -22,3 +22,4 @@ jobs:
       - run: python -m compileall -q main.py database.py security.py staging_security.py scripts
       - run: python -m pytest -q tests/test_v76.py
       - run: python -m pytest -q tests/test_public_preview.py
+      - run: python -m pytest -q tests/test_stripe_restricted_keys.py
