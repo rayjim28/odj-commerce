@@ -8,7 +8,7 @@ class StripeError(Exception):
 
 async def create_checkout(order, base_url: str) -> dict:
     secret = os.getenv('STRIPE_SECRET_KEY', '')
-    if not secret.startswith('sk_'):
+    if not secret.startswith(('sk_test_', 'sk_live_', 'rk_test_', 'rk_live_')):
         raise StripeError('Stripe is not configured. Set STRIPE_SECRET_KEY in .env first.')
     fields: list[tuple[str, str]] = [
         ('mode', 'payment'),
