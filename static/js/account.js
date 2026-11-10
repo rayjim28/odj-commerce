@@ -40,7 +40,7 @@
     signin.addEventListener('submit', e => {e.preventDefault();send(signin, '/api/account/login');});
     register.addEventListener('submit', e => {e.preventDefault();send(register, '/api/account/register');});
   }
-  if ($('forgot-open')) $('forgot-open').addEventListener('click',()=>{signin.hidden=true;register.hidden=true;$('forgot-form').hidden=false;feedback.textContent='Email sending will begin after the store owner connects an email provider.';});
+  if ($('forgot-open')) $('forgot-open').addEventListener('click',()=>{signin.hidden=true;register.hidden=true;$('forgot-form').hidden=false;feedback.textContent='Enter your account email to request a password reset link.';});
   if ($('forgot-back')) $('forgot-back').addEventListener('click',()=>{$('forgot-form').hidden=true;signin.hidden=false;feedback.textContent='';});
   if ($('forgot-form')) $('forgot-form').addEventListener('submit',async e=>{e.preventDefault();
     const btn=e.target.querySelector('[type=submit]');btn.disabled=true;
