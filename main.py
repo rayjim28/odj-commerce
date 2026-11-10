@@ -70,6 +70,19 @@ def public_storefront_preview() -> bool:
             os.getenv('PUBLIC_STOREFRONT', '').strip().lower() in ('1', 'true', 'yes', 'on'))
 
 
+def preview_test_email() -> str:
+    """Server-side allowlist for public, unpaid customer-account testing."""
+    email = os.getenv('ACCOUNT_TEST_EMAIL', '').strip().lower()
+    return email if (email.isascii() and
+        re.fullmatch(r'[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}', email)) else ''
+
+
+def account_testing_preview() -> bool:
+    return (public_storefront_preview() and
+            os.getenv('PUBLIC_ACCOUNT_TESTING', '').strip().lower() in ('1', 'true', 'yes', 'on') and
+            bool(preview_test_email()))
+
+
 app = FastAPI(title='ODJ Group Storefront', lifespan=lifespan, docs_url=None if os.getenv('APP_ENV') == 'production' else '/docs')
 app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
 MEDIA_DIR = Path(os.getenv('MEDIA_DIR') or (ROOT / 'media')).resolve()
@@ -89,15 +102,16 @@ async def protect_private_pages(request: Request, call_next):
                 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow',
                 'X-Content-Type-Options': 'nosniff',
             })
-    # Public preview is browse-only. Block transactions, account creation and email
-    # collection server-side even if someone bypasses the storefront UI.
+    # Public preview never accepts orders or newsletter subscriptions.
+    # Allow account testing ONLY with explicit, configured email allowlisting.
     if public_storefront_preview():
         path = request.url.path
-        if (path in ('/checkout', '/account', '/api/checkout', '/api/account/register')
-                or path.startswith(('/api/checkout/', '/api/account/', '/account/', '/demo-order/',
-                                    '/api/newsletter/', '/newsletter/'))):
+        payment_or_marketing = (path in ('/checkout', '/api/checkout') or
+            path.startswith(('/api/checkout/', '/demo-order/', '/api/newsletter/', '/newsletter/')))
+        account_path = (path == '/account' or path.startswith(('/account/', '/api/account/')))
+        if payment_or_marketing or (account_path and not account_testing_preview()):
             return JSONResponse(status_code=503,
-                content={'detail': 'ODJ Group is open for browsing. Ordering and accounts are coming soon.'},
+                content={'detail': 'ODJ Group is open for browsing. Online orders are coming soon.'},
                 headers={'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow'})
     """Sensitive responses must not be cached or indexed by search engines."""
     response = await call_next(request)
@@ -334,7 +348,7 @@ def home(request: Request):
         settings = store_settings(db)
     return templates.TemplateResponse(request, 'index.html', {'products':products,'categories':categories,'settings':settings,
         'merch':build_home_merchandising(products), 'bundles':[p for p in products if p.get('is_bundle') and p['stock']>0][:3],
-        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'public_preview':public_storefront_preview(), 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
+        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
 
 
 
@@ -351,7 +365,7 @@ def product_detail(product_id: int, request: Request):
             related = [p for p in public_catalog(db) if p['id'] != product_id][:3]
             customer = signed_in_customer(request)
             return templates.TemplateResponse(request, 'product.html', {
-                'product':data, 'related':related, 'customer':customer, 'public_preview':public_storefront_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
+                'product':data, 'related':related, 'customer':customer, 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
         product = db.get(Product, product_id)
         if not product or not product.active or product.price_cents <= 0:
             raise HTTPException(status_code=404, detail='This product is unavailable.')
@@ -367,7 +381,7 @@ def product_detail(product_id: int, request: Request):
             ).order_by(Product.featured.desc(), Product.id).limit(3 - len(related))).all()]
     customer = signed_in_customer(request)
     return templates.TemplateResponse(request, 'product.html', {
-        'product': data, 'related': related, 'customer': customer, 'public_preview':public_storefront_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
+        'product': data, 'related': related, 'customer': customer, 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
         'customer_json': {'signedIn': bool(customer)}
     })
 
@@ -379,6 +393,8 @@ def signed_in_customer(request: Request):
     with SessionLocal() as db:
         user = db.get(Customer, claims['id'])
         if user and user.active and user.session_version == claims['version']:
+            if account_testing_preview() and user.email != preview_test_email():
+                return None
             return user
     return None
 
@@ -434,7 +450,8 @@ def account_page(request: Request):
         with SessionLocal() as db:
             orders = [serialize_order(o) for o in db.scalars(select(Order).where(
                 Order.customer_id == customer.id).order_by(Order.created_at.desc()).limit(30)).all()]
-    return templates.TemplateResponse(request, 'account.html', {'customer':customer,'orders':orders})
+    return templates.TemplateResponse(request, 'account.html', {
+        'customer':customer, 'orders':orders, 'account_testing':account_testing_preview()})
 
 
 class RegisterInput(BaseModel):
@@ -477,6 +494,8 @@ def customer_register(payload: RegisterInput, request: Request):
     if len(name) < 2:
         raise HTTPException(422, 'Enter your name.')
     email = normalize_email(payload.email)
+    if account_testing_preview() and email != preview_test_email():
+        raise HTTPException(403, 'Account testing is limited to the authorized test email.')
     if not create_customer_token(1, 1):
         raise HTTPException(503, 'Account signup is not configured. Run setup_local.py.')
     with SessionLocal() as db:
@@ -502,6 +521,8 @@ def customer_login(payload: CustomerLoginInput, request: Request):
         raise HTTPException(403, 'Cross-origin request blocked.')
     ip = throttle(request, account_attempts, 8, 900)
     email = normalize_email(payload.email)
+    if account_testing_preview() and email != preview_test_email():
+        raise HTTPException(403, 'Account testing is limited to the authorized test email.')
     with SessionLocal() as db:
         user = db.scalar(select(Customer).where(Customer.email == email))
         # Generic message prevents email enumeration from the login endpoint.
@@ -649,6 +670,8 @@ def forgot_password(payload: EmailRequest, request: Request):
     if not origin_allowed(request): raise HTTPException(403,'Cross-origin request blocked.')
     throttle(request,reset_attempts,5,3600)
     email = normalize_email(payload.email)
+    if account_testing_preview() and email != preview_test_email():
+        return {'ok': True, 'message': 'If the account exists, password reset instructions will be emailed.'}
     with SessionLocal() as db:
         user = db.scalar(select(Customer).where(Customer.email == email, Customer.active.is_(True)))
         if user:
@@ -673,7 +696,7 @@ def reset_password(payload: ResetPasswordInput, request: Request):
     with SessionLocal() as db:
         customer=db.get(Customer,claims['id'])
         nonce=str(claims.get('nonce',''))
-        if not customer or not customer.active or customer.session_version!=claims['version'] or not customer.reset_nonce_hash or not hmac.compare_digest(customer.reset_nonce_hash,hashlib.sha256(nonce.encode()).hexdigest()):
+        if not customer or not customer.active or customer.session_version!=claims['version'] or not customer.reset_nonce_hash or not hmac.compare_digest(customer.reset_nonce_hash,hashlib.sha256(nonce.encode()).hexdigest()) or (account_testing_preview() and customer.email != preview_test_email()):
             raise HTTPException(400,'This link has expired or has already been used.')
         customer.password_hash=make_password_hash(payload.new_password)
         customer.session_version+=1
@@ -690,6 +713,8 @@ def verify_customer_email(request: Request, token: str = ''):
         customer=db.get(Customer,claims['id'])
         if not customer or not customer.active or customer.session_version!=claims['version']:
             raise HTTPException(400, 'Email verification link is invalid.')
+        if account_testing_preview() and customer.email != preview_test_email():
+            raise HTTPException(403, 'Email verification is limited to the authorized test account.')
         customer.email_verified=True
         db.commit()
     return RedirectResponse('/account?verified=1',status_code=303)

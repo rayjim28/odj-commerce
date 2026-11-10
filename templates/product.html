@@ -19,7 +19,7 @@
 <header class="site-header"><div class="container nav-wrap">
 <a class="brand" href="/" aria-label="ODJ Group home"><span class="brand-monogram">ODJ<span class="brand-period">.</span></span><span class="brand-text">GROUP LLC <small>CLEANING ESSENTIALS</small></span></a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/">Home</a><a class="nav-active" href="/#shop">Shop all</a><a href="/#about">Our promise</a></nav>
-<div class="nav-actions">{% if not public_preview %}<a class="account-nav" href="/account" aria-label="{% if customer %}My account{% else %}Sign in{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 21c0-5.5 14.4-5.5 14.4 0"/></svg><span>{% if customer %}My account{% else %}Sign in{% endif %}</span></a>{% endif %}<a class="product-bag-link" href="/?cart=1" aria-label="Open shopping bag">Bag <span id="detail-bag-count">0</span></a></div>
+<div class="nav-actions">{% if not public_preview or account_testing %}<a class="account-nav" href="/account" aria-label="{% if customer %}My account{% else %}Sign in{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 21c0-5.5 14.4-5.5 14.4 0"/></svg><span>{% if customer %}My account{% else %}Sign in{% endif %}</span></a>{% endif %}<a class="product-bag-link" href="/?cart=1" aria-label="Open shopping bag">Bag <span id="detail-bag-count">0</span></a></div>
 </div></header>
 <main>
 <div class="container"><nav class="product-crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/#shop">Shop</a><span>/</span><span aria-current="page">{{product.name}}</span></nav></div>
