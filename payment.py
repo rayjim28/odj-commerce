@@ -37,7 +37,8 @@ async def create_checkout(order, base_url: str) -> dict:
             ('shipping_options[0][shipping_rate_data][type]', 'fixed_amount'),
             ('shipping_options[0][shipping_rate_data][fixed_amount][amount]', str(order.shipping_cents)),
             ('shipping_options[0][shipping_rate_data][fixed_amount][currency]', 'usd'),
-            ('shipping_options[0][shipping_rate_data][display_name]', 'Express shipping' if order.shipping_cents == int(os.getenv('EXPRESS_SHIPPING_CENTS', '1495')) else 'Standard shipping'),
+            ('shipping_options[0][shipping_rate_data][display_name]',
+             'Express shipping' if (getattr(order, 'shipping_details', None) or {}).get('service') == 'express' else 'Standard shipping'),
         ])
     # Uses the API version configured on the Stripe account.
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
