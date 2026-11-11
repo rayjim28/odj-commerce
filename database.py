@@ -81,6 +81,9 @@ class Order(Base):
     discount_cents: Mapped[int] = mapped_column(Integer, default=0)
     promo_code: Mapped[str] = mapped_column(String(24), default='')
     paid_total_cents: Mapped[int] = mapped_column(Integer, default=0)
+    tax_cents: Mapped[int] = mapped_column(Integer, default=0)
+    refunded_cents: Mapped[int] = mapped_column(Integer, default=0)
+    stripe_payment_intent_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     stripe_session_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
     inventory_reserved: Mapped[bool] = mapped_column(Boolean, default=False)
     items_snapshot: Mapped[list] = mapped_column(JSON, default=list)
@@ -157,6 +160,16 @@ class LoginFailure(Base):
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     expires_at: Mapped[float] = mapped_column(__import__('sqlalchemy').Float, nullable=False)
 
+class StripeRefund(Base):
+    """Track each Stripe refund independently to support partial and failed refunds."""
+    __tablename__ = 'stripe_refunds'
+    refund_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    order_id: Mapped[str] = mapped_column(ForeignKey('orders.id'), index=True)
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(30), nullable=False)
+    last_event_created: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+
 class WebhookEvent(Base):
     __tablename__ = 'stripe_webhook_events'
     event_id: Mapped[str] = mapped_column(String(255), primary_key=True)
@@ -193,11 +206,17 @@ def create_tables():
         'tracking_number': "VARCHAR(120) DEFAULT ''",
         'carrier': "VARCHAR(80) DEFAULT ''",
         'shipped_at': 'TIMESTAMP',
+        'tax_cents': 'INTEGER NOT NULL DEFAULT 0',
+        'refunded_cents': 'INTEGER NOT NULL DEFAULT 0',
+        'stripe_payment_intent_id': 'VARCHAR(255)',
     }
     with engine.begin() as connection:
         for column, spec in additions.items():
             if column not in fields:
                 connection.execute(text('ALTER TABLE orders ADD COLUMN ' + column + ' ' + spec))
+
+    with engine.begin() as connection:
+        connection.execute(text('CREATE INDEX IF NOT EXISTS ix_orders_stripe_payment_intent_id ON orders (stripe_payment_intent_id)'))
 
     # Existing customers remain usable and are considered verified for backwards compatibility.
     customer_fields = {col['name'] for col in inspect(engine).get_columns('customers')}
