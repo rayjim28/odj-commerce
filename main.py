@@ -1618,7 +1618,8 @@ def admin_summary(request: Request):
     with SessionLocal() as db:
         products = db.scalar(select(func.count()).select_from(Product)) or 0
         orders = db.scalar(select(func.count()).select_from(Order)) or 0
-        revenue = db.scalar(select(func.sum(Order.paid_total_cents)).where(Order.status == 'paid')) or 0
+        revenue = db.scalar(select(func.sum(Order.paid_total_cents - Order.refunded_cents)).where(
+            Order.status.in_(('paid','partially_refunded','refunded')))) or 0
         stock = db.scalar(select(func.sum(Product.stock)).where(Product.active.is_(True))) or 0
         demo_orders = db.scalar(select(func.count()).select_from(Order).where(Order.status == 'demo')) or 0
         return {'products':products,'orders':orders,'demo_orders':demo_orders,'revenue_cents':revenue,'stock':stock}
