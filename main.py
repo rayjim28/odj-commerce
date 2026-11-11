@@ -986,7 +986,7 @@ class CheckoutRequest(BaseModel):
 
 def release_reservation(db: Session, order: Order, next_status: str):
     # Webhooks may be retried or delivered out of order; release exactly once.
-    if order.status == 'paid':
+    if order.status in ('paid', 'partially_refunded', 'refunded'):
         return
     if order.inventory_reserved:
         for product_id, units in stock_requirements(order.items_snapshot).items():
@@ -1159,7 +1159,8 @@ async def checkout(payload: CheckoutRequest, request: Request):
                     raise HTTPException(409, 'Inventory changed. Refresh your shopping bag.')
             subtotal = sum(item['qty'] * item['price_cents'] for item in lines)
             order = Order(id=order_id, customer_id=customer.id, email=customer.email, status='pending', subtotal_cents=subtotal,
-                          shipping_cents=shipping, inventory_reserved=True, items_snapshot=lines, payment_mode='stripe', fulfillment_status='unfulfilled')
+                          shipping_cents=shipping, inventory_reserved=True, items_snapshot=lines,
+                          shipping_details={'service': payload.shipping_option}, payment_mode='stripe', fulfillment_status='unfulfilled')
             db.add(order)
             db.commit()
         except Exception:
@@ -1254,7 +1255,9 @@ async def stripe_webhook(request: Request):
                         o.paid_at = now()
                         customer = session.get('customer_details') or {}
                         o.email = (customer.get('email') or o.email)[:255]
-                        o.shipping_details = (session.get('collected_information') or {}).get('shipping_details') or session.get('shipping_details') or {}
+                        stripe_shipping = (session.get('collected_information') or {}).get('shipping_details') or session.get('shipping_details') or {}
+                        # Preserve the chosen delivery service alongside Stripe's verified address.
+                        o.shipping_details = {**(o.shipping_details or {}), **(stripe_shipping if isinstance(stripe_shipping, dict) else {})}
                         o.paid_total_cents = int(session.get('amount_total') or (o.subtotal_cents + o.shipping_cents))
                         details = session.get('total_details') or {}
                         reported_tax = details.get('amount_tax') if isinstance(details, dict) else None
