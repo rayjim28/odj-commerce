@@ -115,6 +115,14 @@ def test_paid_order_tax_refund_idempotency_and_no_auto_restock(monkeypatch):
         with SessionLocal() as db:
             assert db.get(Order,oid).status=="partially_refunded"
             assert db.get(Order,oid).refunded_cents==500
+        # A late expiry event cannot downgrade a refunded order.
+        expired={"id":"evt_late_expiry_fake","type":"checkout.session.expired","data":{"object":{
+            "id":sid,"client_reference_id":oid}}}
+        body,head=signed(expired)
+        assert client.post("/api/stripe/webhook",content=body,headers=head).status_code==200
+        with SessionLocal() as db:
+            assert db.get(Order,oid).status=="partially_refunded"
+            assert db.get(Product,pid).stock==4
         order_api=client.get("/api/admin/orders").json()
         tested=next(x for x in order_api if x["id"]==oid)
         assert tested["refunded_cents"]==500 and tested["tax_cents"]==167
