@@ -55,12 +55,13 @@ def order_email(order, kind='order_confirmation'):
     body = ('<p>Order <strong>#'+html.escape(order.id[:8].upper())+'</strong></p>'
          +'<table style="width:100%">'+rows+'</table>'
          +'<p>Subtotal: '+money(order.subtotal_cents)+(('<br>Promotion: −'+money(order.discount_cents)) if (order.discount_cents or 0) else '')+'<br>Shipping: '+money(order.shipping_cents)
-         +'<br><strong>Order total: '+money(order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0))+'</strong></p>'
+         +(('<br>Sales tax: '+money(order.tax_cents or 0)) if (order.tax_cents or 0) else '')
+         +'<br><strong>Order total: '+money((order.paid_total_cents or 0) if not demo and order.paid_total_cents else (order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0)))+'</strong></p>'
          +(('<p>Shipping address: '+addr+'</p>') if addr else '')+tracking)
     notice='DEMO ONLY — NOT PAID. NO REAL PURCHASE OR SHIPMENT.' if demo else ''
     return {'subject':('ODJ TEST ORDER' if demo else 'ODJ '+ ('Shipping update' if kind == 'shipping_update' else 'Order confirmation'))+' #'+order.id[:8].upper(),
             'html':email_layout(header,body,notice),
-            'text':header+'\nOrder #'+order.id[:8].upper()+'\nTotal: '+money(order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0))+('\nDEMO ONLY — NO PAYMENT' if demo else '')}
+            'text':header+'\nOrder #'+order.id[:8].upper()+'\nTax: '+money(order.tax_cents or 0)+'\nTotal: '+money((order.paid_total_cents or 0) if not demo and order.paid_total_cents else (order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0)))+('\nDEMO ONLY — NO PAYMENT' if demo else '')}
 
 
 def queue_message(db, key, kind, recipient, subject, body_html, body_text):
