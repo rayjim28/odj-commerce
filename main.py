@@ -1182,6 +1182,12 @@ async def checkout(payload: CheckoutRequest, request: Request):
     return {'url':session_data['url']}
 
 
+# Stripe event timestamps have one-second precision. Within a shared second,
+# keep a terminal refund status from being replaced by a stale pending snapshot.
+REFUND_STATUS_PRECEDENCE = {'pending': 0, 'requires_action': 1,
+    'succeeded': 2, 'canceled': 3, 'failed': 4}
+
+
 @app.post('/api/stripe/webhook')
 async def stripe_webhook(request: Request):
     payload = await request.body()
@@ -1210,13 +1216,17 @@ async def stripe_webhook(request: Request):
                     if isinstance(amount, int) and 0 <= amount <= order.paid_total_cents:
                         refund = db.get(StripeRefund, refund_id)
                         created = int(event.get('created') or 0)
+                        new_status = session.get('status') or 'pending'
                         if refund is None:
                             refund = StripeRefund(refund_id=refund_id, order_id=order.id,
-                                amount_cents=amount, status=session.get('status') or 'pending',
+                                amount_cents=amount, status=new_status,
                                 last_event_created=created)
                             db.add(refund)
-                        elif created >= refund.last_event_created:
-                            refund.status = session.get('status') or 'pending'
+                        elif created > refund.last_event_created or (
+                            created == refund.last_event_created and
+                            REFUND_STATUS_PRECEDENCE.get(new_status, 0) >= REFUND_STATUS_PRECEDENCE.get(refund.status, 0)
+                        ):
+                            refund.status = new_status
                             refund.amount_cents = amount
                             refund.last_event_created = created
                         db.flush()
