@@ -88,6 +88,15 @@ def test_paid_order_tax_refund_idempotency_and_no_auto_restock(monkeypatch):
             assert o.status=="refunded" and o.refunded_cents==amount
             assert db.get(Product,pid).stock==4
             assert db.get(StripeRefund,"re_fake_remainder").status=="succeeded"
+        # A stale same-second event must not undo an already succeeded refund.
+        stale_pending={"id":"evt_refund_stale_pending_fake","created":120,"type":"refund.updated","data":{"object":{
+            "id":"re_fake_remainder","payment_intent":"pi_test_fake_order",
+            "amount":amount-500,"status":"pending"}}}
+        body,head=signed(stale_pending)
+        assert client.post("/api/stripe/webhook",content=body,headers=head).status_code==200
+        with SessionLocal() as db:
+            assert db.get(Order,oid).status=="refunded"
+            assert db.get(Order,oid).refunded_cents==amount
         failed={"id":"evt_refund_failed_fake","created":130,"type":"refund.failed","data":{"object":{
             "id":"re_fake_remainder","payment_intent":"pi_test_fake_order",
             "amount":amount-500,"status":"failed"}}}
@@ -97,6 +106,15 @@ def test_paid_order_tax_refund_idempotency_and_no_auto_restock(monkeypatch):
             o=db.get(Order,oid)
             assert o.status=="partially_refunded" and o.refunded_cents==500
             assert db.get(Product,pid).stock==4
+        # An older success snapshot sharing the failure's timestamp must not re-refund.
+        stale_success={"id":"evt_refund_stale_success_fake","created":130,"type":"refund.updated","data":{"object":{
+            "id":"re_fake_remainder","payment_intent":"pi_test_fake_order",
+            "amount":amount-500,"status":"succeeded"}}}
+        body,head=signed(stale_success)
+        assert client.post("/api/stripe/webhook",content=body,headers=head).status_code==200
+        with SessionLocal() as db:
+            assert db.get(Order,oid).status=="partially_refunded"
+            assert db.get(Order,oid).refunded_cents==500
         order_api=client.get("/api/admin/orders").json()
         tested=next(x for x in order_api if x["id"]==oid)
         assert tested["refunded_cents"]==500 and tested["tax_cents"]==167
