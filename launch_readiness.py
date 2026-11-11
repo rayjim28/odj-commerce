@@ -3,7 +3,7 @@ import os
 from urllib.parse import urlparse
 
 from sqlalchemy import select, func
-from database import SessionLocal, Product
+from database import SessionLocal, Product, StoreSettings
 from notifications import store_settings
 
 
@@ -11,6 +11,33 @@ def _item(key, title, ready, note, group, review=False):
     return {'key': key, 'title': title,
             'status': 'review' if review else ('ready' if ready else 'todo'),
             'note': note, 'group': group}
+
+
+def sales_prerequisite_failures(db):
+    """Report only safe labels; never expose credentials or private paths."""
+    issues = []
+    if os.getenv('APP_ENV') != 'production':
+        issues.append('Deploy the site in production mode.')
+    if os.getenv('PAYMENT_MODE') != 'stripe':
+        issues.append('Configure Stripe checkout mode.')
+    if os.getenv('SALES_ENABLED', '').lower() != 'true':
+        issues.append('Developer must allow owner activation via SALES_ENABLED=true in Render.')
+    if not os.getenv('STRIPE_SECRET_KEY', '').startswith(('sk_live_', 'rk_live_')) or not os.getenv('STRIPE_WEBHOOK_SECRET', '').startswith('whsec_'):
+        issues.append('Configure live Stripe payment credentials and webhook signing.')
+    if os.getenv('STRIPE_AUTOMATIC_TAX', '').lower() != 'true' or os.getenv('TAX_REGISTRATIONS_REVIEWED', '').lower() != 'true':
+        issues.append('Confirm Stripe Tax registrations, tax codes, and automatic tax.')
+    if os.getenv('SHIPPING_RATES_APPROVED', '').lower() != 'true':
+        issues.append('Approve shipping rates in the store.')
+    settings = store_settings(db)
+    if not settings.get('contact_email'):
+        issues.append('Add customer support email in Store settings.')
+    if not (settings.get('shipping_policy') and settings.get('return_policy')):
+        issues.append('Add shipping and return policies in Store settings.')
+    sellable = db.scalar(select(func.count(Product.id)).where(
+        Product.active.is_(True), Product.stock > 0, Product.price_cents > 0)) or 0
+    if not sellable:
+        issues.append('Publish an in-stock priced product.')
+    return issues
 
 
 def launch_readiness():
@@ -28,6 +55,9 @@ def launch_readiness():
         settings = store_settings(db)
         listed = db.scalar(select(func.count(Product.id)).where(Product.active.is_(True), Product.price_cents > 0)) or 0
         buyable = db.scalar(select(func.count(Product.id)).where(Product.active.is_(True), Product.price_cents > 0, Product.stock > 0)) or 0
+        launch = db.get(StoreSettings, 1)
+        owner_approved = bool(launch and launch.owner_launch_approved)
+        blockers = sales_prerequisite_failures(db)
     items = [
         _item('catalog', 'Published products', bool(listed and buyable),
               f'{listed} published · {buyable} currently in stock.', 'Store'),
@@ -43,8 +73,8 @@ def launch_readiness():
               os.getenv('STRIPE_AUTOMATIC_TAX','false').lower() == 'true' and
               os.getenv('TAX_REGISTRATIONS_REVIEWED','').lower() == 'true',
               'Enable Stripe automatic tax; the owner must verify tax registrations and appropriate product tax codes in Stripe.', 'Payments'),
-        _item('sales_switch', 'Owner-approved sales switch', os.getenv('SALES_ENABLED','').lower() == 'true',
-              'Sales remain blocked until the developer turns SALES_ENABLED=true after owner approval.', 'Payments'),
+        _item('sales_switch', 'Owner-approved sales switch', owner_approved and not blockers,
+              'The business owner can open or pause checkout from this dashboard after setup and approval.', 'Payments'),
         _item('refunds', 'Refund reconciliation', False,
               'Subscribe Stripe webhook to refund.created, refund.updated and refund.failed; reconcile older transactions separately.', 'Payments', review=True),
         _item('email', 'Transactional email service', all(os.getenv(k) for k in ('SMTP_HOST','SMTP_FROM','SMTP_USERNAME','SMTP_PASSWORD')),
@@ -64,5 +94,7 @@ def launch_readiness():
     ]
     ready = sum(i['status'] == 'ready' for i in items)
     return {'phase': 'Phase 7 · Launch preparation', 'checks': items, 'ready_count': ready,
-            'total_count': len(items), 'launch_approved': False,
-            'message': 'Checklist is informational. No payment connection or launch is approved automatically.'}
+            'total_count': len(items), 'launch_approved': owner_approved and not blockers,
+            'owner_launch_approved': owner_approved, 'can_enable_sales': not blockers,
+            'sales_open': owner_approved and not blockers, 'sales_blockers': blockers,
+            'message': 'Checkout stays closed until the business owner explicitly approves it.'}
