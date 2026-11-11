@@ -24,3 +24,4 @@ jobs:
       - run: python -m pytest -q tests/test_public_preview.py
       - run: python -m pytest -q tests/test_stripe_restricted_keys.py
       - run: python -m pytest -q tests/test_account_preview.py
+      - run: python -m pytest -q tests/test_launch_tax_refunds.py
