@@ -31,7 +31,7 @@ from database import create_tables, SessionLocal, Product, Order, Customer, Webh
 from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_password,
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
-from payment import create_checkout, verify_webhook, StripeError
+from payment import create_checkout, verify_webhook, read_stripe_checkout_refunds, StripeError
 from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email
 from launch_readiness import launch_readiness, sales_prerequisite_failures
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -765,6 +765,103 @@ def resend_verification(request: Request):
             queue_token_message(db,'verify_email',user,base_url(request)+'/account/verify?token='+token,'verify:'+str(user.id)+':'+str(user.session_version))
             db.commit()
     return {'ok':True}
+
+@app.post('/api/admin/orders/{order_id}/sync-stripe-refunds')
+async def sync_historical_stripe_refunds(order_id: str, request: Request):
+    """Read Stripe state for legacy payments, without creating a charge or refund."""
+    require_admin(request)
+    with SessionLocal() as db:
+        order = db.get(Order, order_id)
+        if order is None:
+            raise HTTPException(404, 'Order not found.')
+        if (order.payment_mode != 'stripe' or
+                order.status not in ('paid', 'partially_refunded', 'refunded') or
+                not order.stripe_session_id or not order.paid_total_cents):
+            raise HTTPException(409, 'Only settled Stripe orders can be reconciled.')
+        session_id = order.stripe_session_id
+        expected_amount = order.paid_total_cents
+        known_intent = order.stripe_payment_intent_id
+
+    try:
+        checkout, refunds = await read_stripe_checkout_refunds(session_id)
+    except StripeError as exc:
+        raise HTTPException(502, str(exc)) from exc
+
+    # A payment from another order must never change this order, even if a
+    # persisted Session ID was incorrect or the Stripe key belongs to another account.
+    metadata = checkout.get('metadata') or {}
+    owner_id = checkout.get('client_reference_id')
+    if not isinstance(metadata, dict):
+        raise HTTPException(409, 'Invalid Stripe checkout metadata.')
+    if (checkout.get('id') != session_id or
+            (owner_id != order_id and metadata.get('order_id') != order_id) or
+            checkout.get('livemode') is not True or
+            checkout.get('payment_status') != 'paid' or
+            checkout.get('currency') not in ('usd', None) or
+            type(checkout.get('amount_total')) is not int or
+            checkout['amount_total'] != expected_amount):
+        raise HTTPException(409, 'Stripe checkout details do not match this paid order.')
+    payment_intent = checkout.get('payment_intent')
+    if isinstance(payment_intent, dict):
+        payment_intent = payment_intent.get('id')
+    if not isinstance(payment_intent, str) or (known_intent and known_intent != payment_intent):
+        raise HTTPException(409, 'PaymentIntent does not match this order.')
+
+    validated = []
+    successful_cents = 0
+    for refund in refunds:
+        pi = refund.get('payment_intent')
+        if isinstance(pi, dict):
+            pi = pi.get('id')
+        amount = refund.get('amount')
+        status = refund.get('status')
+        refund_id = refund.get('id')
+        created = refund.get('created')
+        if (not isinstance(refund_id, str) or not re.fullmatch(r're_[A-Za-z0-9_]+', refund_id) or
+                pi != payment_intent or type(amount) is not int or not 0 < amount <= expected_amount or
+                status not in ('succeeded', 'pending', 'failed', 'canceled', 'requires_action') or
+                type(created) is not int or created < 0):
+            raise HTTPException(409, 'Stripe refund details failed validation; no changes were saved.')
+        validated.append((refund_id, amount, status, created))
+        if status == 'succeeded':
+            successful_cents += amount
+    if successful_cents > expected_amount:
+        raise HTTPException(409, 'Stripe refund amounts exceed the order payment; no changes were saved.')
+    if not validated:
+        raise HTTPException(409, 'Stripe has no refunds recorded for this checkout.')
+
+    with SessionLocal() as db:
+        order = db.get(Order, order_id)
+        if (not order or order.stripe_session_id != session_id or
+                order.paid_total_cents != expected_amount or
+                order.status not in ('paid', 'partially_refunded', 'refunded') or
+                (order.stripe_payment_intent_id and order.stripe_payment_intent_id != payment_intent)):
+            raise HTTPException(409, 'Order changed while reconciling. Refresh and try again.')
+        existing = db.scalars(select(StripeRefund).where(StripeRefund.order_id == order_id)).all()
+        returned_ids = {record[0] for record in validated}
+        if any(item.refund_id not in returned_ids for item in existing):
+            raise HTTPException(409, 'A previously recorded refund was not returned by Stripe.')
+        for refund_id, amount, status, created in validated:
+            record = db.get(StripeRefund, refund_id)
+            if record and record.order_id != order_id:
+                raise HTTPException(409, 'A refund is already associated with another order.')
+            if record is None:
+                db.add(StripeRefund(refund_id=refund_id, order_id=order_id,
+                                    amount_cents=amount, status=status,
+                                    last_event_created=created))
+            else:
+                record.amount_cents = amount
+                record.status = status
+                record.last_event_created = max(created, record.last_event_created)
+        order.stripe_payment_intent_id = payment_intent
+        order.refunded_cents = successful_cents
+        order.status = ('refunded' if successful_cents == expected_amount
+                        else 'partially_refunded' if successful_cents else 'paid')
+        # Refunds never restock items or update fulfillment automatically.
+        db.commit()
+        return {'verified_from_stripe': True, 'status': order.status,
+                'refunded_cents': order.refunded_cents, 'refund_count': len(validated)}
+
 
 @app.get('/api/admin/orders/{order_id}/email-preview',response_class=HTMLResponse)
 def admin_order_email_preview(order_id: str, request: Request, kind: str = 'order_confirmation'):
