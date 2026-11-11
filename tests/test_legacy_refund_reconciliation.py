@@ -11,7 +11,7 @@ os.environ["PAYMENT_MODE"] = "demo"
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select
-from database import SessionLocal, Order, Product, StripeRefund
+from database import SessionLocal, Order, Product, StripeRefund, create_tables
 from security import make_password_hash
 import main
 import payment
@@ -37,6 +37,7 @@ def setup(monkeypatch):
     session_id = "cs_live_fake_history_" + uuid.uuid4().hex
     order_id = str(uuid.uuid4())
     product_id = None
+    create_tables()  # Set up the isolated test database before inserting historical records.
     with SessionLocal() as db:
         product = Product(name="Historical test product", slug="history-" + uuid.uuid4().hex,
                           category="Cleaning", description="synthetic test",
