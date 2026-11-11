@@ -33,7 +33,7 @@ from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_passw
     customer_claims, create_customer_token)
 from payment import create_checkout, verify_webhook, StripeError
 from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email
-from launch_readiness import launch_readiness
+from launch_readiness import launch_readiness, sales_prerequisite_failures
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 @asynccontextmanager
@@ -311,23 +311,11 @@ def payment_mode() -> str:
 
 
 def production_sales_ready() -> bool:
-    """Final server-side launch gate; no storefront customer can override it."""
-    if os.getenv('APP_ENV') != 'production':
-        return False
-    if os.getenv('SALES_ENABLED', '').lower() != 'true' or payment_mode() != 'stripe':
-        return False
-    if os.getenv('STRIPE_AUTOMATIC_TAX', '').lower() != 'true':
-        return False
-    if os.getenv('TAX_REGISTRATIONS_REVIEWED', '').lower() != 'true':
-        return False
-    if os.getenv('SHIPPING_RATES_APPROVED', '').lower() != 'true':
-        return False
+    """The owner's saved launch approval and server prerequisites must all pass."""
     with SessionLocal() as db:
-        settings = store_settings(db)
-        sellable = db.scalar(select(func.count(Product.id)).where(
-            Product.active.is_(True), Product.stock > 0, Product.price_cents > 0)) or 0
-    return bool(sellable and settings.get('contact_email') and settings.get('shipping_policy') and
-                settings.get('return_policy'))
+        settings = db.get(StoreSettings, 1)
+        return bool(settings and settings.owner_launch_approved and
+                    not sales_prerequisite_failures(db))
 
 
 def base_url(request: Request) -> str:
@@ -608,6 +596,31 @@ class SettingsInput(BaseModel):
 def admin_launch_readiness(request: Request):
     require_admin(request)
     return launch_readiness()
+
+class SalesApprovalInput(BaseModel):
+    enabled: bool
+    acknowledged: bool = False
+
+
+@app.post('/api/admin/sales')
+def set_owner_sales_approval(payload: SalesApprovalInput, request: Request):
+    """Owner-controlled sales toggle; Render SALES_ENABLED remains an emergency stop."""
+    require_admin(request)
+    if payload.enabled and not payload.acknowledged:
+        raise HTTPException(422, 'Confirm the business and payment launch requirements before opening sales.')
+    with SessionLocal() as db:
+        if payload.enabled:
+            blockers = sales_prerequisite_failures(db)
+            if blockers:
+                raise HTTPException(409, 'Checkout cannot open: ' + '; '.join(blockers))
+        settings = db.get(StoreSettings, 1)
+        if settings is None:
+            settings = StoreSettings(id=1)
+            db.add(settings)
+        settings.owner_launch_approved = payload.enabled
+        db.commit()
+    return launch_readiness()
+
 
 @app.get('/api/admin/settings')
 def get_admin_settings(request: Request):
