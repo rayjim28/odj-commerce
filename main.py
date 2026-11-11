@@ -27,7 +27,7 @@ except ImportError:
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
-from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, StoreEvent, LoginFailure, now, engine
+from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StripeRefund, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, StoreEvent, LoginFailure, now, engine
 from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_password,
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
@@ -290,7 +290,7 @@ def public_catalog(db: Session):
 
 def serialize_order(o: Order):
     return {'id':o.id,'email':o.email,'status':o.status,'subtotal_cents':o.subtotal_cents,
-        'shipping_cents':o.shipping_cents,'discount_cents':o.discount_cents or 0,'promo_code':o.promo_code or '', 'paid_total_cents':o.paid_total_cents,'items':o.items_snapshot,'shipping_details':o.shipping_details,
+        'shipping_cents':o.shipping_cents,'discount_cents':o.discount_cents or 0,'promo_code':o.promo_code or '', 'paid_total_cents':o.paid_total_cents,'tax_cents':o.tax_cents or 0, 'refunded_cents':o.refunded_cents or 0,'items':o.items_snapshot,'shipping_details':o.shipping_details,
         'created_at':o.created_at.isoformat() if o.created_at else None,
         'payment_mode':o.payment_mode or 'stripe',
         'fulfillment_status':o.fulfillment_status or 'unfulfilled',
@@ -308,6 +308,26 @@ def require_admin(request: Request):
 def payment_mode() -> str:
     mode = os.getenv('PAYMENT_MODE', 'demo').strip().lower()
     return 'stripe' if mode == 'stripe' else 'demo'
+
+
+def production_sales_ready() -> bool:
+    """Final server-side launch gate; no storefront customer can override it."""
+    if os.getenv('APP_ENV') != 'production':
+        return False
+    if os.getenv('SALES_ENABLED', '').lower() != 'true' or payment_mode() != 'stripe':
+        return False
+    if os.getenv('STRIPE_AUTOMATIC_TAX', '').lower() != 'true':
+        return False
+    if os.getenv('TAX_REGISTRATIONS_REVIEWED', '').lower() != 'true':
+        return False
+    if os.getenv('SHIPPING_RATES_APPROVED', '').lower() != 'true':
+        return False
+    with SessionLocal() as db:
+        settings = store_settings(db)
+        sellable = db.scalar(select(func.count(Product.id)).where(
+            Product.active.is_(True), Product.stock > 0, Product.price_cents > 0)) or 0
+    return bool(sellable and settings.get('contact_email') and settings.get('shipping_policy') and
+                settings.get('return_policy'))
 
 
 def base_url(request: Request) -> str:
@@ -1045,6 +1065,8 @@ def quote_lines(db: Session, items: list[CartLine]):
 
 @app.get('/checkout', response_class=HTMLResponse)
 def checkout_page(request: Request):
+    if os.getenv('APP_ENV') == 'production' and not production_sales_ready():
+        raise HTTPException(503, 'Checkout is not yet open. Please check back soon.')
     customer = signed_in_customer(request)
     if not customer:
         return RedirectResponse('/account?next=checkout', status_code=303)
@@ -1109,6 +1131,8 @@ def demo_confirmation(order_id: str, request: Request):
 async def checkout(payload: CheckoutRequest, request: Request):
     if not origin_allowed(request):
         raise HTTPException(403, 'Invalid request origin.')
+    if os.getenv('APP_ENV') == 'production' and not production_sales_ready():
+        raise HTTPException(503, 'Checkout is not yet open. Please check back soon.')
     customer = require_customer(request)
     if os.getenv('APP_ENV') == 'production' and not customer.email_verified:
         raise HTTPException(403, 'Verify your email address before making a purchase.')
@@ -1173,6 +1197,37 @@ async def stripe_webhook(request: Request):
     with SessionLocal() as db:
         if db.get(WebhookEvent, event_id):
             return {'received': True, 'duplicate': True}
+        if event_type in ('refund.created', 'refund.updated', 'refund.failed'):
+            # Each refund has its own ID; partial refunds may occur multiple times.
+            # Do not restock automatically: returned goods require human inspection.
+            pi = session.get('payment_intent')
+            pi = pi.get('id') if isinstance(pi, dict) else pi
+            refund_id = session.get('id')
+            if isinstance(pi, str) and isinstance(refund_id, str):
+                order = db.scalar(select(Order).where(Order.stripe_payment_intent_id == pi))
+                if order and order.status in ('paid', 'partially_refunded', 'refunded'):
+                    amount = session.get('amount')
+                    if isinstance(amount, int) and 0 <= amount <= order.paid_total_cents:
+                        refund = db.get(StripeRefund, refund_id)
+                        created = int(event.get('created') or 0)
+                        if refund is None:
+                            refund = StripeRefund(refund_id=refund_id, order_id=order.id,
+                                amount_cents=amount, status=session.get('status') or 'pending',
+                                last_event_created=created)
+                            db.add(refund)
+                        elif created >= refund.last_event_created:
+                            refund.status = session.get('status') or 'pending'
+                            refund.amount_cents = amount
+                            refund.last_event_created = created
+                        db.flush()
+                        refunded = db.scalar(select(func.sum(StripeRefund.amount_cents)).where(
+                            StripeRefund.order_id == order.id, StripeRefund.status == 'succeeded')) or 0
+                        order.refunded_cents = min(order.paid_total_cents, refunded)
+                        order.status = ('refunded' if order.refunded_cents == order.paid_total_cents
+                            else 'partially_refunded' if order.refunded_cents else 'paid')
+            db.add(WebhookEvent(event_id=event_id, event_type=event_type))
+            db.commit()
+            return {'received': True}
         # Stripe's client_reference_id is the internal order ID; verify session association.
         order_id = session.get('client_reference_id') or session.get('metadata', {}).get('order_id')
         o = db.get(Order, order_id) if order_id else None
@@ -1191,6 +1246,14 @@ async def stripe_webhook(request: Request):
                         o.email = (customer.get('email') or o.email)[:255]
                         o.shipping_details = (session.get('collected_information') or {}).get('shipping_details') or session.get('shipping_details') or {}
                         o.paid_total_cents = int(session.get('amount_total') or (o.subtotal_cents + o.shipping_cents))
+                        details = session.get('total_details') or {}
+                        reported_tax = details.get('amount_tax') if isinstance(details, dict) else None
+                        o.tax_cents = (reported_tax if isinstance(reported_tax, int) and reported_tax >= 0
+                            else max(0, o.paid_total_cents - (o.subtotal_cents + o.shipping_cents - (o.discount_cents or 0))))
+                        pi = session.get('payment_intent')
+                        pi = pi.get('id') if isinstance(pi, dict) else pi
+                        if isinstance(pi, str):
+                            o.stripe_payment_intent_id = pi
                         # Stock was already reserved at checkout creation, no second decrement.
                         o.inventory_reserved = False
                         queue_order_notice(db, o, 'order_confirmation')
