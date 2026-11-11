@@ -104,6 +104,7 @@ class StoreSettings(Base):
     announcement: Mapped[str] = mapped_column(String(180), default='')
     shipping_policy: Mapped[str] = mapped_column(Text, default='')
     return_policy: Mapped[str] = mapped_column(Text, default='')
+    owner_launch_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     standard_shipping_cents: Mapped[int] = mapped_column(Integer, default=795)
     express_shipping_cents: Mapped[int] = mapped_column(Integer, default=1495)
 
@@ -217,6 +218,12 @@ def create_tables():
 
     with engine.begin() as connection:
         connection.execute(text('CREATE INDEX IF NOT EXISTS ix_orders_stripe_payment_intent_id ON orders (stripe_payment_intent_id)'))
+
+    # Safe default: never open public checkout during a migration.
+    store_cols = {c['name'] for c in inspect(engine).get_columns('store_settings')}
+    if 'owner_launch_approved' not in store_cols:
+        with engine.begin() as connection:
+            connection.execute(text('ALTER TABLE store_settings ADD COLUMN owner_launch_approved BOOLEAN NOT NULL DEFAULT FALSE'))
 
     # Existing customers remain usable and are considered verified for backwards compatibility.
     customer_fields = {col['name'] for col in inspect(engine).get_columns('customers')}
