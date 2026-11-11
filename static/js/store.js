@@ -42,7 +42,7 @@
     const lines=validLines();
     const total=lines.reduce((sum,l)=>sum+l.qty*l.product.price_cents,0);
     byId('cart-subtotal').textContent=money(total);
-    if (window.ODJ_PUBLIC_PREVIEW === true) {
+    if (window.ODJ_PUBLIC_PREVIEW === true || window.ODJ_CHECKOUT_OPEN === false) {
       byId('checkout-button').disabled = true;
       byId('checkout-message').textContent = 'Ordering will open soon. No purchases are being accepted.';
       byId('checkout-button').textContent = 'Checkout coming soon';
@@ -215,7 +215,7 @@
     if(!searchShell.contains(event.target) && !byId('search-trigger').contains(event.target)) hideSuggestions();
   });
   byId('checkout-button').addEventListener('click', () => {
-    if(window.ODJ_PUBLIC_PREVIEW === true){toast('Online orders coming soon.');return;}
+    if(window.ODJ_PUBLIC_PREVIEW === true || window.ODJ_CHECKOUT_OPEN === false){toast('Online orders will open soon.');return;}
     if(!window.ODJ_CUSTOMER || !window.ODJ_CUSTOMER.signedIn){
       window.location.assign('/account?next=checkout');return;
     }

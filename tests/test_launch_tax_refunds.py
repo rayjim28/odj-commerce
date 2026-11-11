@@ -134,6 +134,8 @@ def test_paid_order_tax_refund_idempotency_and_no_auto_restock(monkeypatch):
 def test_production_checkout_gate_requires_owner_approved_business_settings(monkeypatch):
     monkeypatch.setenv("APP_ENV","production")
     monkeypatch.setenv("PAYMENT_MODE","stripe")
+    monkeypatch.setenv("STRIPE_SECRET_KEY","rk_live_fake_gate_unit_test")
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET","whsec_fake_gate_unit_test")
     monkeypatch.setenv("STRIPE_AUTOMATIC_TAX","true")
     monkeypatch.setenv("SALES_ENABLED","false")
     monkeypatch.setenv("SHIPPING_RATES_APPROVED","true")
@@ -155,6 +157,7 @@ def test_production_checkout_gate_requires_owner_approved_business_settings(monk
         settings.contact_email="help@odj.example"
         settings.shipping_policy="Owner-approved shipping policy"
         settings.return_policy="Owner-approved return policy"
+        settings.owner_launch_approved=True
         db.commit()
     assert main.production_sales_ready()
     monkeypatch.setenv("STRIPE_AUTOMATIC_TAX","false")

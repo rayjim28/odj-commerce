@@ -284,15 +284,36 @@
       await api('/api/admin/settings',{method:'PUT',body:JSON.stringify(data)});feedback.textContent='Store settings saved.';
     }catch(err){feedback.textContent=err.message;}finally{button.disabled=false;}
   });
+  let latestLaunch = null;
   async function loadLaunchReadiness(){
     const area=$('launch-checks'),count=$('launch-count');
     area.textContent='Checking…';
     try{
       const data=await api('/api/admin/launch-readiness');
-      count.textContent=`${data.ready_count} of ${data.total_count} checks configured · Not approved for launch`;
+      latestLaunch=data;
+      count.textContent=`${data.ready_count} of ${data.total_count} checks configured · ${data.sales_open?'Public checkout OPEN':'Public checkout CLOSED'}`;
+      $('owner-sales-state').textContent=data.sales_open?'Customer checkout is OPEN.':data.owner_launch_approved?'Owner approval is saved, but an unmet requirement is blocking checkout.':'Customer checkout is CLOSED.';
+      $('owner-sales-blockers').innerHTML=data.sales_blockers.length?'<strong>Before opening:</strong><ul>'+data.sales_blockers.map(msg=>'<li>'+esc(msg)+'</li>').join('')+'</ul>':'All server-checked requirements are configured. Complete the owner review before activating.';
+      $('owner-sales-pause').disabled=!data.owner_launch_approved;
+      $('owner-sales-enable').disabled=data.owner_launch_approved||!data.can_enable_sales||!$('owner-sales-confirm').checked;
       area.innerHTML=data.checks.map(c=>`<article class="launch-check launch-${esc(c.status)}"><div class="launch-check-top"><span class="launch-status" aria-hidden="true">${c.status==='ready'?'✓':c.status==='review'?'!':'○'}</span><span class="launch-check-group">${esc(c.group)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.note)}</p><span class="launch-status-text">${c.status==='ready'?'Configured (verify before launch)':c.status==='review'?'Requires owner review':'Needs setup'}</span></article>`).join('');
     }catch(err){count.textContent='Unable to load';area.textContent=err.message;}
   }
+  $('owner-sales-confirm').addEventListener('change',()=>{
+    $('owner-sales-enable').disabled=!latestLaunch||latestLaunch.owner_launch_approved||!latestLaunch.can_enable_sales||!$('owner-sales-confirm').checked;
+  });
+  async function setOwnerSales(enabled){
+    $(enabled?'owner-sales-enable':'owner-sales-pause').disabled=true;
+    $('owner-sales-feedback').textContent=enabled?'Opening customer checkout…':'Pausing customer checkout…';
+    try{
+      await api('/api/admin/sales',{method:'POST',body:JSON.stringify({enabled,acknowledged:enabled&&$('owner-sales-confirm').checked})});
+      $('owner-sales-confirm').checked=false;
+      await loadLaunchReadiness();
+      $('owner-sales-feedback').textContent=enabled?'Owner approval saved. Public checkout is controlled by the remaining server checks.':'Customer checkout has been paused.';
+    }catch(err){$('owner-sales-feedback').textContent=err.message;await loadLaunchReadiness();}
+  }
+  $('owner-sales-enable').addEventListener('click',()=>setOwnerSales(true));
+  $('owner-sales-pause').addEventListener('click',()=>setOwnerSales(false));
   $('launch-refresh').addEventListener('click',loadLaunchReadiness);
   $('refresh-orders').addEventListener('click',loadOrders);
   $('logout').addEventListener('click',async()=>{try{await api('/api/admin/logout',{method:'POST'});}finally{location.reload();}});
