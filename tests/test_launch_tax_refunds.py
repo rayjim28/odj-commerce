@@ -155,6 +155,7 @@ def test_production_checkout_gate_requires_owner_approved_business_settings(monk
         settings.contact_email="help@odj.example"
         settings.shipping_policy="Owner-approved shipping policy"
         settings.return_policy="Owner-approved return policy"
+        settings.owner_launch_approved=True
         db.commit()
     assert main.production_sales_ready()
     monkeypatch.setenv("STRIPE_AUTOMATIC_TAX","false")
