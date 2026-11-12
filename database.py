@@ -108,6 +108,13 @@ class StoreSettings(Base):
     standard_shipping_cents: Mapped[int] = mapped_column(Integer, default=795)
     express_shipping_cents: Mapped[int] = mapped_column(Integer, default=1495)
 
+class LaunchVerification(Base):
+    """Manual checks are admin attestations, never proof of automated provider tests."""
+    __tablename__ = 'launch_verifications'
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    confirmed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
 class EmailOutbox(Base):
     __tablename__ = 'email_outbox'
     id: Mapped[int] = mapped_column(primary_key=True)
