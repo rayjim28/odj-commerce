@@ -1,64 +1,91 @@
-# ODJ Group LLC E-Commerce — V4 Product Studio
+# ODJ Group | E-commerce storefront
 
-A responsive black-and-gold e-commerce application for the ODJ Group cleaning essentials collection.
+A web storefront and store management application for ODJ Group LLC. Customers can browse products, manage their cart, create accounts, and place orders through Stripe Checkout. Store operators use a separate admin dashboard for products, stock, orders, shipping settings, and launch controls.
 
-**Stack:** Python FastAPI + SQLAlchemy; SQLite for local previews, PostgreSQL for production; Jinja2/JavaScript/CSS frontend; hosted Stripe Checkout API with signed webhook handling.
+**Production site:** [odjgroupllc.com](https://odjgroupllc.com)
 
-**Customer storefront:** Browse product collections, open detail pages and multi-photo galleries, add to cart, sign up / sign in before checkout, see personal order history.
+**Maintainer:** [Raymond Jimenez](https://github.com/rayjim28)
 
-**Admin workspace:** Separate authenticated admin; private drafts without prices; categories and descriptions; optional SKUs; multi-photo uploads (six max per product); photo ordering and main photo selection; adjustable inventory; publication toggle; archive products; delete unpublished items with no order history; view orders and paid revenue.
+## Technology
 
-The owner reference screenshot lists six candidate products. Import them privately with `python scripts/import_odj_catalog.py --archive-demo`. No unverified pricing or photos are included.
+- **Backend:** Python, FastAPI, SQLAlchemy, PostgreSQL
+- **Frontend:** Server-rendered Jinja2 templates, JavaScript, CSS
+- **Payments:** Stripe Checkout, Stripe Tax, signed webhooks
+- **Email:** SMTP delivery from a database-backed notification queue
+- **Hosting:** Render web service, PostgreSQL, scheduled email sender, and persistent file storage
 
-See [UPGRADE_TO_V4.md](UPGRADE_TO_V4.md) for an easy update path from V3, catalog setup, testing and launch requirements. Keep `.env`, `store.db` and `media/` when updating.
+Local development uses SQLite and a simulated checkout. Production requires PostgreSQL and an authorized live Stripe account.
 
-## Local setup from scratch
+## Features
+
+**Storefront**
+- Public product and bundle pages, search, recommendations, and responsive cart
+- Customer registration, email verification, sign-in, password recovery, and order history
+- Stripe-hosted card checkout with the selected shipping method and applicable Stripe-calculated tax
+- Order receipts and shipping notifications, delivered through a scheduled email job
+
+**Admin**
+- Draft, publish, archive, and update products, bundles, photos, prices, and inventory
+- Review orders and record carrier, tracking number, and fulfillment progress
+- View refund status and synchronize older Stripe refunds without charging customers
+- Manage shipping prices, support contact information, and store policies
+- Review store analytics, launch requirements, and owner sign-offs
+- Open or pause checkout once all required launch conditions are satisfied
+
+The app records successful payments from signed Stripe webhook events. A refund is a separate financial event; it never automatically restocks a product or marks an order shipped.
+
+## Run locally
+
+Requires **Python 3.12+**.
 
 ```bash
+git clone https://github.com/rayjim28/odj-commerce.git
+cd odj-commerce
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 python scripts/setup_local.py
-python scripts/import_odj_catalog.py
 python -m uvicorn main:app --reload
 ```
 
-Open http://127.0.0.1:8000 for customers and http://127.0.0.1:8000/admin for the store owner. The initial setup asks for an admin password. Run `python scripts/reset_admin_password.py` if it needs changing.
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) for the storefront or [http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin) for the admin dashboard.
 
-Local addresses are not public hosting. Stripe payments, site deployment, tax/shipping configuration, email verification/password recovery and final security testing are separate steps required before real customers can buy.
+`setup_local.py` creates a private `.env` and asks for an admin password. It will not overwrite an existing configuration. The local catalog starts empty. Add products in the admin dashboard; do not run the optional sample-data script against a real store.
 
-## V5: Checkout in safe local demo mode
+### Local configuration
 
-The initial checkout now works as a **simulation without a Stripe account**. Sign into a customer account, add an active in-stock product with a price, and open `/checkout`. Review the bag, select standard or express sample shipping and submit a *sample* address to save an order marked `demo` (unpaid). **No payment is taken or attempted; inventory is unchanged.** The store owner can review the example order under Admin → Orders and test fulfillment controls without treating this as a real sale. See [UPGRADE_TO_V5.md](UPGRADE_TO_V5.md) for update instructions and Stripe configuration steps.
+The default development setup is `APP_ENV=development` and `PAYMENT_MODE=demo`. Demo orders are labeled unpaid and do not charge a card or reduce stock.
 
-## Phase 6 (V6)
+Use `.env.example` to see supported settings. Keep `.env`, payment credentials, database dumps, and uploaded media out of Git. For isolated staging, use the separate `compose.staging.yaml` and `.env.staging.example`.
 
-Private customer order details, live owner-managed shipping and policy settings, secure password changes, optional email verification and forgot-password workflow, and a branded email outbox have been added. See `UPGRADE_TO_V6.md` for the safe non-destructive update, setup, and important limits on SMTP delivery.
+## Automated tests
 
-## Phase 7A — launch preparation (V7)
+Install the development dependencies and run the complete test suite:
 
-Admin → **Launch checklist** provides a configuration-only launch audit without showing secrets. Run `python scripts/check_launch.py` for a terminal view, and `python scripts/backup_local.py` to back up local SQLite and product uploads to a private ignored ZIP. See `UPGRADE_TO_V7.md`. This is **not a public launch**; no Stripe account, live payment processing, production hosting, or email delivery is activated.
+```bash
+python -m pip install -r requirements-dev.txt
+for file in tests/test_*.py; do python -m pytest -q "$file" || exit 1; done
+python -m compileall -q main.py database.py security.py staging_security.py scripts
+for file in static/js/*.js; do node --check "$file"; done
+```
 
-### V7.1 — Customer-first homepage merchandising
+The GitHub Actions workflow executes each test module independently with disposable SQLite databases and validates the admin JavaScript syntax. Payment tests use mocked Stripe responses and signed test events; they **do not** run real card charges.
 
-The homepage now includes a featured public product, catalog-based shop-by-need tiles, related product suggestions, concise buying benefits, and a policy-linked FAQ. These sections automatically use the live published catalog rather than displaying draft inventory, fabricated sales, or promised discounts. Existing product, account, checkout, and admin workflows are unchanged. See `UPGRADE_TO_V7_1.md` for installation steps.
+Read [Testing](docs/TESTING.md) for what the suite covers and the remaining manual checks.
 
-## V7.2 — Bundles & Offers
+## Production and release process
 
-Create fixed-price multi-product bundles through **Admin → Bundles & Offers**. Draft bundles stay private; live bundles use existing product inventory, show verified price savings and appear on the homepage and product catalog. See `UPGRADE_TO_V7_2.md` for safe installation and test-mode Stripe setup. Never commit `.env` or live credentials.
+The Render deployment uses the `main` branch. Production startup validates the database connection settings, Stripe credentials, HTTPS base URL, session configuration, and media path.
 
-## V7.3 — Marketing & Customer Retention
+**Deploying the code does not automatically enable sales.** Public checkout requires a published in-stock product, store contact and policies, Stripe/shipping/tax configuration, completed owner reviews, and the owner's explicit approval in **Admin → Launch checklist**. `SALES_ENABLED` is an additional server-side switch for the deployer.
 
-Following the owner's `what i need` requirements, this release adds consent-based newsletter signups, confirmation/welcome email **queueing** (actual SMTP sending disabled until configured), customer favorites, Buy Again, account opt-out controls, and demo-only coupon codes in Admin → Marketing & Retention. Payments remain intentionally in demo mode. Read [UPGRADE_TO_V7_3.md](UPGRADE_TO_V7_3.md) for install/test steps and known limitations.
+Documentation:
+- [Operations](docs/OPERATIONS.md) — Render, environment settings, email, media, backups, and recovery
+- [Testing](docs/TESTING.md) — automated coverage and manual release checks
+- [Store handoff](LAUNCH_HANDOFF.md) — store-owner setup and public checkout checklist
 
-### V7.4 — store insights, mobile checkout and SEO
+## Project status
 
-See [UPGRADE_TO_V7_4.md](UPGRADE_TO_V7_4.md) for installation, feature limits, and tests. The admin-only analytics panel aggregates anonymous interaction events and separates demo activity from confirmed paid revenue. Checkout has a mobile progress display, and the application provides a public-product sitemap and structured product metadata for use after launch. **Payments remain in demo mode.**
+The application is deployed, but the business owner has not yet published the final catalog or completed all required launch approvals. Verified work includes internal Stripe payment/refund reconciliation and the email delivery path. Live refund webhook delivery, tax outcomes for actual selling jurisdictions, and a complete end-to-end real-provider checkout still require independent verification before sales open.
 
-### V7.5 — private staging and operations safeguards
-
-This release adds optional protected staging (`APP_ENV=staging`, **demo-only checkout**), database-backed failed admin login counters, verifiable private SQLite backups, optional PostgreSQL backup helper, read-only operations diagnostics, and GitHub CI. See [UPGRADE_TO_V7_5.md](UPGRADE_TO_V7_5.md) for setup, test commands and important limitations. **Nothing is deployed or made public by applying the update.** Stripe remains on hold.
-
-### V7.6 — isolated private online staging kit
-
-A standalone staging Compose configuration, separate secret generator, deployment checker, and HTTPS access probe are included. See [UPGRADE_TO_V7_6.md](UPGRADE_TO_V7_6.md) for setup and limitations. **This ZIP does not deploy or publish anything**; a staging host and domain must be provided separately. No real customer data, Stripe payments, or outbound email are enabled. Existing local store data are unchanged.
+The project is maintained as a production application rather than a series of versioned demo releases.

@@ -1,36 +1,59 @@
-# ODJ Group — technical store handoff and launch controls
+# Store owner handoff
 
-Updated 2026-11-11. The developer delivers the working platform; the business owner controls the catalog, prices, inventory, contact details, shipping rates, policies, Stripe Tax registration, fulfillment, and refunds.
+ODJ Group LLC runs the storefront through the admin dashboard at [odjgroupllc.com/admin](https://odjgroupllc.com/admin). Products and business decisions are managed there; routine changes do not require a developer or code changes.
 
-## Current public storefront
+**Current state:** Production is deployed, but public checkout is intentionally closed until the owner has completed the remaining launch requirements and confirms approval. Do not use the site to accept customer money before that process is complete.
 
-- `https://odjgroupllc.com` was deployed with `APP_ENV=production`, `PAYMENT_MODE=stripe`, `PUBLIC_STOREFRONT=false` and `PUBLIC_ACCOUNT_TESTING=false` on 2026-11-11, per the developer's Render and Admin screenshots. `SALES_ENABLED=true` has been set in Render per the developer's 2026-11-11 screenshot; owner approval remains OFF and missing catalog/support/policies keep checkout CLOSED. An environment kill switch can be restored with `SALES_ENABLED=false` if needed. Live provider verification is not yet complete.
-- Do NOT turn on live card charges in staging. Do NOT enable public ordering until the business owner has reviewed product inventory, shipping, returns and tax settings. The store can remain public with an empty catalog.
-- PostgreSQL is hosted on Render; `odj-commerce` and `odj-email-sender` must both use the current private database connection. Never paste a connection URL or API key in chat, screenshots, logs or source control.
-- Customer authentication, verification links, Resend SMTP delivery, and order-confirmation cron have been tested. A separate $1 real-money **internal** Stripe order tested webhook delivery, paid status and email. This did **not** test product inventory or real shipping/tax.
+## Store owner responsibilities
 
-## Technical release changes
+The owner controls:
 
-- `payment.create_checkout` sends `automatic_tax[enabled]=true` whenever `STRIPE_AUTOMATIC_TAX=true`. Stripe collects the destination address. The owner must configure Stripe Tax registrations, the correct business origin, any applicable product tax codes (or account default), and applicable jurisdictions in Stripe; the application cannot determine which states require registration.
-- The paid-order webhook records the **actual** Stripe total, Stripe-calculated `amount_tax`, and PaymentIntent ID. Customer order history, order details, emails, and the admin table show the actual charged total including tax.
-- Refund webhook support for `refund.created`, `refund.updated`, and `refund.failed` records each refund ID once, handles partial/full and failed refunds, updates the ODJ order payment status, and adjusts net confirmed revenue. Refunded goods are **not** automatically restocked or shipped. New orders store their PaymentIntent when paid.
-- Historical paid orders that were created before PaymentIntent tracking (including the original $1 internal payment) can now be checked using **Admin → Orders → Sync Stripe refunds**. This calls Stripe's **read-only** Checkout Sessions and Refunds endpoints, verifies the original session, order identity, live mode, currency and amount, reads every refund, then synchronizes only that order's refund status and PaymentIntent ID. It **does not** create a refund, charge a customer, restock inventory or mark an order shipped. Restricted live Stripe keys need read access to Checkout Sessions and Refunds; if Stripe refuses access, do not guess or manually set financial statuses.
-- Configure those **three additional events** on the existing Stripe webhook destination `https://odjgroupllc.com/api/stripe/webhook` (leave existing checkout events in place). Events must be sent from the same Stripe account/mode and signed by the existing `STRIPE_WEBHOOK_SECRET`. A Stripe dashboard refund before subscribing these events will not be retroactively synchronized.
-- Production checkout is deliberately closed by default. It opens **only if** `APP_ENV=production`, `PAYMENT_MODE=stripe`, `SALES_ENABLED=true`, `STRIPE_AUTOMATIC_TAX=true`, `TAX_REGISTRATIONS_REVIEWED=true`, `SHIPPING_RATES_APPROVED=true`, the database contains a published in-stock product, customer support email, shipping policy, return policy, and the business owner explicitly enables checkout in Admin → Launch checklist. No public customer can bypass this server-side check.
-- `SALES_ENABLED` is the developer's environment-level emergency kill switch in Render. A separate database-stored owner go-live approval defaults OFF, even on existing stores, and is controlled through Admin → Launch checklist after acknowledging real-payment, tax and shipping readiness. Pausing checkout from Admin takes effect without a Render deployment.
-- **Owner verification checklist:** Admin → Launch checklist now separates automatically detected evidence from persisted **owner-confirmed** reviews. Every owner check can be checked/unchecked and is saved in the `launch_verifications` database table; it is an attestation, not independent proof. The checkout button stays disabled until live server prerequisites, a published stocked product, support contact, policies, and the four mandatory owner reviews (Stripe refund subscriptions, shipping, tax, and end-to-end checkout/recovery tests) are complete; the final approval checkbox is enabled only then. Manually checking refund subscription does **not** turn `Live refund webhook delivery` green; that requires an actual refund event recorded by the app. The $1 historical Stripe refund was reconciled using read-only Stripe API calls, but that was not a delivered webhook. No new real-money charge or refund is needed merely to configure the checklist.
+- Product descriptions, photos, categories, stock, prices, and which products are published
+- Customer support email and phone number
+- Standard and express shipping prices, supported destinations, shipping promises, and returns/refund policies
+- Stripe Tax registrations and product tax treatment, with tax advice where appropriate
+- Fulfillment, shipment tracking, and customer support requests
+- Final approval to open or pause checkout
 
-## Before opening actual sales (owner tasks)
+In **Admin → Inventory**, add a product with a valid price and available stock, then publish it. Products left in draft are not purchasable. Uploaded images should use the admin photo uploader.
 
-1. Add actual products in **Admin → Inventory** with prices, stock, clear product information/photos, and publish when ready. Review tax classification of each product or bundle in Stripe.
-2. In **Admin → Store settings**, set customer support email, shipping rates, shipping policy, and returns/refund policy. Set `SHIPPING_RATES_APPROVED=true` only after owner approval.
-3. In **Stripe → Tax**, verify the business origin, registration requirements, collection registrations and product tax codes. Only after the owner confirms, set `TAX_REGISTRATIONS_REVIEWED=true` and `STRIPE_AUTOMATIC_TAX=true`. Stripe Tax calculates taxes where configured; it does not itself complete registrations or remit every jurisdiction's taxes. Consult tax counsel/accountant for obligations.
-4. Verify Render PostgreSQL backups/restoration, storage persistence for uploaded images, admin recovery, the email cron, and custom-domain HTTPS. Verify Stripe webhook deliveries and restricted key permissions. Rotate any keys exposed in messages or screenshots.
-5. The original $1 internal payment has already been refunded in Stripe. Use **Admin → Orders → Sync Stripe refunds** for that paid order after the new release deploys; confirm it becomes **refunded** and the refunded total is $1.00. Do not refund it again or ship the internal test order. If the reconciliation button returns a permission error, grant only the needed Stripe read privileges on the existing restricted key (or use another owner-authorized key with those permissions), then retry.
-6. Test a **real catalog product** in an isolated Stripe test environment: stocked/unstocked items, tax at several destination addresses, standard/express shipping, successful payment, payment failure, session expiry, webhook retries, paid order, confirmation email and refund. Confirm the inventory deduction occurs exactly once and refund doesn't silently restock. Do not use customer money for this testing.
-7. Render is already configured for production. After the developer verifies payment, tax and shipping readiness, set `SALES_ENABLED=true` to permit owner activation; this alone NEVER opens checkout because the owner approval in the database remains OFF. The owner then completes catalog, contacts and policies, confirms their tax and shipping obligations, and clicks **Open public checkout** in Admin → Launch checklist. Test real checkout immediately after activation.
-8. The owner may click **Pause checkout** in Admin at any time; the developer can also set `SALES_ENABLED=false` in Render as an emergency kill switch. Do not delete product/order records or change database connections.
+In **Admin → Store settings**, enter the support email and approved shipping/return policies. Review the actual shipping rates before confirming them.
 
-## Handoff limitations
+## Opening checkout
 
-These automated tests verify code with isolated fake Stripe keys/events, not the owner's legal registrations, rates, policies, tax classification, shipping services or backup restoration. No live sale is approved by this checklist. Stripe Tax may require subscription/pricing and setup in Stripe; fees and liability are subject to Stripe's plan and local requirements. Owner must maintain fulfillment and refunds; new support/refund notifications can be added separately.
+1. Confirm the store has at least one published, in-stock product and complete support/policy details.
+2. Review payment and tax settings, shipping rates, and applicable registrations. The maintainer verifies the corresponding server settings.
+3. Open **Admin → Launch checklist**. **System checks** report the application's observed configuration and records. **Owner verification checklist** holds signed-off business and manual testing reviews. These are separate; ticking an owner box does not prove a Stripe webhook was delivered.
+4. Complete the required owner confirmations only after the underlying work has been verified.
+5. Read the final approval statement and select **Open public checkout**. The application will not allow activation while mandatory conditions are missing.
+
+The maintainer's `SALES_ENABLED` setting in Render also has to permit checkout. It is an emergency off switch, **not** a replacement for owner approval. The owner can pause ordering immediately from the same admin page.
+
+## Orders, payments, and refunds
+
+Customers sign in and verify their email before making real purchases. Stripe hosts the payment page. Shipping choices are passed to checkout, and applicable tax is calculated by the owner's Stripe Tax configuration.
+
+The owner can review paid orders and update carrier, tracking number, and fulfillment in **Admin → Orders**. Do not mark an order shipped until it has actually shipped.
+
+Stripe refunds must be issued through the authorized payment provider. ODJ records refund notifications on newer orders, and **Sync Stripe refunds** reads Stripe's history for older payments. That button never issues a new charge or refund. A refunded order does not automatically restock items or authorize a shipment.
+
+The original internal $1 test payment has been refunded and reconciled in ODJ. **Do not ship this test order or issue another refund.** That historic reconciliation does not establish that a fresh refund webhook is currently delivered; the app tracks that separately.
+
+## Owner launch acceptance
+
+The following must be reviewed before accepting actual orders:
+
+- Catalog, price, inventory, product images, and checkout behavior
+- Payment acceptance, tax outcome, shipping choices, and order confirmation
+- Fulfillment status and refund handling
+- Customer account access, email delivery, and password recovery
+- Photo persistence after deployment, database/media backup and recovery
+- A test-mode refund notification delivered to the receiving application
+
+The owner may check off manually reviewed tasks in the dashboard after the work is completed. The developer should keep the production sales gate closed until the material real-provider checks are finished.
+
+## Maintenance and support
+
+For technical changes, refer to [Operations](docs/OPERATIONS.md) and [Testing](docs/TESTING.md). Credential rotation, Render deployment, database recovery, and payment-webhook configuration belong to the technical maintainer; product listings, policies, and fulfillment belong to ODJ Group.
+
+The dashboard's green indicators do not replace legal compliance review or a production acceptance test.
