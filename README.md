@@ -16,6 +16,37 @@ A web storefront and store management application for ODJ Group LLC. Customers c
 
 Local development uses SQLite and a simulated checkout. Production requires PostgreSQL and an authorized live Stripe account.
 
+## Project structure
+
+```text
+frontend/
+  templates/          Jinja2 pages: catalog, checkout, accounts and admin
+  static/
+    js/               Browser interactions
+    images/           Built-in illustrations and brand images
+    style.css         Site styles
+middleware/
+  payment.py          Stripe Checkout and webhook verification
+  notifications.py    Customer messages and order email queue
+  analytics.py        Sales and storefront analytics
+  launch_readiness.py Launch requirements and owner confirmations
+backend/
+  app.py              FastAPI routes, request handling and lifecycle
+  database.py         SQLAlchemy models and schema maintenance
+  catalog.py          Product and bundle queries
+  serializers.py      Order response formatting
+  merchandising.py    Homepage product selection
+  security.py         Authentication and session helpers
+  staging_security.py, staging_setup.py
+scripts/                Setup, backups and operational checks
+tests/                  Automated tests
+main.py                 Compatibility entry point for Render
+```
+
+The root-level Python files are small compatibility imports for existing commands and scripts. The implementation lives in the three application folders. Render still runs `uvicorn main:app`; customer-facing paths and the database remain unchanged.
+
+See [Architecture](docs/ARCHITECTURE.md) for code ownership and module boundaries.
+
 ## Features
 
 **Storefront**
@@ -65,8 +96,8 @@ Install the development dependencies and run the complete test suite:
 ```bash
 python -m pip install -r requirements-dev.txt
 for file in tests/test_*.py; do python -m pytest -q "$file" || exit 1; done
-python -m compileall -q main.py database.py security.py staging_security.py scripts
-for file in static/js/*.js; do node --check "$file"; done
+python -m compileall -q backend middleware main.py scripts
+for file in frontend/static/js/*.js; do node --check "$file" || exit 1; done
 ```
 
 The GitHub Actions workflow executes each test module independently with disposable SQLite databases and validates the admin JavaScript syntax. Payment tests use mocked Stripe responses and signed test events; they **do not** run real card charges.
@@ -80,6 +111,7 @@ The Render deployment uses the `main` branch. Production startup validates the d
 **Deploying the code does not automatically enable sales.** Public checkout requires a published in-stock product, store contact and policies, Stripe/shipping/tax configuration, completed owner reviews, and the owner's explicit approval in **Admin → Launch checklist**. `SALES_ENABLED` is an additional server-side switch for the deployer.
 
 Documentation:
+- [Architecture](docs/ARCHITECTURE.md) — frontend, middleware and backend structure
 - [Operations](docs/OPERATIONS.md) — Render, environment settings, email, media, backups, and recovery
 - [Testing](docs/TESTING.md) — automated coverage and manual release checks
 - [Store handoff](LAUNCH_HANDOFF.md) — store-owner setup and public checkout checklist

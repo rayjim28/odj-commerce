@@ -2,6 +2,12 @@
 
 This guide covers the ODJ Group deployment and daily maintenance. Business information belongs to the store owner; production infrastructure and software changes belong to the maintainer.
 
+## Source layout
+
+The FastAPI application is implemented in `backend/app.py`; the root `main.py` remains the stable ASGI import path used by Render. Product/catalog and database modules are also in `backend/`. Stripe, email, analytics, and readiness logic live in `middleware/`. All page templates, CSS, JavaScript, and bundled images are under `frontend/`.
+
+FastAPI still serves the same `/static`, `/media`, and application URLs. Uploaded product photos are separate from the source-controlled frontend and remain on the persistent disk.
+
 ## Deployment
 
 - Application: Render web service `odj-commerce`, connected to branch `main`

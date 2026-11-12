@@ -338,7 +338,7 @@ def test_admin_branding_and_noindex(client):
     login = client.get('/admin')
     assert 'ODJ' in login.text
     assert '<div class="admin-user-dot">OJ</div>' not in login.text
-    assert 'ODJ' in (open(os.path.join(os.path.dirname(main.__file__), 'static/images/favicon.svg')).read())
+    assert 'ODJ' in (open(str(main.STATIC_DIR / 'images/favicon.svg')).read())
 
 # V5 — account-only checkout, explicitly simulated payments and fulfillment controls.
 def test_v5_checkout_requires_account_and_has_no_public_admin(client, monkeypatch):
@@ -818,7 +818,7 @@ def test_v721_bundle_home_card_shows_contents_and_uses_compact_layout(authentica
     assert 'Spin mop starter' in page and 'Replacement mop head' in page
     assert f'/products/{bid}' in page
     assert 'Includes' in page
-    assert 'grid-template-columns:repeat(auto-fill' in (main.ROOT / 'static/style.css').read_text()
+    assert 'grid-template-columns:repeat(auto-fill' in (main.STATIC_DIR / 'style.css').read_text()
 
 
 def test_v721_fallback_uses_odj_image_instead_of_old_monogram(authenticated):
