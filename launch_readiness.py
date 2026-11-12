@@ -1,9 +1,10 @@
 """Read-only launch checklist. NEVER return credentials, customer records, or private paths."""
 import os
+from pathlib import Path
 from urllib.parse import urlparse
 
 from sqlalchemy import select, func
-from database import SessionLocal, Product, StoreSettings
+from database import SessionLocal, Product, StoreSettings, Order, StripeRefund, WebhookEvent
 from notifications import store_settings
 
 
@@ -11,6 +12,18 @@ def _item(key, title, ready, note, group, review=False):
     return {'key': key, 'title': title,
             'status': 'review' if review else ('ready' if ready else 'todo'),
             'note': note, 'group': group}
+
+
+def persistent_media_configured(path: str, mount_root: str = '/var/data') -> bool:
+    """Report Render mounted-storage *configuration*, not backup/restore proof."""
+    if not path:
+        return False
+    try:
+        media = Path(path).resolve()
+        root = Path(mount_root).resolve()
+        return media.is_relative_to(root) and media.is_dir() and os.access(media, os.W_OK)
+    except (OSError, ValueError):
+        return False
 
 
 def sales_prerequisite_failures(db):
@@ -58,6 +71,21 @@ def launch_readiness():
         launch = db.get(StoreSettings, 1)
         owner_approved = bool(launch and launch.owner_launch_approved)
         blockers = sales_prerequisite_failures(db)
+        # Reconciliation evidence is kept in the store DB. This proves the
+        # refund was recorded, NOT that a future webhook will be delivered.
+        synced_refunds = db.scalar(
+            select(func.count(StripeRefund.refund_id))
+            .join(Order, Order.id == StripeRefund.order_id)
+            .where(StripeRefund.status == 'succeeded',
+                   Order.refunded_cents > 0,
+                   Order.status.in_(('refunded', 'partially_refunded')))
+        ) or 0
+        delivered_refund_events = db.scalar(
+            select(func.count(WebhookEvent.event_id))
+            .where(WebhookEvent.event_type.in_(
+                ('refund.created', 'refund.updated', 'refund.failed')))
+        ) or 0
+    media_configured = persistent_media_configured(media)
     items = [
         _item('catalog', 'Published products', bool(listed and buyable),
               f'{listed} published · {buyable} currently in stock.', 'Store'),
@@ -75,16 +103,27 @@ def launch_readiness():
               'Enable Stripe automatic tax; the owner must verify tax registrations and appropriate product tax codes in Stripe.', 'Payments'),
         _item('sales_switch', 'Owner-approved sales switch', owner_approved and not blockers,
               'The business owner can open or pause checkout from this dashboard after setup and approval.', 'Payments'),
-        _item('refunds', 'Refund reconciliation', False,
-              'Subscribe Stripe webhook to refund.created, refund.updated and refund.failed; reconcile older transactions separately.', 'Payments', review=True),
+        _item('refunds', 'Refund reconciliation', bool(synced_refunds),
+              ('A successful refund has been reconciled in ODJ. This does not verify future webhook delivery.'
+               if synced_refunds else
+               'No successful refund reconciliation is recorded yet.'), 'Payments',
+              review=not bool(synced_refunds)),
+        _item('refund_webhooks', 'Live refund webhook delivery', bool(delivered_refund_events),
+              ('ODJ has received and recorded a refund event; verify Stripe delivered it successfully.'
+               if delivered_refund_events else
+               'The webhook subscription is configured, but no refund event has been processed by ODJ yet.'),
+              'Payments', review=not bool(delivered_refund_events)),
         _item('email', 'Transactional email service', all(os.getenv(k) for k in ('SMTP_HOST','SMTP_FROM','SMTP_USERNAME','SMTP_PASSWORD')),
               'Configure an authorized sender and test real delivery and password recovery.', 'Communications'),
         _item('domain', 'Custom HTTPS domain', parsed.scheme == 'https' and bool(parsed.hostname) and parsed.hostname not in ('localhost','127.0.0.1'),
               'Set the public HTTPS URL for the live domain.', 'Infrastructure'),
         _item('database', 'Production PostgreSQL', dburl.startswith(('postgresql://','postgresql+psycopg://','postgres://')),
               'Move local data to a backed-up managed PostgreSQL database before launch.', 'Infrastructure'),
-        _item('storage', 'Persistent product photos', bool(media) and not str(media).startswith('./'),
-              'Set a persistent MEDIA_DIR; verify backups and storage durability on your host.', 'Infrastructure', review=True),
+        _item('storage', 'Persistent product photos', media_configured,
+              ('Writable upload folder is under the persistent storage path. Photo survival after redeploy and backup restoration still need verification.'
+               if media_configured else
+               'Set MEDIA_DIR to a writable location on the attached persistent storage disk.'),
+              'Infrastructure', review=not media_configured),
         _item('security', 'Admin and session configuration', len(secret) >= 32 and admin_hash.startswith('pbkdf2_sha256$'),
               'Keep strong private credentials outside Git; test admin restrictions and recovery.', 'Security'),
         _item('deployment', 'Production mode', live,
