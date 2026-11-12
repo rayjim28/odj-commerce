@@ -18,4 +18,4 @@ s=s.replace('ADMIN_PASSWORD_HASH=\n','ADMIN_PASSWORD_HASH='+make_password_hash(p
 env.write_text(s)
 env.chmod(0o600)
 print('Created private .env file. Local SQLite is ready; payments still need Stripe keys.')
-print('Next: python scripts/seed.py && uvicorn main:app --reload')
+print('Next: python -m uvicorn main:app --reload; add products through /admin when ready.')
