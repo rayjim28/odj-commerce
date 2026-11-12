@@ -29,6 +29,7 @@ def test_owner_can_activate_and_pause_but_only_when_checkout_is_ready(monkeypatc
     with TestClient(main.app, base_url="https://odjgroupllc.com") as client:
         assert client.get("/api/admin/launch-readiness").status_code == 401
         assert client.post("/api/admin/sales", json={"enabled": True, "acknowledged": True}).status_code == 401
+        assert client.post("/api/admin/launch-review", json={"key": "shipping_approval", "confirmed": True}).status_code == 401
         assert client.post("/api/admin/login", json={"password": "StrongFakeAdminPassword123!"}).status_code == 200
         assert client.post("/api/admin/sales", json={"enabled": True}).status_code == 422
         assert client.post("/api/admin/sales", json={"enabled": True, "acknowledged": True}).status_code == 409
@@ -56,8 +57,18 @@ def test_owner_can_activate_and_pause_but_only_when_checkout_is_ready(monkeypatc
         assert client.post("/api/admin/sales", json={"enabled": True, "acknowledged": True}).status_code == 409
         assert client.get("/checkout").status_code == 503
         monkeypatch.setenv("SALES_ENABLED", "true")
+        blocked = client.get("/api/admin/launch-readiness").json()
+        assert not blocked["can_enable_sales"]
+        assert any("Owner must confirm" in item for item in blocked["sales_blockers"])
+        assert client.post("/api/admin/launch-review", json={"key": "refunds", "confirmed": True}).status_code == 422
+        for key in ("refund_subscriptions", "shipping_approval", "tax_registration", "end_to_end"):
+            review = client.post("/api/admin/launch-review", json={"key": key, "confirmed": True})
+            assert review.status_code == 200, review.text
         before = client.get("/api/admin/launch-readiness").json()
         assert before["can_enable_sales"] and not before["sales_open"]
+        assert before["owner_confirmed_count"] == 4
+        assert not before["owner_tasks"][0]["key"] == "foo"
+        assert next(c for c in before["checks"] if c["key"] == "refund_webhooks")["status"] == "review"
         assert "PUBLIC CHECKOUT" not in str(before)
         approved = client.post("/api/admin/sales", json={"enabled": True, "acknowledged": True})
         assert approved.status_code == 200, approved.text
@@ -72,6 +83,14 @@ def test_owner_can_activate_and_pause_but_only_when_checkout_is_ready(monkeypatc
         assert not main.production_sales_ready()
         assert client.get("/checkout").status_code == 503
         monkeypatch.setenv("TAX_REGISTRATIONS_REVIEWED", "true")
+        assert main.production_sales_ready()
+        # Revoking a required owner attestation immediately closes checkout.
+        revoked = client.post("/api/admin/launch-review", json={"key": "tax_registration", "confirmed": False})
+        assert revoked.status_code == 200
+        assert not revoked.json()["sales_open"]
+        assert not main.production_sales_ready()
+        reapproved = client.post("/api/admin/launch-review", json={"key": "tax_registration", "confirmed": True})
+        assert reapproved.status_code == 200 and reapproved.json()["sales_open"]
         assert main.production_sales_ready()
 
         paused = client.post("/api/admin/sales", json={"enabled": False})
