@@ -4,7 +4,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 ROOT = Path(__file__).resolve().parents[1]
-TEMPLATE_DIR = ROOT / "templates"
+TEMPLATE_DIR = ROOT / "frontend" / "templates"
 
 
 def test_all_templates_compile():

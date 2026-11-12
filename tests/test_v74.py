@@ -73,6 +73,6 @@ def test_sitemap_private_exclusion_and_checkout_seo(monkeypatch):
         assert 'reviewCount' not in detail.text
         assert c.get('/static/images/favicon.svg').headers['Cache-Control'].startswith('public')
         assert c.get('/checkout', follow_redirects=False).status_code==303
-        assert 'v74-checkout-progress' in (Path(main.ROOT)/'templates/checkout.html').read_text()
+        assert 'v74-checkout-progress' in (main.TEMPLATE_DIR / 'checkout.html').read_text()
         admin_html=c.get('/admin').text
         assert 'Store insights' not in admin_html or 'tab-analytics' not in admin_html  # logged out

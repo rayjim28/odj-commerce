@@ -38,7 +38,7 @@ def test_public_browse_only_preview(monkeypatch):
         assert home.status_code == 200, home.text
         assert 'ONLINE ORDERS COMING SOON' in home.text
         assert 'window.ODJ_PUBLIC_PREVIEW = true' in home.text
-        assert 'Checkout coming soon' in (Path(__file__).resolve().parents[1] / 'static/js/store.js').read_text()
+        assert 'Checkout coming soon' in (Path(__file__).resolve().parents[1] / 'frontend/static/js/store.js').read_text()
         assert home.headers.get('x-robots-tag') == 'noindex, nofollow'
         assert client.get('/static/style.css').status_code == 200
         assert client.get('/admin').status_code == 200
