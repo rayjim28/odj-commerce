@@ -37,6 +37,10 @@ from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_passw
 from payment import create_checkout, verify_webhook, read_stripe_checkout_refunds, StripeError
 from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email
 from launch_readiness import launch_readiness, sales_prerequisite_failures, OWNER_REVIEW_TASKS
+from backend.catalog import serialize_product, bundle_data, public_catalog
+from backend.serializers import serialize_order
+from backend.merchandising import build_home_merchandising
+from middleware.analytics import analytics_summary, ANALYTICS_EVENTS
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 @asynccontextmanager
@@ -169,7 +173,6 @@ class AnalyticsInput(BaseModel):
     event: str = Field(max_length=24)
     product_id: Optional[int] = None
 
-ANALYTICS_EVENTS = ('page_view', 'product_view', 'add_to_cart', 'checkout_start', 'newsletter_signup')
 
 @app.post('/api/analytics/event', status_code=204)
 def record_analytics(payload: AnalyticsInput, request: Request):
@@ -192,52 +195,6 @@ def record_analytics(payload: AnalyticsInput, request: Request):
     return Response(status_code=204)
 
 
-def analytics_summary(db: Session, days: int = 30):
-    since = now() - timedelta(days=days)
-    rows = db.scalars(select(StoreEvent).where(StoreEvent.created_at >= since)).all()
-    counts = {name:0 for name in ANALYTICS_EVENTS}
-    product_counts = {}
-    daily = {}
-    for event in rows:
-        counts[event.event_type] = counts.get(event.event_type,0) + 1
-        stamp = event.created_at.date().isoformat() if event.created_at else now().date().isoformat()
-        daily[stamp] = daily.get(stamp,0) + 1
-        if event.product_id is not None:
-            per = product_counts.setdefault(event.product_id, {'views':0,'adds':0})
-            if event.event_type=='product_view':per['views']+=1
-            if event.event_type=='add_to_cart':per['adds']+=1
-    # A refund changes net revenue, not whether an order was originally paid.
-    settled = db.scalars(select(Order).where(
-        Order.status.in_(('paid', 'partially_refunded', 'refunded')),
-        Order.paid_at >= since)).all()
-    demo = db.scalar(select(func.count()).select_from(Order).where(Order.status == 'demo', Order.created_at >= since)) or 0
-    revenue = sum(max(0, (o.paid_total_cents or 0) - (o.refunded_cents or 0)) for o in settled)
-    # Sales units are gross quantities, not a statement of what was ultimately retained.
-    unreturned_orders = [o for o in settled if o.status != 'refunded']
-    paid_items = {}
-    for order in unreturned_orders:
-        for item in order.items_snapshot or []:
-            pid=item.get('id')
-            if not isinstance(pid,int):continue
-            slot=paid_items.setdefault(pid, {'units':0,'gross_cents':0})
-            slot['units'] += int(item.get('qty',0))
-            slot['gross_cents'] += int(item.get('price_cents',0)) * int(item.get('qty',0))
-    repeat_buyers = len([customer_id for customer_id in {o.customer_id for o in settled if o.customer_id is not None} if sum(1 for o in settled if o.customer_id == customer_id) >= 2])
-    names={p['id']:p['name'] for p in public_catalog(db)}
-    # Include historical products in paid orders even after archival.
-    for p in db.scalars(select(Product)).all():names.setdefault(p.id,p.name)
-    for b in db.scalars(select(Bundle)).all():names.setdefault(-b.id,b.name)
-    popular=[{'id':pid,'name':names.get(pid,'Archived product'),'views':v['views'],'adds':v['adds']} for pid,v in product_counts.items()]
-    popular.sort(key=lambda v:(v['views'],v['adds']),reverse=True)
-    sold=[{'id':pid,'name':names.get(pid,'Archived product'),'units':v['units'],'gross_cents':v['gross_cents']} for pid,v in paid_items.items()]
-    sold.sort(key=lambda v:v['gross_cents'],reverse=True)
-    confirmed = db.scalar(select(func.count()).select_from(NewsletterSubscriber).where(NewsletterSubscriber.status=='confirmed')) or 0
-    return {'days':days,'counts':counts,'daily':[{'day':(now().date()-timedelta(days=i)).isoformat(),'events':daily.get((now().date()-timedelta(days=i)).isoformat(),0)} for i in range(13,-1,-1)],
-        'popular_products':popular[:8], 'paid_product_sales':sold[:8], 'paid_orders':len(settled),'demo_orders':demo,
-        'verified_revenue_cents':revenue, 'average_paid_order_cents':round(revenue/len(settled)) if settled else 0,
-        'newsletter_confirmed_total':confirmed, 'repeat_paid_buyers':repeat_buyers,
-        'note':'Anonymous interactions, not unique visitors. Revenue is net of recorded refunds. Product units represent gross purchases (excluding fully refunded orders), not net items returned. Demo orders are excluded.'}
-
 @app.get('/api/admin/analytics')
 def admin_analytics(request: Request):
     require_admin(request)
@@ -249,61 +206,6 @@ def seo_images(data: dict, request: Request):
     root = public_origin(request)
     urls = [data.get('image_url','')] + list(data.get('additional_images') or [])
     return [(root + url if url.startswith('/') else url) for url in urls if url and (url.startswith('/') or url.startswith('https://'))]
-
-
-def serialize_product(p: Product):
-    return {'id':p.id,'name':p.name,'slug':p.slug,'category':p.category,
-      'description':p.description,'price_cents':p.price_cents,'stock':p.stock,
-      'image_url':p.image_url,'additional_images':p.additional_images or [],
-      'sku':p.sku or '', 'badge':p.badge,'featured':p.featured,'active':p.active}
-
-
-def bundle_data(db: Session, b: Bundle):
-    """Negative catalog IDs distinguish bundles while preserving older cart API."""
-    components = []
-    available = 1_000_000
-    retail = 0
-    valid = bool(b.components)
-    for part in b.components:
-        product = db.get(Product, part.product_id)
-        if not product or not product.active or product.price_cents <= 0 or part.quantity < 1:
-            valid = False
-            available = 0
-            continue
-        components.append({'id':product.id, 'name':product.name, 'qty':part.quantity,
-                           'price_cents':product.price_cents, 'image_url':product.image_url})
-        retail += product.price_cents * part.quantity
-        available = min(available, product.stock // part.quantity)
-    if not valid:
-        available = 0
-    return {'id':-b.id,'bundle_id':b.id,'is_bundle':True,'name':b.name,
-      'slug':f'bundle-{b.id}', 'category':'Bundles & Offers', 'description':b.description,
-      'price_cents':b.price_cents, 'stock':max(0,available),
-      'image_url':b.image_url or (components[0]['image_url'] if components and components[0]['image_url'] else '/static/images/odj-bundle-placeholder.svg'),
-      'additional_images':[], 'sku':'', 'badge':b.badge or 'BUNDLE OFFER',
-      'featured':b.featured, 'active':b.active, 'components':components,
-      'retail_cents':retail, 'save_cents':max(0,retail-b.price_cents) if valid and b.price_cents else 0,
-      'components_valid':valid}
-
-
-def public_catalog(db: Session):
-    result = [serialize_product(p) for p in db.scalars(select(Product).where(
-        Product.active.is_(True), Product.price_cents > 0).order_by(Product.featured.desc(), Product.id)).all()]
-    for bundle in db.scalars(select(Bundle).where(Bundle.active.is_(True), Bundle.price_cents > 0).order_by(Bundle.id)).all():
-        data = bundle_data(db,bundle)
-        if data['components_valid']:
-            result.append(data)
-    return result
-
-
-def serialize_order(o: Order):
-    return {'id':o.id,'email':o.email,'status':o.status,'subtotal_cents':o.subtotal_cents,
-        'shipping_cents':o.shipping_cents,'discount_cents':o.discount_cents or 0,'promo_code':o.promo_code or '', 'paid_total_cents':o.paid_total_cents,'tax_cents':o.tax_cents or 0, 'refunded_cents':o.refunded_cents or 0,'items':o.items_snapshot,'shipping_details':o.shipping_details,
-        'created_at':o.created_at.isoformat() if o.created_at else None,
-        'payment_mode':o.payment_mode or 'stripe',
-        'fulfillment_status':o.fulfillment_status or 'unfulfilled',
-        'carrier':o.carrier or '', 'tracking_number':o.tracking_number or '',
-        'shipped_at':o.shipped_at.isoformat() if o.shipped_at else None}
 
 
 def require_admin(request: Request):
@@ -328,30 +230,6 @@ def production_sales_ready() -> bool:
 
 def base_url(request: Request) -> str:
     return (os.getenv('PUBLIC_BASE_URL') or str(request.base_url)).rstrip('/')
-
-
-def build_home_merchandising(products):
-    """Feature only published, priced catalog items; never invent product offers."""
-    available = [p for p in products if p['stock'] > 0]
-    highlighted = sorted(available, key=lambda p: (not p['featured'], p['id']))
-    spotlight = highlighted[0] if highlighted else None
-    themes = (
-        ('Mop systems', 'Start with the essentials for your floors.', ('mop', 'bucket', 'spin'), ('head', 'refill', 'replacement', 'handle')),
-        ('Parts & refills', 'Keep the right replacement items close by.', ('head', 'refill', 'replacement', 'handle'), ()),
-        ('Cleaning extras', 'The finishing touches for everyday upkeep.', ('cloth', 'brush', 'scrub', 'microfiber', 'wipes', 'cleaner'), ()),
-    )
-    guides = []
-    for title, subtitle, terms, excluded in themes:
-        matches = [p for p in products if any(w in (p['name'] + ' ' + p['category']).lower() for w in terms)
-                   and not any(w in p['name'].lower() for w in excluded)]
-        if matches:
-            guides.append({'title': title, 'subtitle': subtitle,
-                           'image_url': matches[0]['image_url'] or '/static/images/default.svg',
-                           'ids': [p['id'] for p in matches], 'count': len(matches)})
-    # Cross-sell adjacent catalog products as suggestions, not a promised compatible kit
-    # or a discount. Restrict to listed, currently in-stock items.
-    companion = [p for p in highlighted if spotlight and p['id'] != spotlight['id']]
-    return {'spotlight': spotlight, 'guides': guides, 'companions': companion[:3]}
 
 
 @app.get('/', response_class=HTMLResponse)
