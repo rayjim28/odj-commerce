@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps, UnidentifiedImageError
 from io import BytesIO
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 ROOT = Path(__file__).resolve().parent
 try:
@@ -1114,8 +1114,16 @@ def get_products():
 
 
 class CartLine(BaseModel):
-    id: int = Field(ne=0)
+    id: int
     qty: int = Field(ge=1, le=30)
+
+    @field_validator('id')
+    @classmethod
+    def valid_product_id(cls, value: int) -> int:
+        # Bundle IDs are negative; zero is never a valid catalog identifier.
+        if value == 0:
+            raise ValueError('Choose a valid product.')
+        return value
 
 class CheckoutRequest(BaseModel):
     items: list[CartLine] = Field(min_length=1, max_length=40)
