@@ -203,18 +203,23 @@ def analytics_summary(db: Session, days: int = 30):
             per = product_counts.setdefault(event.product_id, {'views':0,'adds':0})
             if event.event_type=='product_view':per['views']+=1
             if event.event_type=='add_to_cart':per['adds']+=1
-    paid = db.scalars(select(Order).where(Order.status == 'paid', Order.paid_at >= since)).all()
+    # A refund changes net revenue, not whether an order was originally paid.
+    settled = db.scalars(select(Order).where(
+        Order.status.in_(('paid', 'partially_refunded', 'refunded')),
+        Order.paid_at >= since)).all()
     demo = db.scalar(select(func.count()).select_from(Order).where(Order.status == 'demo', Order.created_at >= since)) or 0
-    revenue = sum(o.paid_total_cents for o in paid)
+    revenue = sum(max(0, (o.paid_total_cents or 0) - (o.refunded_cents or 0)) for o in settled)
+    # Sales units are gross quantities, not a statement of what was ultimately retained.
+    unreturned_orders = [o for o in settled if o.status != 'refunded']
     paid_items = {}
-    for order in paid:
+    for order in unreturned_orders:
         for item in order.items_snapshot or []:
             pid=item.get('id')
             if not isinstance(pid,int):continue
             slot=paid_items.setdefault(pid, {'units':0,'gross_cents':0})
             slot['units'] += int(item.get('qty',0))
             slot['gross_cents'] += int(item.get('price_cents',0)) * int(item.get('qty',0))
-    repeat_buyers = len([customer_id for customer_id in {o.customer_id for o in paid if o.customer_id is not None} if sum(1 for o in paid if o.customer_id == customer_id) >= 2])
+    repeat_buyers = len([customer_id for customer_id in {o.customer_id for o in settled if o.customer_id is not None} if sum(1 for o in settled if o.customer_id == customer_id) >= 2])
     names={p['id']:p['name'] for p in public_catalog(db)}
     # Include historical products in paid orders even after archival.
     for p in db.scalars(select(Product)).all():names.setdefault(p.id,p.name)
@@ -225,10 +230,10 @@ def analytics_summary(db: Session, days: int = 30):
     sold.sort(key=lambda v:v['gross_cents'],reverse=True)
     confirmed = db.scalar(select(func.count()).select_from(NewsletterSubscriber).where(NewsletterSubscriber.status=='confirmed')) or 0
     return {'days':days,'counts':counts,'daily':[{'day':(now().date()-timedelta(days=i)).isoformat(),'events':daily.get((now().date()-timedelta(days=i)).isoformat(),0)} for i in range(13,-1,-1)],
-        'popular_products':popular[:8], 'paid_product_sales':sold[:8], 'paid_orders':len(paid),'demo_orders':demo,
-        'verified_revenue_cents':revenue, 'average_paid_order_cents':round(revenue/len(paid)) if paid else 0,
+        'popular_products':popular[:8], 'paid_product_sales':sold[:8], 'paid_orders':len(settled),'demo_orders':demo,
+        'verified_revenue_cents':revenue, 'average_paid_order_cents':round(revenue/len(settled)) if settled else 0,
         'newsletter_confirmed_total':confirmed, 'repeat_paid_buyers':repeat_buyers,
-        'note':'Anonymous interactions, not unique visitors. Checkout starts and cart adds can repeat; abandonment cannot be measured per customer. Demo orders and estimated item gross are not paid revenue.'}
+        'note':'Anonymous interactions, not unique visitors. Revenue is net of recorded refunds. Product units represent gross purchases (excluding fully refunded orders), not net items returned. Demo orders are excluded.'}
 
 @app.get('/api/admin/analytics')
 def admin_analytics(request: Request):
