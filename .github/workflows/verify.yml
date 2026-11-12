@@ -29,4 +29,7 @@ jobs:
       - run: python -m pytest -q tests/test_owner_sales_control.py
       - run: python -m pytest -q tests/test_legacy_refund_reconciliation.py
       - run: python -m pytest -q tests/test_launch_checklist_evidence.py
-      - run: node --check static/js/admin.js
+      - run: python -m pytest -q tests/test_revenue_accounting.py
+      - run: python -m pytest -q tests/test_template_integrity.py
+      - run: python -m pip check
+      - run: for file in static/js/*.js; do node --check "$file" || exit 1; done
