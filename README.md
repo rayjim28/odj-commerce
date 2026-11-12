@@ -64,9 +64,9 @@ Install the development dependencies and run the complete test suite:
 
 ```bash
 python -m pip install -r requirements-dev.txt
-python -m pytest -q tests
+for file in tests/test_*.py; do python -m pytest -q "$file" || exit 1; done
 python -m compileall -q main.py database.py security.py staging_security.py scripts
-node --check static/js/admin.js
+for file in static/js/*.js; do node --check "$file"; done
 ```
 
 The GitHub Actions workflow executes each test module independently with disposable SQLite databases and validates the admin JavaScript syntax. Payment tests use mocked Stripe responses and signed test events; they **do not** run real card charges.
