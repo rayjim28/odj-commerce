@@ -106,6 +106,11 @@ def test_legacy_refund_sync_verified_idempotent_and_no_restock(monkeypatch):
         assert synced.json()["verified_from_stripe"]
         assert synced.json()["status"] == "refunded"
         assert synced.json()["refunded_cents"] == 100
+        # The checklist recognizes the persisted Stripe-verified reconciliation.
+        readiness = {c["key"]: c for c in client.get("/api/admin/launch-readiness").json()["checks"]}
+        assert readiness["refunds"]["status"] == "ready"
+        # Direct reconciliation is NOT evidence of a webhook arriving.
+        assert readiness["refund_webhooks"]["status"] == "review"
         with SessionLocal() as db:
             order = db.get(Order, order_id)
             assert (order.status, order.refunded_cents, order.stripe_payment_intent_id) == ("refunded", 100, intent)
