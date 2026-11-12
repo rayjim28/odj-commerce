@@ -303,14 +303,38 @@
     try{
       const data=await api('/api/admin/launch-readiness');
       latestLaunch=data;
-      count.textContent=`${data.ready_count} of ${data.total_count} checks configured · ${data.sales_open?'Public checkout OPEN':'Public checkout CLOSED'}`;
-      $('owner-sales-state').textContent=data.sales_open?'Customer checkout is OPEN.':data.owner_launch_approved?'Owner approval is saved, but an unmet requirement is blocking checkout.':'Customer checkout is CLOSED.';
-      $('owner-sales-blockers').innerHTML=data.sales_blockers.length?'<strong>Before opening:</strong><ul>'+data.sales_blockers.map(msg=>'<li>'+esc(msg)+'</li>').join('')+'</ul>':'All server-checked requirements are configured. Complete the owner review before activating.';
+      count.textContent=`${data.ready_count}/${data.total_count} system checks · ${data.owner_confirmed_count}/${data.owner_total_count} owner reviews · ${data.sales_open?'CHECKOUT OPEN':'CHECKOUT CLOSED'}`;
+      $('owner-sales-state').textContent=data.sales_open?'Customer checkout is OPEN.':data.owner_launch_approved?'Owner approval is saved, but unmet requirements are blocking checkout.':'Customer checkout is CLOSED. Complete the outstanding items below before final approval.';
+      $('owner-sales-blockers').innerHTML=data.sales_blockers.length?'<strong>Complete '+data.sales_blockers.length+' requirement(s) to enable checkout:</strong><ul>'+data.sales_blockers.map(msg=>'<li>'+esc(msg)+'</li>').join('')+'</ul>':'All server-checked requirements and mandatory owner confirmations are complete. Review the final approval box to open checkout.';
       $('owner-sales-pause').disabled=!data.owner_launch_approved;
+      if(!data.can_enable_sales) $('owner-sales-confirm').checked=false;
+      $('owner-sales-confirm').disabled=!data.can_enable_sales;
+      $('owner-sales-enable').title=data.can_enable_sales?'Confirm final approval to activate real orders.':'Complete all required setup and owner reviews first.';
+      $('owner-review-progress').textContent=data.owner_confirmed_count+' / '+data.owner_total_count+' confirmed';
+      $('owner-review-list').innerHTML=data.owner_tasks.map(t=>
+        '<label class="owner-review-item'+(t.confirmed?' owner-review-complete':'')+'">'+
+        '<input type="checkbox" data-review-key="'+esc(t.key)+'" '+(t.confirmed?'checked':'')+'>'+
+        '<span class="owner-review-item-content"><strong>'+esc(t.title)+'</strong>'+
+        '<small>'+esc(t.note)+'</small>'+
+        '<span class="owner-review-proof">'+(t.confirmed?'✓ Confirmed by admin'+(t.confirmed_at?' · '+esc(t.confirmed_at.slice(0,10)):''):'○ Owner review pending')+(t.required?' · Required for checkout':'')+'</span></span></label>'
+      ).join('');
       $('owner-sales-enable').disabled=data.owner_launch_approved||!data.can_enable_sales||!$('owner-sales-confirm').checked;
       area.innerHTML=data.checks.map(c=>`<article class="launch-check launch-${esc(c.status)}"><div class="launch-check-top"><span class="launch-status" aria-hidden="true">${c.status==='ready'?'✓':c.status==='review'?'!':'○'}</span><span class="launch-check-group">${esc(c.group)}</span></div><h4>${esc(c.title)}</h4><p>${esc(c.note)}</p><span class="launch-status-text">${c.status==='ready'?'Configured (verify before launch)':c.status==='review'?'Requires owner review':'Needs setup'}</span></article>`).join('');
     }catch(err){count.textContent='Unable to load';area.textContent=err.message;}
   }
+  $('owner-review-list').addEventListener('change',async e=>{
+    const input=e.target.closest('[data-review-key]');if(!input)return;
+    input.disabled=true;
+    $('owner-review-feedback').textContent='Saving owner confirmation…';
+    try {
+      await api('/api/admin/launch-review',{method:'POST',body:JSON.stringify({key:input.dataset.reviewKey,confirmed:input.checked})});
+      await loadLaunchReadiness();
+      $('owner-review-feedback').textContent='Owner checklist saved.';
+    } catch(err) {
+      input.checked=!input.checked;input.disabled=false;
+      $('owner-review-feedback').textContent='Could not save: '+err.message;
+    }
+  });
   $('owner-sales-confirm').addEventListener('change',()=>{
     $('owner-sales-enable').disabled=!latestLaunch||latestLaunch.owner_launch_approved||!latestLaunch.can_enable_sales||!$('owner-sales-confirm').checked;
   });
