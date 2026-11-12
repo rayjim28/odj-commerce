@@ -8,9 +8,9 @@ Create a Python 3.12 virtual environment and install both requirements files. Do
 
 ```bash
 python -m pip install -r requirements.txt -r requirements-dev.txt
-python -m pytest -q tests
-python -m compileall -q main.py database.py security.py staging_security.py scripts
-for file in static/js/*.js; do node --check "$file"; done
+for file in tests/test_*.py; do python -m pytest -q "$file" || exit 1; done
+python -m compileall -q backend middleware main.py scripts
+for file in frontend/static/js/*.js; do node --check "$file" || exit 1; done
 ```
 
 The GitHub workflow runs test modules in separate processes because several test files create their own disposable database at import time. If local combined `pytest tests` fails due to those fixtures, run the modules independently as in `.github/workflows/verify.yml`.
