@@ -34,3 +34,16 @@ def test_paid_and_refunded_orders_are_reported_consistently():
         assert stats["paid_orders"] == 3
         assert stats["demo_orders"] == 1
         assert stats["average_paid_order_cents"] == round(4700 / 3)
+
+
+def test_cart_id_validation_rejects_zero_and_allows_bundle_ids():
+    from pydantic import ValidationError
+    from main import CartLine
+
+    assert CartLine(id=123, qty=1).id == 123
+    assert CartLine(id=-5, qty=1).id == -5
+    try:
+        CartLine(id=0, qty=1)
+        assert False, 'Zero must not be accepted as a product ID'
+    except ValidationError:
+        pass
