@@ -61,6 +61,9 @@ def test_checkout_owner_controlled_live_routes_tax_shipping_refunds(monkeypatch)
         monkeypatch.setenv("SALES_ENABLED","true")
         monkeypatch.setenv("SHIPPING_RATES_APPROVED","true")
         monkeypatch.setenv("TAX_REGISTRATIONS_REVIEWED","true")
+        for key in ("refund_subscriptions","shipping_approval","tax_registration","end_to_end"):
+            review=client.post("/api/admin/launch-review",json={"key":key,"confirmed":True})
+            assert review.status_code==200,review.text
         approval=client.post("/api/admin/sales",json={"enabled":True,"acknowledged":True})
         assert approval.status_code==200,approval.text
         assert main.production_sales_ready()

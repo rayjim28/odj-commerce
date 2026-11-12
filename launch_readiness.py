@@ -4,8 +4,39 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from sqlalchemy import select, func
-from database import SessionLocal, Product, StoreSettings, Order, StripeRefund, WebhookEvent
+from database import SessionLocal, Product, StoreSettings, Order, StripeRefund, WebhookEvent, LaunchVerification
 from notifications import store_settings
+
+
+# The app cannot independently verify legal/business decisions or a provider's UI.
+# These attestations are explicitly owner/admin checked, not automated test results.
+OWNER_REVIEW_TASKS = (
+    ('refund_subscriptions', 'Stripe refund event subscriptions',
+     'Confirm refund.created, refund.updated and refund.failed are selected in Stripe. This does not prove event delivery.', True),
+    ('shipping_approval', 'Shipping rates and destinations',
+     'The store owner reviewed shipping charges, supported locations and delivery promises.', True),
+    ('tax_registration', 'Stripe Tax registrations and classifications',
+     'The owner reviewed tax registrations and tax codes with the appropriate adviser.', True),
+    ('email_delivery', 'Real customer email delivered',
+     'A verification or password-reset message reached an actual inbox.', False),
+    ('photo_redeploy', 'Photo survives a deployment',
+     'An uploaded product image remained accessible after redeploy or restart.', False),
+    ('end_to_end', 'Checkout and recovery tests completed',
+     'The owner reviewed payment, tax, shipping, stock, refund behavior, email, and backup recovery tests.', True),
+    ('backup_restore', 'Backup restoration tested',
+     'A non-production restoration was checked without overwriting live orders or photos.', False),
+)
+REQUIRED_OWNER_TASKS = tuple(key for key, title, note, required in OWNER_REVIEW_TASKS if required)
+
+
+def owner_review_items(db):
+    rows = {row.key: row for row in db.scalars(select(LaunchVerification)).all()}
+    return [
+        {'key': key, 'title': title, 'note': note, 'required': required,
+         'confirmed': key in rows,
+         'confirmed_at': rows[key].confirmed_at.isoformat() if key in rows and rows[key].confirmed_at else None}
+        for key, title, note, required in OWNER_REVIEW_TASKS
+    ]
 
 
 def _item(key, title, ready, note, group, review=False):
@@ -50,6 +81,10 @@ def sales_prerequisite_failures(db):
         Product.active.is_(True), Product.stock > 0, Product.price_cents > 0)) or 0
     if not sellable:
         issues.append('Publish an in-stock priced product.')
+    signoffs = {item['key']: item['confirmed'] for item in owner_review_items(db)}
+    for key, title, _note, required in OWNER_REVIEW_TASKS:
+        if required and not signoffs[key]:
+            issues.append('Owner must confirm: ' + title + '.')
     return issues
 
 
@@ -71,6 +106,8 @@ def launch_readiness():
         launch = db.get(StoreSettings, 1)
         owner_approved = bool(launch and launch.owner_launch_approved)
         blockers = sales_prerequisite_failures(db)
+        owner_tasks = owner_review_items(db)
+        confirmed_task_keys = {item['key'] for item in owner_tasks if item['confirmed']}
         # Reconciliation evidence is kept in the store DB. This proves the
         # refund was recorded, NOT that a future webhook will be delivered.
         synced_refunds = db.scalar(
@@ -128,12 +165,18 @@ def launch_readiness():
               'Keep strong private credentials outside Git; test admin restrictions and recovery.', 'Security'),
         _item('deployment', 'Production mode', live,
               'Deployment must run APP_ENV=production; that mode refuses demo checkout.', 'Security'),
-        _item('testing', 'End-to-end launch verification', False,
-              'Manually test live-provider webhooks, refunds, taxes, shipping, email, stock and backup restoration before launch.', 'Security', review=True),
+        _item('testing', 'End-to-end launch verification', 'end_to_end' in confirmed_task_keys,
+              ('Owner marked checkout and recovery review complete. This is an attestation, not independent provider verification.'
+               if 'end_to_end' in confirmed_task_keys else
+               'Owner must review live-provider webhooks, refunds, taxes, shipping, email, stock and backup restoration.'), 'Security',
+              review='end_to_end' not in confirmed_task_keys),
     ]
     ready = sum(i['status'] == 'ready' for i in items)
     return {'phase': 'Phase 7 · Launch preparation', 'checks': items, 'ready_count': ready,
-            'total_count': len(items), 'launch_approved': owner_approved and not blockers,
+            'total_count': len(items), 'owner_tasks': owner_tasks,
+            'owner_confirmed_count': len(confirmed_task_keys),
+            'owner_total_count': len(owner_tasks),
+            'launch_approved': owner_approved and not blockers,
             'owner_launch_approved': owner_approved, 'can_enable_sales': not blockers,
             'sales_open': owner_approved and not blockers, 'sales_blockers': blockers,
             'message': 'Checkout stays closed until the business owner explicitly approves it.'}
