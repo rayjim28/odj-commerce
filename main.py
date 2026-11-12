@@ -27,13 +27,13 @@ except ImportError:
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
-from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StripeRefund, StoreSettings, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, StoreEvent, LoginFailure, now, engine
+from database import create_tables, SessionLocal, Product, Order, Customer, WebhookEvent, StripeRefund, StoreSettings, LaunchVerification, EmailOutbox, Bundle, BundleComponent, NewsletterSubscriber, Favorite, Promotion, StoreEvent, LoginFailure, now, engine
 from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_password,
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
 from payment import create_checkout, verify_webhook, read_stripe_checkout_refunds, StripeError
 from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email
-from launch_readiness import launch_readiness, sales_prerequisite_failures
+from launch_readiness import launch_readiness, sales_prerequisite_failures, OWNER_REVIEW_TASKS
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 @asynccontextmanager
@@ -591,6 +591,30 @@ class SettingsInput(BaseModel):
     return_policy: str = Field(default='', max_length=2500)
     standard_shipping_cents: int = Field(ge=0, le=100000)
     express_shipping_cents: int = Field(ge=0, le=100000)
+
+class OwnerReviewInput(BaseModel):
+    key: str = Field(min_length=2, max_length=64)
+    confirmed: bool
+
+
+@app.post('/api/admin/launch-review')
+def update_launch_review(payload: OwnerReviewInput, request: Request):
+    """Store a specific owner's manual sign-off; never forge technical evidence."""
+    require_admin(request)
+    if not origin_allowed(request):
+        raise HTTPException(403, 'Invalid request origin.')
+    allowed = {key for key, _title, _note, _required in OWNER_REVIEW_TASKS}
+    if payload.key not in allowed:
+        raise HTTPException(422, 'Unknown checklist task.')
+    with SessionLocal() as db:
+        row = db.get(LaunchVerification, payload.key)
+        if payload.confirmed and row is None:
+            db.add(LaunchVerification(key=payload.key))
+        elif not payload.confirmed and row is not None:
+            db.delete(row)
+        db.commit()
+    return launch_readiness()
+
 
 @app.get('/api/admin/launch-readiness')
 def admin_launch_readiness(request: Request):
