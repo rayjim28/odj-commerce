@@ -9,7 +9,7 @@ os.environ["DATABASE_URL"] = "sqlite:///" + str(Path(_tmp.name) / "store.db")
 os.environ["APP_ENV"] = "development"
 os.environ["PAYMENT_MODE"] = "demo"
 
-from database import SessionLocal, Order, StripeRefund, WebhookEvent, create_tables
+from database import SessionLocal, Order, StripeRefund, WebhookEvent, LaunchVerification, create_tables
 from launch_readiness import launch_readiness, persistent_media_configured
 
 
@@ -32,6 +32,11 @@ def test_refund_webhook_and_reconciliation_have_separate_evidence():
                             status="succeeded", last_event_created=1700000000))
         db.commit()
     assert statuses()["refunds"] == "ready"
+    assert statuses()["refund_webhooks"] == "review"
+    # An owner's Stripe subscription sign-off is distinct from a delivered webhook.
+    with SessionLocal() as db:
+        db.add(LaunchVerification(key="refund_subscriptions"))
+        db.commit()
     assert statuses()["refund_webhooks"] == "review"
 
     with SessionLocal() as db:
