@@ -8,12 +8,14 @@ ASSETS = ROOT / "frontend" / "static"
 
 
 def test_brand_assets_are_valid_svg():
-    for name in ("truemerit-cleaning-logo.svg", "favicon.svg", "odj-bundle-placeholder.svg"):
+    for name in ("favicon.svg", "odj-bundle-placeholder.svg"):
         path = ASSETS / "images" / name
         assert path.is_file()
         doc = ElementTree.parse(path)
         assert doc.getroot().tag.endswith("svg")
-    assert "TrueMerit Cleaning Supplies" in (ASSETS / "images" / "truemerit-cleaning-logo.svg").read_text()
+    logo = (ASSETS / "images" / "truemerit-approved-logo.webp").read_bytes()
+    assert logo.startswith(b"RIFF")
+    assert logo[8:12] == b"WEBP"
 
 
 def test_original_page_structure_has_brand_layer():
@@ -21,9 +23,9 @@ def test_original_page_structure_has_brand_layer():
                 "success.html", "order_detail.html", "store_info.html", "reset_password.html", "demo_order.html")
     for name in required:
         page = (TEMPLATES / name).read_text()
-        assert 'href="/static/truemerit-theme.css?v=1"' in page
+        assert 'href="/static/truemerit-theme.css?v=2"' in page
         assert "TrueMerit" in page
-        assert "/static/images/truemerit-cleaning-logo.svg" in page
+        assert "/static/images/truemerit-approved-logo.webp" in page
     home = (TEMPLATES / "index.html").read_text()
     for landmark in ("id=\"shop\"", 'class="hero"', 'class="main-nav"', 'class="footer"'):
         assert landmark in home
@@ -36,3 +38,16 @@ def test_existing_technical_names_are_stable():
     assert str(main.app.url_path_for("home")) == "/"
     css = (ASSETS / "truemerit-theme.css").read_text()
     assert "--tm-navy:" in css and "--tm-orange:" in css
+
+
+def test_approved_storefront_header_and_legacy_announcement_guard():
+    home = (TEMPLATES / "index.html").read_text()
+    css = (ASSETS / "truemerit-theme.css").read_text()
+    assert 'Welcome to ODJ Cleaning Essentials' in home
+    assert "settings.announcement|trim not in" in home
+    assert ".header-search{display:none" in css
+    assert ".header-search.open{display:block" in css
+    assert ".nav-actions .search-trigger{display:flex" in css
+    admin = (TEMPLATES / "admin.html").read_text()
+    assert 'class="admin-welcome"' in admin
+    assert 'truemerit-approved-logo.webp' in admin
