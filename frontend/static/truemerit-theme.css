@@ -76,7 +76,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .side-nav.selected{background:#164777;color:#ffae64;border-left-color:var(--tm-orange)}
 .sidebar-title,.login-kicker{color:#ffac62}
 .admin-welcome h2 em,.login-panel h1 em{color:#ff9f43}
-.admin-sidebar .tm-brand-logo,.login-panel .tm-brand-logo{width:208px;height:78px;background:#fff;padding:6px;border-radius:4px}
+.account-header .tm-brand-logo,.checkout-top .tm-brand-logo,.admin-sidebar .tm-brand-logo,.login-panel .tm-brand-logo{width:208px;height:78px;background:#fff;padding:6px;border-radius:4px}
 .admin-sidebar .brand{margin-bottom:72px}
 .v6-announcement{background:#eaf3fc;color:#0c3b72}
 @media(max-width:1100px){.site-header .tm-brand-logo{width:188px}.main-nav{margin-left:12px;gap:17px}}
@@ -87,3 +87,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   .hero-art{margin-left:0}
   .admin-sidebar .tm-brand-logo{width:176px;height:70px}
 }
+
+/* On dark account and checkout headers, preserve the navy logo's contrast. */
+.account-header .tm-brand-logo,.checkout-top .tm-brand-logo{background:#fff;padding:4px 10px;border-radius:3px}
+.product-detail-footer .footer-brand{font-size:clamp(25px,3vw,39px)}

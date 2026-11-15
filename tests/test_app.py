@@ -336,9 +336,9 @@ def test_admin_configuration_not_exposed_to_visitors(client, monkeypatch):
 def test_admin_branding_and_noindex(client):
     assert 'Disallow: /admin' in client.get('/robots.txt').text
     login = client.get('/admin')
-    assert 'ODJ' in login.text
+    assert 'TrueMerit' in login.text
     assert '<div class="admin-user-dot">OJ</div>' not in login.text
-    assert 'ODJ' in (open(str(main.STATIC_DIR / 'images/favicon.svg')).read())
+    assert 'TM' in (open(str(main.STATIC_DIR / 'images/favicon.svg')).read())
 
 # V5 — account-only checkout, explicitly simulated payments and fulfillment controls.
 def test_v5_checkout_requires_account_and_has_no_public_admin(client, monkeypatch):

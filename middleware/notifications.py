@@ -39,7 +39,7 @@ def email_layout(heading, body, notice=''):
     <p style="font-size:12px;letter-spacing:4px;color:#ff9b42">TRUEMERIT CLEANING SUPPLIES</p>
     <h1 style="font-family:Georgia,serif;font-size:32px;color:#f5faff">'''+html.escape(heading)+'''</h1>'''+notice_html+body+'''
     <hr style="border:0;border-top:1px solid #5a4730;margin:28px 0">
-    <p style="font-size:12px;color:#c5d7e9">TrueMerit Cleaning Supplies LLC · Products you can trust</p></main></body></html>''')
+    <p style="font-size:12px;color:#c5d7e9">TrueMerit Cleaning Supplies · Operated by ODJ Group LLC</p></main></body></html>''')
 
 
 def order_email(order, kind='order_confirmation'):

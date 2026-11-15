@@ -1,8 +1,8 @@
-# ODJ Group | E-commerce storefront
+# TrueMerit Cleaning Supplies | E-commerce storefront
 
-A web storefront and store management application for ODJ Group LLC. Customers can browse products, manage their cart, create accounts, and place orders through Stripe Checkout. Store operators use a separate admin dashboard for products, stock, orders, shipping settings, and launch controls.
+A web storefront and store management application for TrueMerit Cleaning Supplies, operated by ODJ Group LLC. Customers can browse products, manage their cart, create accounts, and place orders through Stripe Checkout. Store operators use a separate admin dashboard for products, stock, orders, shipping settings, and launch controls.
 
-**Production site:** [odjgroupllc.com](https://odjgroupllc.com)
+**Current hosting:** Existing ODJ Render service. The new [truemeritsupply.com](https://www.truemeritsupply.com) domain is already connected; the final canonical URL and Stripe webhook transition will be handled separately.
 
 **Maintainer:** [Raymond Jimenez](https://github.com/rayjim28)
 
@@ -24,7 +24,8 @@ frontend/
   static/
     js/               Browser interactions
     images/           Built-in illustrations and brand images
-    style.css         Site styles
+    style.css         Existing site layouts
+    truemerit-theme.css  Brand colors and visual overrides
 middleware/
   payment.py          Stripe Checkout and webhook verification
   notifications.py    Customer messages and order email queue
@@ -42,6 +43,8 @@ scripts/                Setup, backups and operational checks
 tests/                  Automated tests
 main.py                 Compatibility entry point for Render
 ```
+
+The TrueMerit visual brand is isolated in `frontend/static/truemerit-theme.css`; storefront templates keep the existing layout and API contracts.
 
 The root-level Python files are small compatibility imports for existing commands and scripts. The implementation lives in the three application folders. Render still runs `uvicorn main:app`; customer-facing paths and the database remain unchanged.
 
