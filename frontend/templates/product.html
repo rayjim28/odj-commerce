@@ -26,7 +26,7 @@
 <section class="container product-detail-shell">
  <div class="product-detail-gallery"><div class="product-detail-image"><span class="product-badge">{{product.badge or ('FEATURED ITEM' if product.featured else 'EVERYDAY ESSENTIAL')}}</span><img src="{{product.image_url or '/static/images/default.svg'}}" alt="{{product.name}}" id="detail-image" fetchpriority="high" decoding="async"></div>
  {% if product.additional_images %}<div class="product-image-thumbs" aria-label="Product photo gallery"><button type="button" class="detail-thumbnail selected" data-image="{{product.image_url or '/static/images/default.svg'}}" aria-label="View main product photo" aria-pressed="true"><img src="{{product.image_url or '/static/images/default.svg'}}" alt=""></button>{% for photo in product.additional_images %}<button type="button" class="detail-thumbnail" data-image="{{photo}}" aria-label="View product photo {{loop.index + 1}}" aria-pressed="false"><img src="{{photo}}" alt=""></button>{% endfor %}</div>{% endif %}
- <div class="product-image-note"><span>✦ THE TrueMerit COLLECTION</span><span>CURATED FOR EVERYDAY</span></div></div>
+ <div class="product-image-note"><span>✦ THE TRUEMERIT COLLECTION</span><span>CURATED FOR EVERYDAY</span></div></div>
  <div class="product-detail-panel"><div class="product-detail-overline"><span class="detail-gold-line"></span>{{product.category | upper}} <span class="overline-index">/ TRUEMERIT CLEANING SUPPLIES</span></div>
   <h1>{{product.name}}</h1><div class="product-detail-rating-line"><span>✦</span> CLEANING ESSENTIALS / PRODUCTS YOU CAN TRUST</div>
   <div class="product-detail-price">${{ '%.2f'|format(product.price_cents / 100) }}</div>
