@@ -91,3 +91,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 /* On dark account and checkout headers, preserve the navy logo's contrast. */
 .account-header .tm-brand-logo,.checkout-top .tm-brand-logo{background:#fff;padding:4px 10px;border-radius:3px}
 .product-detail-footer .footer-brand{font-size:clamp(25px,3vw,39px)}
+
+/* Dark login art and compact admin initials use the same accessible navy and white palette. */
+.login-visual{background:radial-gradient(circle at 45% 45%,#15559c 0%,#071d3e 68%)}
+.login-visual:before{border-color:#4f9ddb5b;box-shadow:0 0 120px #3f8fd530}
+.login-visual img{width:85%;max-width:650px;background:#fff;padding:18px;mix-blend-mode:normal;border:1px solid #bddbf0;border-radius:3px}
+.login-visual span{color:#ffb16e}
+.admin-user-dot{background:#11529a;color:#fff;font-size:12px}
+.editorial-image img{background:#fff;padding:20px}
+.editorial-signature .signature-mark{font-size:clamp(22px,2.7vw,32px);color:#ffab58;letter-spacing:-.05em}
+.bottom-cta{background:#e9f3fd}
+.bottom-cta .btn{background:var(--tm-orange);border-color:var(--tm-orange);color:var(--tm-navy)}
+.checkout-body .brand{max-width:260px}
+@media(max-width:750px){.login-visual img{width:90%;padding:10px}}
