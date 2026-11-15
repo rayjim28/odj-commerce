@@ -1,4 +1,4 @@
-"""ODJ Group e-commerce — FastAPI + SQLAlchemy + hosted Stripe Checkout."""
+"""TrueMerit Cleaning Supplies storefront — FastAPI + SQLAlchemy + hosted Stripe Checkout."""
 import os, re, uuid, json, time, secrets, hashlib, hmac, base64, binascii
 from pathlib import Path
 from typing import Optional
@@ -90,7 +90,7 @@ def account_testing_preview() -> bool:
             bool(preview_test_email()))
 
 
-app = FastAPI(title='ODJ Group Storefront', lifespan=lifespan, docs_url=None if os.getenv('APP_ENV') == 'production' else '/docs')
+app = FastAPI(title='TrueMerit Cleaning Supplies', lifespan=lifespan, docs_url=None if os.getenv('APP_ENV') == 'production' else '/docs')
 app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
 MEDIA_DIR = Path(os.getenv('MEDIA_DIR') or (ROOT / 'media')).resolve()
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
@@ -105,7 +105,7 @@ async def protect_private_pages(request: Request, call_next):
         from staging_security import staging_authorized
         if not staging_authorized(request.headers.get('authorization', '')):
             return Response(status_code=401, headers={
-                'WWW-Authenticate': 'Basic realm="ODJ private staging", charset="UTF-8"',
+                'WWW-Authenticate': 'Basic realm="TrueMerit private staging", charset="UTF-8"',
                 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow',
                 'X-Content-Type-Options': 'nosniff',
             })
@@ -118,7 +118,7 @@ async def protect_private_pages(request: Request, call_next):
         account_path = (path == '/account' or path.startswith(('/account/', '/api/account/')))
         if payment_or_marketing or (account_path and not account_testing_preview()):
             return JSONResponse(status_code=503,
-                content={'detail': 'ODJ Group is open for browsing. Online orders are coming soon.'},
+                content={'detail': 'TrueMerit Cleaning Supplies is open for browsing. Online orders are coming soon.'},
                 headers={'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow'})
     """Sensitive responses must not be cached or indexed by search engines."""
     response = await call_next(request)
@@ -454,7 +454,7 @@ def customer_orders(request: Request):
 def store_information(topic: str, request: Request):
     options={'shipping':('Shipping information','shipping_policy'),
              'returns':('Returns & refunds','return_policy'),
-             'contact':('Contact ODJ Group','')}
+             'contact':('Contact TrueMerit Cleaning Supplies','')}
     if topic not in options:
         raise HTTPException(404,'Page not found.')
     with SessionLocal() as db:
@@ -823,7 +823,7 @@ def newsletter_subscribe(payload: NewsletterRequest, request: Request):
     if not origin_allowed(request):
         raise HTTPException(403, 'Invalid request origin.')
     if not payload.consent:
-        raise HTTPException(422, 'Check the box to consent to receiving ODJ updates.')
+        raise HTTPException(422, 'Check the box to consent to receiving TrueMerit updates.')
     throttle(request, newsletter_attempts, 8, 3600)
     email=normalize_email(payload.email)
     with SessionLocal() as db:
@@ -846,7 +846,7 @@ def newsletter_subscribe(payload: NewsletterRequest, request: Request):
 def confirm_newsletter_confirmation(token: str=''):
     from html import escape
     newsletter_claims(token,'confirm',7*86400)
-    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Confirm ODJ emails?</h1><p>Receive occasional product news and offers. Unsubscribe at any time.</p><form method="post" action="/newsletter/confirm"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Confirm subscription</button></form></main>')
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>TrueMerit updates</title><main style="background:#082956;color:#e8f3fe;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Confirm TrueMerit emails?</h1><p>Receive occasional product news and offers. Unsubscribe at any time.</p><form method="post" action="/newsletter/confirm"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Confirm subscription</button></form></main>')
 
 @app.post('/newsletter/confirm',response_class=HTMLResponse)
 def confirm_newsletter(request: Request,token: str=Form(...)):
@@ -862,13 +862,13 @@ def confirm_newsletter(request: Request,token: str=Form(...)):
             queue_message(db,'newsletter:welcome:'+email+':'+sub.confirmed_at.isoformat(),
                 'welcome_newsletter',email,built['subject'],built['html'],built['text'])
             db.commit()
-    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Welcome to ODJ.</h1><p>Your email subscription is confirmed.</p><a style="color:#e8bd72" href="/">Return to the shop ↗</a></main>')
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Welcome to TrueMerit.</h1><p>Your email subscription is confirmed.</p><a style="color:#ffad60" href="/">Return to the shop ↗</a></main>')
 
 @app.get('/newsletter/unsubscribe',response_class=HTMLResponse)
 def unsubscribe_newsletter_confirmation(token: str=''):
     from html import escape
     newsletter_claims(token,'unsubscribe',365*86400*2)
-    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribe from ODJ updates?</h1><form method="post" action="/newsletter/unsubscribe"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Unsubscribe</button></form><p><a style="color:#e8bd72" href="/">Keep my subscription ↗</a></p></main>')
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribe from TrueMerit updates?</h1><form method="post" action="/newsletter/unsubscribe"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Unsubscribe</button></form><p><a style="color:#ffad60" href="/">Keep my subscription ↗</a></p></main>')
 
 @app.post('/newsletter/unsubscribe',response_class=HTMLResponse)
 def unsubscribe_newsletter(token: str=Form(...)):
@@ -882,7 +882,7 @@ def unsubscribe_newsletter(token: str=Form(...)):
                 EmailOutbox.kind.in_(['welcome_newsletter','confirm_newsletter']),EmailOutbox.status=='pending')).all():
                 mail.status='cancelled'
             db.commit()
-    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>ODJ updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribed.</h1><p>You will no longer receive ODJ marketing messages.</p><a style="color:#e8bd72" href="/">Return to shop ↗</a></main>')
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribed.</h1><p>You will no longer receive TrueMerit marketing messages.</p><a style="color:#ffad60" href="/">Return to shop ↗</a></main>')
 
 @app.get('/api/account/marketing')
 def account_marketing_status(request: Request):

@@ -121,7 +121,7 @@
   $('bundle-clear-photo').addEventListener('click',()=>{
     bundleForm.elements.image_url.value='';
     $('bundle-photo-upload').value='';
-    $('bundle-form-status').textContent='Custom image cleared. Save this bundle to use the included product image or ODJ placeholder.';
+    $('bundle-form-status').textContent='Custom image cleared. Save this bundle to use the included product image or the default placeholder.';
   });
   $('bundle-add-component').addEventListener('click',()=>{
     if($('bundle-components').children.length>=10) return;

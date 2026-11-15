@@ -1,0 +1,106 @@
+/* TrueMerit Cleaning Supplies color and brand layer.
+   Original ODJ layouts remain in style.css; brand rules are kept separate. */
+:root{
+  --tm-navy:#082956; --tm-deep:#061b3a; --tm-blue:#1153a2;
+  --tm-orange:#ff821c; --tm-green:#5caf36; --tm-ice:#eaf3fc;
+  --black:#0a2346; --ink:#1c314a; --sub:#64758b; --gold:#fa851f;
+  --gold2:#ffb05c; --cream:#f7faff; --paper:#ffffff;
+}
+body{background:var(--cream);color:var(--ink)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline-color:var(--tm-orange)}
+.announcement{background:var(--tm-orange);color:var(--tm-deep)}
+.announcement-dot{background:var(--tm-deep)}
+.site-header{background:#fff;color:var(--tm-navy);border-bottom:1px solid #dfe8f1}
+.brand{gap:0}
+.tm-brand-logo{display:block;width:218px;max-width:100%;height:74px;object-fit:contain}
+.site-header .brand,.account-header .brand,.checkout-top .brand{min-width:0}
+.main-nav{margin-left:35px;gap:26px}
+.main-nav a{color:#3a526e}
+.main-nav a:hover,.main-nav a.nav-active{color:#f17617}
+.nav-actions button,.nav-actions .account-nav{color:var(--tm-navy)}
+.nav-actions button svg,.nav-actions .account-nav svg{stroke:var(--tm-navy)}
+.cart-trigger b{background:var(--tm-orange);color:#fff}
+.mobile-search{background:#fff;border:1px solid #dbe6f0}
+.mobile-search input{background:#f7faff;color:var(--tm-navy);border-color:#c9d8e8}
+.hero{background:var(--tm-deep);color:#fff}
+.hero:before{background:radial-gradient(ellipse at 81% 46%,#0e65b64d,transparent 42%),linear-gradient(110deg,#051932 15%,#082a54 67%,#061a38 100%)}
+.hero-noise{opacity:.13;background-image:radial-gradient(#bed7f3 0.7px,transparent 0.7px)}
+.hero-orbit{border-color:#4c9ceb50}
+.eyebrow,.hero-art-small{color:#a7caff}
+.eyebrow-line,.hero-line{background:var(--tm-orange)}
+.hero h1 em,.shop-section h2 em,.editorial h2 em,.bottom-cta h2 em{color:#ff9a36}
+.hero-copy>p{color:#d6e3f2}
+.btn-gold{background:var(--tm-orange);border-color:#f37714;color:#082440}
+.btn-gold:hover{background:#ff9b44}
+.text-link span,.hero-bullet,.star-icon{color:var(--tm-orange)}
+.hero-social{color:#c0d1e4}
+.hero-art-halo{background:radial-gradient(ellipse,#166bb25c,transparent 70%)}
+.hero-art-border{border-color:#5aa8f35c}
+.hero-logo{box-sizing:border-box;width:100%;max-width:100%;background:#fff;mix-blend-mode:normal;filter:drop-shadow(0 14px 32px #0008);padding:18px 12px;border:1px solid #b7d2e8}
+.hero-art-caption strong{color:#ffaf62}
+.hero-index{color:#a0b6d1}
+.promise-bar,.v71-benefit-strip{background:var(--tm-ice);border-color:#d7e5f4}
+.promise-symbol,.v71-benefit-symbol{color:var(--tm-blue)}
+.shop-section,.product-page-body{background:#f7faff}
+.section-kicker,.shop-section .section-kicker,.gold{color:#e57818!important}
+.shop-top p,.product-info p{color:#6a7e92}
+.filter.active:after{background:var(--tm-orange)}
+.product-card{border-color:#e1e9f1}
+.product-image{background:radial-gradient(circle at 50% 26%,#fff,#eaf3fb 72%,#e2edf8)}
+.product-category,.product-view-link,.add-button span{color:#15549c}
+.product-badge{border-color:#cee1ef;color:#124e86}
+.editorial{background:#09284e}
+.editorial-image{background:#fff;border-color:#aecae4}
+.editorial-image img{width:92%;mix-blend-mode:normal;filter:none}
+.editorial-image-overlay{color:var(--tm-orange)}
+.v73-newsletter,.footer,.account-header,.account-body,.checkout-body,.confirmation-body{background:var(--tm-deep)}
+.footer-brand{font-size:clamp(28px,3.4vw,42px);letter-spacing:-.065em}
+.footer-brand span{color:var(--tm-orange)}
+.footer-top p,.footer-bottom{color:#b1c4dc}
+.footer-bottom{border-top-color:#2b5078}
+.account-header{border-color:#32517b}
+.account-panel{background:radial-gradient(ellipse at 0 0,#215eae2b,transparent 55%),#082956}
+.account-brand-panel{background:radial-gradient(ellipse at 50% 38%,#1c5b9f 0%,#09284e 50%,#051932 95%)}
+.account-brand-panel:before{border-color:#4ba4e75b}
+.account-art img{background:#fff;mix-blend-mode:normal;padding:14px}
+.account-eyebrow,.account-back,.account-panel h1 em,.account-logged h1 em{color:#ffac62}
+.account-form input{background:#092c58;border-color:#3c6490}
+.account-form input:focus{border-color:var(--tm-orange)}
+.account-detail-gold{background:linear-gradient(135deg,#123e73,#061a35);border-color:#2b75b2}
+.checkout-top{border-color:#36577e}
+.checkout-title em,.checkout-step>span{color:#ffab5e}
+.confirmation-body{background:radial-gradient(circle at 70% 30%,#155894,#051a33 55%)}
+.admin-body{background:#f4f8fc}
+.admin-sidebar,.login-panel{background:#07254b}
+.side-nav{color:#c6d8eb}
+.side-nav.selected{background:#164777;color:#ffae64;border-left-color:var(--tm-orange)}
+.sidebar-title,.login-kicker{color:#ffac62}
+.admin-welcome h2 em,.login-panel h1 em{color:#ff9f43}
+.account-header .tm-brand-logo,.checkout-top .tm-brand-logo,.admin-sidebar .tm-brand-logo,.login-panel .tm-brand-logo{width:208px;height:78px;background:#fff;padding:6px;border-radius:4px}
+.admin-sidebar .brand{margin-bottom:72px}
+.v6-announcement{background:#eaf3fc;color:#0c3b72}
+@media(max-width:1100px){.site-header .tm-brand-logo{width:188px}.main-nav{margin-left:12px;gap:17px}}
+@media(max-width:750px){
+  .site-header{height:72px}
+  .tm-brand-logo,.site-header .tm-brand-logo,.account-header .tm-brand-logo,.checkout-top .tm-brand-logo{width:172px;height:62px}
+  .hero-logo{padding:10px 6px}
+  .hero-art{margin-left:0}
+  .admin-sidebar .tm-brand-logo{width:176px;height:70px}
+}
+
+/* On dark account and checkout headers, preserve the navy logo's contrast. */
+.account-header .tm-brand-logo,.checkout-top .tm-brand-logo{background:#fff;padding:4px 10px;border-radius:3px}
+.product-detail-footer .footer-brand{font-size:clamp(25px,3vw,39px)}
+
+/* Dark login art and compact admin initials use the same accessible navy and white palette. */
+.login-visual{background:radial-gradient(circle at 45% 45%,#15559c 0%,#071d3e 68%)}
+.login-visual:before{border-color:#4f9ddb5b;box-shadow:0 0 120px #3f8fd530}
+.login-visual img{width:85%;max-width:650px;background:#fff;padding:18px;mix-blend-mode:normal;border:1px solid #bddbf0;border-radius:3px}
+.login-visual span{color:#ffb16e}
+.admin-user-dot{background:#11529a;color:#fff;font-size:12px}
+.editorial-image img{background:#fff;padding:20px}
+.editorial-signature .signature-mark{font-size:clamp(22px,2.7vw,32px);color:#ffab58;letter-spacing:-.05em}
+.bottom-cta{background:#e9f3fd}
+.bottom-cta .btn{background:var(--tm-orange);border-color:var(--tm-orange);color:var(--tm-navy)}
+.checkout-body .brand{max-width:260px}
+@media(max-width:750px){.login-visual img{width:90%;padding:10px}}
