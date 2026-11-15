@@ -23,7 +23,7 @@ frontend/
   templates/          Jinja2 pages: catalog, checkout, accounts and admin
   static/
     js/               Browser interactions
-    images/           Built-in illustrations and brand images
+    images/           Approved TrueMerit logo, favicon and catalog placeholders
     style.css         Existing site layouts
     truemerit-theme.css  Brand colors and visual overrides
 middleware/
@@ -44,7 +44,7 @@ tests/                  Automated tests
 main.py                 Compatibility entry point for Render
 ```
 
-The TrueMerit visual brand is isolated in `frontend/static/truemerit-theme.css`; storefront templates keep the existing layout and API contracts.
+The TrueMerit visual brand is isolated in `frontend/static/truemerit-theme.css`; the approved wordmark is `frontend/static/images/truemerit-approved-logo.webp`. The storefront templates keep the existing ODJ layout, mobile navigation, and API contracts. The previous improvised logo asset was retired.
 
 The root-level Python files are small compatibility imports for existing commands and scripts. The implementation lives in the three application folders. Render still runs `uvicorn main:app`; customer-facing paths and the database remain unchanged.
 

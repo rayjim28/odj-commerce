@@ -104,3 +104,38 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .bottom-cta .btn{background:var(--tm-orange);border-color:var(--tm-orange);color:var(--tm-navy)}
 .checkout-body .brand{max-width:260px}
 @media(max-width:750px){.login-visual img{width:90%;padding:10px}}
+
+/* Approved TrueMerit storefront: original ODJ layout, corrected responsive details. */
+.site-header{background:#fff}
+.site-header .tm-brand-logo{width:246px;height:86px;max-width:100%;object-fit:contain}
+.nav-wrap{gap:16px}
+.main-nav{margin-left:12px;gap:25px}
+.header-search{display:none;position:absolute;top:calc(100% + 8px);right:7%;width:min(430px,calc(100vw - 32px));max-width:none;min-width:0;margin:0;z-index:80;padding:12px;background:white;border:1px solid #d8e6f4;box-shadow:0 14px 35px #071e3b25;border-radius:5px}
+.header-search.open{display:block}
+.header-search input{background:#fff;border:1px solid #b7cce1;color:#082956;padding:0 36px 0 44px}
+.header-search input::placeholder{color:#67819c}
+.header-search-icon,.search-shortcut{color:#1559a8}
+.header-search .search-suggestions{background:#fff}
+.nav-actions .search-trigger{display:flex;color:#082956}
+.hero:before{background:radial-gradient(ellipse at 85% 48%,#145da84a,transparent 44%),linear-gradient(110deg,#061b36 10%,#092f60 77%,#08234b 100%)}
+.hero-logo{width:100%;max-width:100%;height:auto;object-fit:contain;padding:0;border:0;filter:drop-shadow(0 14px 28px #0005);mix-blend-mode:normal;background:#fff}
+.hero-art{max-width:100%;margin-left:0}
+.editorial-image{background:#fff;border:1px solid #e2ebf5}
+.editorial-image img{display:block;max-width:94%;width:94%;max-height:86%;height:auto;object-fit:contain;margin:auto;padding:0;filter:none}
+.admin-welcome{background:#082956;overflow:hidden;gap:24px}
+.admin-welcome>div{flex:1 1 60%;min-width:0;max-width:480px}
+.admin-welcome img{display:block;flex:0 1 36%;width:36%;max-width:300px;height:auto;max-height:190px;object-fit:contain;mix-blend-mode:normal;background:#fff;padding:9px;border-radius:3px}
+.admin-welcome p{color:#c5d7e9}
+.admin-sidebar .tm-brand-logo{display:block;width:100%;max-width:208px;height:auto;max-height:100px;object-fit:contain;padding:6px;background:#fff}
+.login-visual img{width:85%;height:auto;object-fit:contain;max-height:80vh}
+@media(max-width:1100px){.site-header .tm-brand-logo{width:205px;height:75px}.main-nav{gap:15px;margin-left:8px}}
+@media(max-width:750px){
+ .site-header{height:72px}
+ .site-header .tm-brand-logo{width:176px;height:66px}
+ .nav-actions .search-trigger{display:flex}
+ .header-search{top:100%;right:0;left:0;width:100%;max-width:none;border-radius:0}
+ .admin-welcome{display:block}
+ .admin-welcome>div{max-width:none}
+ .admin-welcome img{width:min(100%,310px);max-width:310px;max-height:145px;margin-top:22px}
+ .editorial-image img{width:92%}
+}
