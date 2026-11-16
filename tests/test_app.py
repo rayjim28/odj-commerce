@@ -679,6 +679,32 @@ def test_v71_home_uses_published_products_only(authenticated):
     assert 'id="merch-filter-status"' in r.text
     assert 'data-merch-ids=' in r.text
 
+def test_home_hero_tracks_published_featured_admin_product(authenticated):
+    pid = create_item(authenticated, 'Featured supplier mop', stock=6)
+    product = {
+        'name': 'Featured supplier mop', 'category': 'Mop systems',
+        'description': 'Product details provided by its supplier.',
+        'price_cents': 2549, 'stock': 6,
+        'image_url': '/static/images/cloth.svg',
+        'active': True, 'featured': True, 'badge': '',
+    }
+    assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
+    home = authenticated.get('/')
+    assert home.status_code == 200
+    assert 'hero-featured-grid hero-featured-count-1' in home.text
+    assert 'Featured supplier mop' in home.text
+    assert '/static/images/cloth.svg' in home.text
+    assert f'href="/products/{pid}"' in home.text
+    assert '$25.49' in home.text
+
+    # Removing the Featured flag returns the hero to the abstract fallback.
+    product['featured'] = False
+    assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
+    home = authenticated.get('/')
+    assert 'class="hero-art hero-abstract-art"' in home.text
+    assert 'hero-featured-grid hero-featured-count-1' not in home.text
+
+
 # V7.2 bundles and promotions
 
 def bundle_payload(p1,p2, price=1700, active=True):
