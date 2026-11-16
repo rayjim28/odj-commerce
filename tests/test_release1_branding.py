@@ -176,3 +176,16 @@ def test_wholesale_and_launch_layout_css_are_real_screen_targets():
     assert ".admin-body .owner-sales-panel" in css
     assert ".admin-body .launch-check" in css
     assert "Open when you're ready." in admin
+
+
+def test_admin_overview_text_contrast_and_editorial_spacing():
+    theme = (STATIC / "truemerit-theme.css").read_text()
+    admin = (TEMPLATES / "admin.html").read_text()
+    assert 'class="admin-welcome"' in admin
+    assert ".admin-body .admin-welcome h2{color:#082956}" in theme
+    assert ".admin-body .admin-welcome h2 em{color:#d96c14}" in theme
+    assert ".admin-body .admin-welcome p{" in theme
+    assert "color:#36536f" in theme
+    assert ".admin-body .admin-header p," in theme
+    assert ".editorial-grid > .editorial-copy{\n  padding:15px 0 15px 28px;" in theme
+    assert ".editorial-grid > .editorial-copy{padding:2px 0 0}" in theme
