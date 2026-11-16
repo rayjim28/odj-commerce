@@ -384,16 +384,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   background:#164978; border-color:#ff821c;
 }
 
-  .hero-product-art .hero-product-image { width:104%; max-width:100%; }
-  .hero-visual-kicker { top:4px; right:8px; font-size:8px; }
-  .hero-visual-footer { bottom:-5px; font-size:7px; }
-  .editorial-promise-panel { min-height:360px; padding:30px; }
-}
-
-  .hero-visual-footer { gap:9px; letter-spacing:.08em; }
-  .editorial-promise-content strong { font-size:38px; }
-}
-
 /* Keep About message truly centered within its own panel, not aligned right by row flexbox. */
 .editorial-promise-panel { display:flex;flex-direction:column;align-items:stretch;justify-content:space-between; }
 .editorial-promise-content { align-self:center;max-width:100%;text-align:center; }
