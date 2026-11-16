@@ -1,6 +1,6 @@
 # Operations guide
 
-This guide covers the ODJ Group deployment and daily maintenance. Business information belongs to the store owner; production infrastructure and software changes belong to the maintainer.
+This guide covers the TrueMerit Cleaning Supplies deployment (operated by ODJ Group LLC) and daily maintenance. Business information belongs to the store owner; production infrastructure and software changes belong to the maintainer.
 
 ## Source layout
 
@@ -35,6 +35,7 @@ The web service must have access to the database and media directory. The email 
 | `TAX_REGISTRATIONS_REVIEWED=true` | Maintainer flag after owner confirms applicable tax obligations |
 | `SHIPPING_RATES_APPROVED=true` | Maintainer flag after owner confirms shipping terms |
 | `SALES_ENABLED=true` | Allows owner launch approval; by itself does not open checkout |
+| `GUEST_CHECKOUT_ENABLED=false` | Keeps account-free checkout disabled until staging, Stripe and SMTP validation are complete |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_USERNAME`, `SMTP_PASSWORD` | Transactional email delivery |
 
 The store owner separately approves sales in **Admin → Launch checklist**. That approval is stored in the database and starts disabled. The owner can pause checkout in Admin; setting `SALES_ENABLED=false` in Render is the deployer's emergency stop.
@@ -54,6 +55,8 @@ Never restore a Render disk snapshot into the live service without a recovery pl
 A confirmed Stripe Checkout payment is recorded by the signed webhook. The order total and tax amount come from Stripe's payment session, not the estimated checkout quote. Available stock is reserved while the payment session is pending; expiration returns reserved stock.
 
 Orders are not automatically marked shipped. The owner enters carrier and tracking information in **Admin → Orders**.
+
+Guest checkout code can be deployed safely with `GUEST_CHECKOUT_ENABLED=false`; do not enable it until a test-mode payment, signed Stripe webhook, guest receipt delivery and secure order-lookup test succeed. See [Guest checkout rollout](GUEST_CHECKOUT_RELEASE2.md).
 
 Stripe refunds are financial transactions, not fulfillment actions. They do not automatically add stock back or ship an order. Existing old payments can be reconciled with **Sync Stripe refunds**; the action retrieves payment/refund status from Stripe and does not create a new refund.
 
@@ -76,6 +79,7 @@ The application queues customer verification, password recovery, order confirmat
 - Verify the scheduled job finishes without an error.
 - A run with **zero pending messages** confirms scheduler operation, but not successful customer email delivery.
 - Use a controlled password-reset or verification message to confirm inbox delivery. Do not share reset links or tokens.
+- Before activating guest checkout, verify delivery of the complete order receipt and the expiring private order link. Queuing a message alone is not proof of delivery.
 
 ## Monitoring and recovery
 

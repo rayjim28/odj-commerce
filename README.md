@@ -1,6 +1,6 @@
 # TrueMerit Cleaning Supplies | E-commerce storefront
 
-A web storefront and store management application for TrueMerit Cleaning Supplies, operated by ODJ Group LLC. Customers can browse products, manage their cart, create accounts, and place orders through Stripe Checkout. Store operators use a separate admin dashboard for products, stock, orders, shipping settings, and launch controls.
+A web storefront and store management application for TrueMerit Cleaning Supplies, operated by ODJ Group LLC. Customers can browse products, manage their cart, create accounts, and place orders through Stripe Checkout. Optional guest checkout is implemented behind a feature flag and remains disabled by default until payment and email verification are complete. Store operators use a separate admin dashboard for products, stock, orders, shipping settings, and launch controls.
 
 **Current hosting:** Existing ODJ Render service. The new [truemeritsupply.com](https://www.truemeritsupply.com) domain is already connected; the final canonical URL and Stripe webhook transition will be handled separately.
 
@@ -25,7 +25,9 @@ frontend/
     js/               Browser interactions
     images/           Approved TrueMerit logo, favicon and catalog placeholders
     style.css         Existing site layouts
-    truemerit-theme.css  Brand colors and visual overrides
+    truemerit-theme.css     Shared TrueMerit branding
+    truemerit-cart.css      Shopping bag drawer styling
+    truemerit-checkout.css  Customer checkout styling
 middleware/
   payment.py          Stripe Checkout and webhook verification
   notifications.py    Customer messages and order email queue
@@ -37,6 +39,7 @@ backend/
   catalog.py          Product and bundle queries
   serializers.py      Order response formatting
   merchandising.py    Homepage product selection
+  guest_orders.py     Guest checkout flag and secure order links
   security.py         Authentication and session helpers
   staging_security.py, staging_setup.py
 scripts/                Setup, backups and operational checks
@@ -44,7 +47,7 @@ tests/                  Automated tests
 main.py                 Compatibility entry point for Render
 ```
 
-The TrueMerit visual brand is isolated in `frontend/static/truemerit-theme.css`; the approved wordmark is `frontend/static/images/truemerit-approved-logo.webp`. The storefront templates keep the existing ODJ layout, mobile navigation, and API contracts. The previous improvised logo asset was retired.
+TrueMerit branding is kept in the shared `frontend/static/truemerit-theme.css` and the scoped cart/checkout stylesheets. The current sharp wordmark is `frontend/static/images/truemerit-logo.svg`. The website retains stable customer URLs, mobile navigation, and API contracts; retired ODJ visuals are not the active design.
 
 The root-level Python files are small compatibility imports for existing commands and scripts. The implementation lives in the three application folders. Render still runs `uvicorn main:app`; customer-facing paths and the database remain unchanged.
 
@@ -56,6 +59,7 @@ See [Architecture](docs/ARCHITECTURE.md) for code ownership and module boundarie
 - Public product and bundle pages, search, recommendations, and responsive cart
 - Customer registration, email verification, sign-in, password recovery, and order history
 - Stripe-hosted card checkout with the selected shipping method and applicable Stripe-calculated tax
+- Optional guest checkout with signed, expiring order-status links; disabled by default pending live-provider and email validation
 - Order receipts and shipping notifications, delivered through a scheduled email job
 
 **Admin**
@@ -90,7 +94,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000) for the storefront or [http:
 
 The default development setup is `APP_ENV=development` and `PAYMENT_MODE=demo`. Demo orders are labeled unpaid and do not charge a card or reduce stock.
 
-Use `.env.example` to see supported settings. Keep `.env`, payment credentials, database dumps, and uploaded media out of Git. For isolated staging, use the separate `compose.staging.yaml` and `.env.staging.example`.
+Use `.env.example` to see supported settings. Guest checkout is off unless `GUEST_CHECKOUT_ENABLED=true` is set. Keep `.env`, payment credentials, database dumps, and uploaded media out of Git. For isolated staging, use the separate `compose.staging.yaml` and `.env.staging.example`.
 
 ## Automated tests
 
@@ -117,6 +121,7 @@ Documentation:
 - [Architecture](docs/ARCHITECTURE.md) — frontend, middleware and backend structure
 - [Operations](docs/OPERATIONS.md) — Render, environment settings, email, media, backups, and recovery
 - [Testing](docs/TESTING.md) — automated coverage and manual release checks
+- [Guest checkout rollout](docs/GUEST_CHECKOUT_RELEASE2.md) — email, Stripe and security gates before enabling guest purchases
 - [Store handoff](LAUNCH_HANDOFF.md) — store-owner setup and public checkout checklist
 
 ## Project status
