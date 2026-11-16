@@ -65,16 +65,25 @@ def test_real_images_names_links_no_prices_and_abstract_fallback():
     assert "{{ product.name }}" in hero
     assert "{{ product.category }}" in hero
     assert 'href="/products/{{ product.id }}"' in hero
-    assert "hero-featured-count-{{ merch.hero_products | length }}" in hero
+    assert 'data-hero-stack' in hero
+    assert 'data-hero-card' in hero
+    assert 'data-slot="{{ loop.index0 }}"' in hero
     assert 'class="hero-art hero-abstract-art"' in hero
     assert "hero-featured-price" not in hero
     assert "product.price_cents" not in hero
     assert "$" not in hero
 
 
-def test_cards_arrange_three_to_five_desktop_and_scroll_mobile():
+def test_layered_fan_matches_reference_and_uses_real_catalog():
     css = (ROOT / "frontend" / "static" / "truemerit-theme.css").read_text()
-    assert ".hero-featured-count-4 .hero-featured-card" in css
-    assert ".hero-featured-count-5 .hero-featured-card:nth-child(n+4)" in css
-    assert "grid-template-columns:repeat(6,minmax(0,1fr))" in css
-    assert "scroll-snap-type:x mandatory" in css
+    js = (ROOT / "frontend" / "static" / "js" / "hero-stack.js").read_text()
+    html = (ROOT / "frontend" / "templates" / "index.html").read_text()
+    for n in range(5):
+        assert f'.hero-stack-card[data-slot="{n}"]' in css
+    assert '--fan-angle:-25deg' in css
+    assert '--fan-angle:22deg' in css
+    assert 'hero-stack-dots' in html
+    assert 'src="/static/js/hero-stack.js?v=1"' in html
+    assert 'event.preventDefault()' in js
+    assert 'event.key === "ArrowRight"' in js
+    assert 'hero-featured-price' not in html
