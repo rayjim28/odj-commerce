@@ -74,7 +74,7 @@ def test_full_true_merit_checkout_theme():
 def test_checkout_styles_are_scoped_to_checkout_only():
     css = (ROOT / "frontend/static/truemerit-checkout.css").read_text()
     import re
-    selectors = [m.group(1).strip() for m in re.finditer(r"([^{}]+)\\{[^{}]*\\}", css)]
+    selectors = [m.group(1).strip() for m in re.finditer(r"([^{}]+)\{[^{}]*\}", css)]
     # Do not override storefront or admin components while fixing checkout.
     assert ".admin-body" not in css and ".site-header" not in css
     assert len(selectors) >= 30
