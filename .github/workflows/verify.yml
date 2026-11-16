@@ -36,5 +36,13 @@ jobs:
       - run: python -m pytest -q tests/test_release1_branding.py
       - run: python -m pytest -q tests/test_hero_products.py
       - run: node tests/hero_stack_interaction.cjs
+      # Final all-modules pass: keep isolated SQLite databases per module.
+      - name: Run complete Python test inventory
+        run: |
+          for file in tests/test_*.py; do
+            echo "::group::$file"
+            python -m pytest -q "$file" || exit 1
+            echo "::endgroup::"
+          done
       - run: python -m pip check
       - run: for file in frontend/static/js/*.js; do node --check "$file" || exit 1; done
