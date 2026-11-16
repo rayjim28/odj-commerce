@@ -43,8 +43,8 @@
       
     </div>
     {% if merch.hero_products %}
-    <div class="hero-art hero-featured-art" aria-label="Featured cleaning supplies">
-      <div class="hero-featured-heading"><span class="hero-featured-marker"></span> FEATURED CLEANING SUPPLIES</div>
+    <div class="hero-art hero-featured-art" aria-label="Browse our first products">
+      <div class="hero-featured-heading"><span class="hero-featured-marker"></span> SHOP CLEANING ESSENTIALS</div>
       <div class="hero-featured-grid hero-featured-count-{{ merch.hero_products | length }}">
         {% for product in merch.hero_products %}
         <a class="hero-featured-card" href="/products/{{ product.id }}" aria-label="View {{ product.name }}">
@@ -52,12 +52,12 @@
           <span class="hero-featured-details">
             <small>{{ product.category }}</small>
             <strong>{{ product.name }}</strong>
-            <span class="hero-featured-price">${{ '%.2f' | format(product.price_cents / 100) }} <b aria-hidden="true">↗</b></span>
+
           </span>
         </a>
         {% endfor %}
       </div>
-      <div class="hero-featured-footer">Products from independent brands</div>
+      <div class="hero-featured-footer">Explore products from independent brands</div>
     </div>
     {% else %}
     <div class="hero-art hero-abstract-art" aria-hidden="true">
