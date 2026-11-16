@@ -32,7 +32,8 @@ def test_original_page_structure_has_brand_layer():
     for landmark in ("id=\"shop\"", 'class="hero"', 'class="main-nav"', 'class="footer"'):
         assert landmark in home
     assert 'class="hero-art hero-abstract-art"' in home
-    assert 'class="hero-abstract-layer hero-abstract-layer-front"' in home
+    assert 'class="hero-abstract-layer hero-abstract-layer-front hero-abstract-front-link"' in home
+    assert 'href="#shop" class="hero-abstract-layer hero-abstract-layer-front hero-abstract-front-link"' in home
     assert 'class="editorial-image editorial-promise-panel"' in home
     assert 'class="hero-logo"' not in home
     assert 'class="hero-product-image"' not in home
