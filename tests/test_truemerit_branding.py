@@ -25,7 +25,7 @@ def test_original_page_structure_has_brand_layer():
                 "success.html", "order_detail.html", "store_info.html", "reset_password.html", "demo_order.html")
     for name in required:
         page = (TEMPLATES / name).read_text()
-        assert 'href="/static/truemerit-theme.css?v=7"' in page
+        assert 'href="/static/truemerit-theme.css?v=8"' in page
         assert "TrueMerit" in page
         assert "/static/images/truemerit-logo.svg" in page
     home = (TEMPLATES / "index.html").read_text()
