@@ -43,21 +43,23 @@
       
     </div>
     {% if merch.hero_products %}
-    <div class="hero-art hero-featured-art" aria-label="Browse our first products">
-      <div class="hero-featured-heading"><span class="hero-featured-marker"></span> SHOP CLEANING ESSENTIALS</div>
-      <div class="hero-featured-grid hero-featured-count-{{ merch.hero_products | length }}">
+    <div class="hero-art hero-stack" data-hero-stack aria-label="Browse our first products">
+      <div class="hero-stack-stage">
         {% for product in merch.hero_products %}
-        <a class="hero-featured-card" href="/products/{{ product.id }}" aria-label="View {{ product.name }}">
-          <span class="hero-featured-photo"><img src="{{ product.image_url }}" alt="{{ product.name }}" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async"></span>
-          <span class="hero-featured-details">
+        <a class="hero-stack-card" data-hero-card data-slot="{{ loop.index0 }}" href="/products/{{ product.id }}" aria-label="View {{ product.name }}" {% if loop.first %}aria-current="true"{% endif %}>
+          <span class="hero-stack-photo"><img src="{{ product.image_url }}" alt="" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async"></span>
+          <span class="hero-stack-card-caption">
             <small>{{ product.category }}</small>
             <strong>{{ product.name }}</strong>
-
           </span>
         </a>
         {% endfor %}
       </div>
-      <div class="hero-featured-footer">Explore products from independent brands</div>
+      <div class="hero-stack-dots" aria-label="Select a product to view">
+        {% for product in merch.hero_products %}
+        <button type="button" data-hero-dot="{{ loop.index0 }}" aria-label="Show {{ product.name }}" aria-pressed="{{ 'true' if loop.first else 'false' }}"></button>
+        {% endfor %}
+      </div>
     </div>
     {% else %}
     <div class="hero-art hero-abstract-art" aria-hidden="true">
@@ -129,5 +131,5 @@
 <footer class="footer"><div class="container"><div class="footer-top"><div><a class="footer-brand" href="#top">TrueMerit<span>.</span></a><p>Cleaning essentials. Products you can trust.<br>Operated by ODJ Group LLC</p></div><div class="footer-links"><div><strong>EXPLORE</strong><a href="#shop">Shop all</a><a href="#about">Our promise</a><a href="#top">Back to top</a></div><div><strong>INFORMATION</strong><a href="/information/contact">Customer support</a><a href="/information/shipping">Shipping policy</a><a href="/information/returns">Returns &amp; refunds</a></div></div></div><div class="footer-bottom"><span>© <span id="copyright-year">2026</span> TrueMerit Cleaning Supplies. Operated by ODJ Group LLC.</span><span>SECURE CHECKOUT VIA STRIPE <span class="footer-sparkle">✦</span></span></div></div></footer>
 <div class="drawer-backdrop" id="drawer-backdrop" hidden></div><aside class="cart-drawer" id="cart-drawer" aria-label="Shopping cart" aria-modal="true" role="dialog" aria-hidden="true"><div class="drawer-head"><div><small>YOUR SELECTION</small><h2>Shopping bag <span id="drawer-count">(0)</span></h2></div><button class="close-cart" id="close-cart" aria-label="Close cart">×</button></div><div class="drawer-items" id="drawer-items"></div><div class="drawer-bottom"><div class="drawer-subtotal"><span>Subtotal</span><strong id="cart-subtotal">$0.00</strong></div><p>{% if not checkout_open %}Online orders are not available yet.{% else %}Shipping and applicable tax calculated at checkout.{% endif %}</p><button class="btn btn-gold checkout-button" id="checkout-button" type="button">Secure checkout <span class="checkout-arrow" aria-hidden="true">↗</span></button><div id="checkout-message" class="checkout-message" role="status"></div><div class="payments-caption">🔒 Secure checkout powered by Stripe</div></div></aside>
 <div class="toast" id="toast" aria-live="polite"></div>
-<script>window.ODJ_PRODUCTS = {{products | tojson}}; window.ODJ_CUSTOMER = {{customer_json | tojson}}; window.ODJ_PUBLIC_PREVIEW = {{public_preview | tojson}}; window.ODJ_CHECKOUT_OPEN = {{checkout_open | tojson}};</script><script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/store.js?v=launch-8" defer></script>
+<script>window.ODJ_PRODUCTS = {{products | tojson}}; window.ODJ_CUSTOMER = {{customer_json | tojson}}; window.ODJ_PUBLIC_PREVIEW = {{public_preview | tojson}}; window.ODJ_CHECKOUT_OPEN = {{checkout_open | tojson}};</script><script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/store.js?v=launch-8" defer></script><script src="/static/js/hero-stack.js?v=1" defer></script>
 </body></html>
