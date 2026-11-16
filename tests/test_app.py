@@ -1146,3 +1146,39 @@ def test_r2_flag_off_preserves_legacy_checkout_behavior(client,monkeypatch):
     homepage=client.get('/').text
     assert "Yes. You can explore products and build a bag as a guest" in homepage
     assert 'window.ODJ_GUEST_CHECKOUT_ENABLED = false' in homepage
+
+
+def test_r2_real_stripe_checkout_omits_guest_email_prefill(monkeypatch):
+    """Inspect actual form body without making a Stripe network request."""
+    from types import SimpleNamespace
+    from urllib.parse import parse_qs
+    import asyncio
+    import payment
+    captured = []
+    class FakeResponse:
+        status_code = 200
+        def json(self):
+            return {"id":"cs_test_r2_form", "url":"https://checkout.stripe.com/fake"}
+    class FakeClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, **kwargs):
+            assert url == "https://api.stripe.com/v1/checkout/sessions"
+            fields = parse_qs(kwargs["content"], keep_blank_values=True)
+            captured.append(fields)
+            return FakeResponse()
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_r2_fake_for_form")
+    monkeypatch.setattr(payment.httpx,"AsyncClient",FakeClient)
+    order=SimpleNamespace(id="r2-order",email="",subtotal_cents=1200,
+         shipping_cents=795,shipping_details={"service":"standard"},
+         items_snapshot=[{"name":"Mop","qty":1,"price_cents":1200}])
+    guest=asyncio.run(payment.create_checkout(order,"https://truemerit.example"))
+    assert guest["url"].startswith("https://checkout.stripe.com/")
+    assert "customer_email" not in captured[-1]
+    assert captured[-1]["shipping_address_collection[allowed_countries][0]"] == ["US"]
+    assert captured[-1]["client_reference_id"] == ["r2-order"]
+
+    order.email = "member@example.com"
+    asyncio.run(payment.create_checkout(order,"https://truemerit.example"))
+    assert captured[-1]["customer_email"] == ["member@example.com"]
