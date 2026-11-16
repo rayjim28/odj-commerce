@@ -25,18 +25,34 @@ def test_original_page_structure_has_brand_layer():
                 "success.html", "order_detail.html", "store_info.html", "reset_password.html", "demo_order.html")
     for name in required:
         page = (TEMPLATES / name).read_text()
-        assert 'href="/static/truemerit-theme.css?v=4"' in page
+        assert 'href="/static/truemerit-theme.css?v=5"' in page
         assert "TrueMerit" in page
         assert "/static/images/truemerit-logo.svg" in page
     home = (TEMPLATES / "index.html").read_text()
     for landmark in ("id=\"shop\"", 'class="hero"', 'class="main-nav"', 'class="footer"'):
         assert landmark in home
-    assert 'class="hero-product-image"' in home
-    assert '/static/images/truemerit-hero-products.svg' in home
+    assert 'class="hero-art hero-abstract-art"' in home
+    assert 'class="hero-abstract-layer hero-abstract-layer-front"' in home
     assert 'class="editorial-image editorial-promise-panel"' in home
     assert 'class="hero-logo"' not in home
-    hero_asset = ASSETS / "images" / "truemerit-hero-products.svg"
-    assert ElementTree.parse(hero_asset).getroot().tag.endswith("svg")
+    assert 'class="hero-product-image"' not in home
+
+
+
+def test_homepage_has_clean_compact_abstract_hero_and_centered_about():
+    home = (TEMPLATES / "index.html").read_text()
+    css = (ASSETS / "truemerit-theme.css").read_text()
+    hero = home.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
+    assert 'CLEANING ESSENTIALS, CONSIDERED' in hero
+    for removed in ('/ 001', 'MOP SYSTEMS', 'REFILLS &amp; ACCESSORIES',
+                    '01 — 03', 'SCROLL TO EXPLORE', 'hero-product-image',
+                    'THE TRUEMERIT COLLECTION'):
+        assert removed not in hero
+    assert 'hero-abstract-layer-front' in hero
+    assert 'CLEANING SUPPLIES FROM INDEPENDENT BRANDS' in home
+    assert 'flex-direction:column' in css
+    assert 'text-align:center' in css
+    assert '.hero-inner' in css and 'min-height:460px' in css
 
 
 def test_existing_technical_names_are_stable():

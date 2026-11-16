@@ -659,7 +659,7 @@ def test_v71_merchandising_only_uses_public_catalog():
     assert {p['id'] for p in data['companions']} == {72, 73}
     assert {g['title'] for g in data['guides']} == {'Mop systems', 'Parts & refills', 'Cleaning extras'}
     assert all(set(g['ids']).issubset({71, 72, 73}) for g in data['guides'])
-    assert main.build_home_merchandising([]) == {'spotlight':None,'guides':[],'companions':[]}
+    assert main.build_home_merchandising([]) == {'spotlight':None,'guides':[],'companions':[],'hero_products':[]}
 
 
 def test_v71_home_uses_published_products_only(authenticated):
@@ -678,6 +678,35 @@ def test_v71_home_uses_published_products_only(authenticated):
     assert 'id="collections"' in r.text
     assert 'id="merch-filter-status"' in r.text
     assert 'data-merch-ids=' in r.text
+
+def test_home_hero_shows_first_published_product_without_price(authenticated):
+    pid = create_item(authenticated, 'Supplier mop', stock=6)
+    product = {
+        'name': 'Supplier mop', 'category': 'Mop systems',
+        'description': 'Product details provided by its supplier.',
+        'price_cents': 2549, 'stock': 6,
+        'image_url': '/static/images/cloth.svg',
+        'active': True, 'featured': False, 'badge': '',
+    }
+    assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
+    response = authenticated.get('/')
+    assert response.status_code == 200
+    hero = response.text.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
+    assert 'data-hero-stack' in hero
+    assert 'data-hero-card' in hero
+    assert 'Supplier mop' in hero
+    assert '/static/images/cloth.svg' in hero
+    assert f'href="/products/{pid}"' in hero
+    assert '$25.49' not in hero
+
+    # Unpublishing the only eligible product returns the abstract fallback.
+    product['active'] = False
+    assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
+    response = authenticated.get('/')
+    hero = response.text.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
+    assert 'class="hero-art hero-abstract-art"' in hero
+    assert 'data-hero-stack' not in hero
+
 
 # V7.2 bundles and promotions
 
