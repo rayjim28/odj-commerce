@@ -679,30 +679,32 @@ def test_v71_home_uses_published_products_only(authenticated):
     assert 'id="merch-filter-status"' in r.text
     assert 'data-merch-ids=' in r.text
 
-def test_home_hero_tracks_published_featured_admin_product(authenticated):
-    pid = create_item(authenticated, 'Featured supplier mop', stock=6)
+def test_home_hero_shows_first_published_product_without_price(authenticated):
+    pid = create_item(authenticated, 'Supplier mop', stock=6)
     product = {
-        'name': 'Featured supplier mop', 'category': 'Mop systems',
+        'name': 'Supplier mop', 'category': 'Mop systems',
         'description': 'Product details provided by its supplier.',
         'price_cents': 2549, 'stock': 6,
         'image_url': '/static/images/cloth.svg',
-        'active': True, 'featured': True, 'badge': '',
+        'active': True, 'featured': False, 'badge': '',
     }
     assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
-    home = authenticated.get('/')
-    assert home.status_code == 200
-    assert 'hero-featured-grid hero-featured-count-1' in home.text
-    assert 'Featured supplier mop' in home.text
-    assert '/static/images/cloth.svg' in home.text
-    assert f'href="/products/{pid}"' in home.text
-    assert '$25.49' in home.text
+    response = authenticated.get('/')
+    assert response.status_code == 200
+    hero = response.text.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
+    assert 'hero-featured-grid hero-featured-count-1' in hero
+    assert 'Supplier mop' in hero
+    assert '/static/images/cloth.svg' in hero
+    assert f'href="/products/{pid}"' in hero
+    assert '$25.49' not in hero
 
-    # Removing the Featured flag returns the hero to the abstract fallback.
-    product['featured'] = False
+    # Unpublishing the only eligible product returns the abstract fallback.
+    product['active'] = False
     assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
-    home = authenticated.get('/')
-    assert 'class="hero-art hero-abstract-art"' in home.text
-    assert 'hero-featured-grid hero-featured-count-1' not in home.text
+    response = authenticated.get('/')
+    hero = response.text.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
+    assert 'class="hero-art hero-abstract-art"' in hero
+    assert 'hero-featured-grid hero-featured-count-1' not in hero
 
 
 # V7.2 bundles and promotions
