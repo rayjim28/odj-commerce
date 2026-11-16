@@ -40,6 +40,7 @@ from launch_readiness import launch_readiness, sales_prerequisite_failures, OWNE
 from backend.catalog import serialize_product, bundle_data, public_catalog
 from backend.serializers import serialize_order
 from backend.merchandising import build_home_merchandising
+from backend.guest_orders import guest_checkout_enabled, guest_order_token, guest_token_matches
 from middleware.analytics import analytics_summary, ANALYTICS_EVENTS
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
@@ -248,7 +249,7 @@ def home(request: Request):
         settings = store_settings(db)
     return templates.TemplateResponse(request, 'index.html', {'products':products,'categories':categories,'settings':settings,
         'merch':build_home_merchandising(products), 'bundles':[p for p in products if p.get('is_bundle') and p['stock']>0][:3],
-        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'public_preview':public_storefront_preview(), 'checkout_open':(not public_storefront_preview() and (os.getenv('APP_ENV') != 'production' or production_sales_ready())), 'account_testing':account_testing_preview(), 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
+        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'public_preview':public_storefront_preview(), 'checkout_open':(not public_storefront_preview() and (os.getenv('APP_ENV') != 'production' or production_sales_ready())), 'account_testing':account_testing_preview(), 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False}), 'guest_checkout_enabled':guest_checkout_enabled()})
 
 
 
@@ -1041,6 +1042,7 @@ class ShippingAddress(BaseModel):
 class DemoOrderRequest(CheckoutRequest):
     shipping_option: str = Field(default='standard')
     shipping_address: ShippingAddress
+    guest_email: str = Field(default='', max_length=255)
 
 class QuoteRequest(CheckoutRequest):
     shipping_option: str = Field(default='standard')
@@ -1102,17 +1104,19 @@ def checkout_page(request: Request):
     if os.getenv('APP_ENV') == 'production' and not production_sales_ready():
         raise HTTPException(503, 'Checkout is not yet open. Please check back soon.')
     customer = signed_in_customer(request)
-    if not customer:
+    if not customer and not guest_checkout_enabled():
         return RedirectResponse('/account?next=checkout', status_code=303)
     return templates.TemplateResponse(request, 'checkout.html', {
-        'customer':customer, 'demo':payment_mode() == 'demo'
+        'customer':customer, 'demo':payment_mode() == 'demo',
+        'guest':customer is None
     })
 
 @app.post('/api/checkout/quote')
 def checkout_quote(payload: QuoteRequest, request: Request):
     if not origin_allowed(request):
         raise HTTPException(403, 'Invalid request origin.')
-    require_customer(request)
+    if not guest_checkout_enabled():
+        require_customer(request)
     with SessionLocal() as db:
         lines = quote_lines(db, payload.items)
         subtotal = sum(l['price_cents'] * l['qty'] for l in lines)
@@ -1128,9 +1132,12 @@ def checkout_quote(payload: QuoteRequest, request: Request):
 def demo_checkout(payload: DemoOrderRequest, request: Request):
     if not origin_allowed(request):
         raise HTTPException(403, 'Invalid request origin.')
-    customer = require_customer(request)
+    customer = signed_in_customer(request)
+    if not customer and not guest_checkout_enabled():
+        require_customer(request)
     if payment_mode() != 'demo' or os.getenv('APP_ENV') == 'production':
         raise HTTPException(404, 'Demo checkout is not enabled.')
+    guest_email = normalize_email(payload.guest_email) if not customer else customer.email
     address = payload.shipping_address.model_dump()
     if address['country'] != 'US' or not re.fullmatch(r'\d{5}(?:-\d{4})?', address['postal_code']):
         raise HTTPException(422, 'Demo shipping is limited to valid US ZIP codes.')
@@ -1139,7 +1146,7 @@ def demo_checkout(payload: DemoOrderRequest, request: Request):
         subtotal = sum(l['qty'] * l['price_cents'] for l in lines)
         discount = demo_discount(db,subtotal,payload.promo_code)
         shipping = shipping_price(payload.shipping_option)
-        order = Order(id=str(uuid.uuid4()), email=customer.email, customer_id=customer.id,
+        order = Order(id=str(uuid.uuid4()), email=guest_email, customer_id=customer.id if customer else None,
             status='demo', payment_mode='demo', subtotal_cents=subtotal, shipping_cents=shipping,
             discount_cents=discount,promo_code=payload.promo_code.strip().upper() if discount else '',
             paid_total_cents=0, inventory_reserved=False, items_snapshot=lines,
@@ -1147,18 +1154,28 @@ def demo_checkout(payload: DemoOrderRequest, request: Request):
             fulfillment_status='unfulfilled')
         db.add(order)
         db.commit()
+        token = guest_order_token(order) if not customer else None
         return {'order_id':order.id, 'status':'demo', 'charged':False, 'inventory_changed':False,
-                'url':'/demo-order/'+order.id}
+                'url':'/demo-order/'+order.id+('?access='+token if token else '')}
 
 @app.get('/demo-order/{order_id}', response_class=HTMLResponse)
-def demo_confirmation(order_id: str, request: Request):
-    customer = require_customer(request)
+def demo_confirmation(order_id: str, request: Request, access: str = ''):
+    customer = signed_in_customer(request)
     with SessionLocal() as db:
         order = db.get(Order, order_id)
-        if not order or order.customer_id != customer.id or order.status != 'demo':
+        if not order or order.status != 'demo' or not (
+            (customer and order.customer_id == customer.id) or
+            guest_token_matches(access, order)
+        ):
             raise HTTPException(404, 'Demo order not found.')
         info = serialize_order(order)
-    return templates.TemplateResponse(request, 'demo_order.html', {'order':info})
+    response = templates.TemplateResponse(request, 'demo_order.html', {
+        'order':info, 'guest':order['customer_id'] is None if isinstance(order, dict) else info.get('customer_id') is None
+    })
+    response.headers['Cache-Control'] = 'no-store, private'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['X-Robots-Tag'] = 'noindex'
+    return response
 
 
 @app.post('/api/checkout')
@@ -1167,8 +1184,10 @@ async def checkout(payload: CheckoutRequest, request: Request):
         raise HTTPException(403, 'Invalid request origin.')
     if os.getenv('APP_ENV') == 'production' and not production_sales_ready():
         raise HTTPException(503, 'Checkout is not yet open. Please check back soon.')
-    customer = require_customer(request)
-    if os.getenv('APP_ENV') == 'production' and not customer.email_verified:
+    customer = signed_in_customer(request)
+    if not customer and not guest_checkout_enabled():
+        require_customer(request)
+    if os.getenv('APP_ENV') == 'production' and customer and not customer.email_verified:
         raise HTTPException(403, 'Verify your email address before making a purchase.')
     if len(set(line.id for line in payload.items)) != len(payload.items):
         raise HTTPException(400, 'Duplicate product lines.')
@@ -1192,7 +1211,8 @@ async def checkout(payload: CheckoutRequest, request: Request):
                 if reserved.rowcount != 1:
                     raise HTTPException(409, 'Inventory changed. Refresh your shopping bag.')
             subtotal = sum(item['qty'] * item['price_cents'] for item in lines)
-            order = Order(id=order_id, customer_id=customer.id, email=customer.email, status='pending', subtotal_cents=subtotal,
+            order = Order(id=order_id, customer_id=customer.id if customer else None,
+                          email=customer.email if customer else '', status='pending', subtotal_cents=subtotal,
                           shipping_cents=shipping, inventory_reserved=True, items_snapshot=lines,
                           shipping_details={'service': payload.shipping_option}, payment_mode='stripe', fulfillment_status='unfulfilled')
             db.add(order)
@@ -1288,7 +1308,8 @@ async def stripe_webhook(request: Request):
                         o.status = 'paid'
                         o.paid_at = now()
                         customer = session.get('customer_details') or {}
-                        o.email = (customer.get('email') or o.email)[:255]
+                        o.email = (normalize_email(customer.get('email') or session.get('customer_email') or '')
+                                   if o.customer_id is None else (customer.get('email') or o.email)[:255])
                         stripe_shipping = (session.get('collected_information') or {}).get('shipping_details') or session.get('shipping_details') or {}
                         # Preserve the chosen delivery service alongside Stripe's verified address.
                         o.shipping_details = {**(o.shipping_details or {}), **(stripe_shipping if isinstance(stripe_shipping, dict) else {})}
