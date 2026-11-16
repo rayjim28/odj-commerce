@@ -49,7 +49,7 @@
     } else {
       byId('checkout-button').disabled=!lines.length;
       byId('checkout-message').textContent='';
-      byId('checkout-button').innerHTML = (window.ODJ_CUSTOMER && window.ODJ_CUSTOMER.signedIn) ? 'Review checkout <span class="checkout-arrow" aria-hidden="true">↗</span>' : 'Sign in to checkout <span class="checkout-arrow" aria-hidden="true">↗</span>';
+      byId('checkout-button').innerHTML = (window.ODJ_GUEST_CHECKOUT_ENABLED || (window.ODJ_CUSTOMER && window.ODJ_CUSTOMER.signedIn)) ? 'Review checkout <span class="checkout-arrow" aria-hidden="true">↗</span>' : 'Sign in to checkout <span class="checkout-arrow" aria-hidden="true">↗</span>';
     }
     if(!lines.length){byId('drawer-items').innerHTML='<div class="cart-empty"><div class="cart-empty-icon">✧</div><h3>Your bag is feeling empty.</h3><p>Good things start with the right essentials.<br>Explore the collection and find your favorites.</p></div>';return;}
     byId('drawer-items').innerHTML=lines.map(({product:p,qty})=>`<div class="cart-line">
@@ -216,7 +216,7 @@
   });
   byId('checkout-button').addEventListener('click', () => {
     if(window.ODJ_PUBLIC_PREVIEW === true || window.ODJ_CHECKOUT_OPEN === false){toast('Online orders will open soon.');return;}
-    if(!window.ODJ_CUSTOMER || !window.ODJ_CUSTOMER.signedIn){
+    if(!window.ODJ_GUEST_CHECKOUT_ENABLED && (!window.ODJ_CUSTOMER || !window.ODJ_CUSTOMER.signedIn)){
       window.location.assign('/account?next=checkout');return;
     }
     if(!validLines().length){toast('Add a product to your bag first.');return;}
