@@ -46,7 +46,7 @@
     const lines = cartLines();
     $('checkout-count').textContent = `${lines.reduce((n, l) => n + l.qty, 0)} item${lines.reduce((n, l) => n + l.qty, 0) === 1 ? '' : 's'}`;
     if (!lines.length) {
-      $('checkout-items').innerHTML = '<div class="checkout-empty"><span aria-hidden="true">✧</span><strong>Your bag is feeling empty.</strong><p>Find something you love in the ODJ collection.</p><a href="/#shop">Browse products ↗</a></div>';
+      $('checkout-items').innerHTML = '<div class="checkout-empty"><span aria-hidden="true">✧</span><strong>Your bag is feeling empty.</strong><p>Find cleaning essentials at TrueMerit.</p><a href="/#shop">Browse products ↗</a></div>';
       return false;
     }
     if (!catalog) {
@@ -70,7 +70,7 @@
       return `<article class="checkout-item ${warning ? 'checkout-item-warning' : ''}" data-checkout-id="${id}">
         <a class="checkout-item-photo" href="/products/${id}" aria-label="View ${escapeHtml(p.name)}"><img src="${escapeHtml(photoUrl(p.image_url))}" alt="${escapeHtml(p.name)}" loading="eager"></a>
         <div class="checkout-item-details">
-          <div class="checkout-item-category">${escapeHtml(p.category || 'ODJ ESSENTIALS')}</div>
+          <div class="checkout-item-category">${escapeHtml(p.category || 'CLEANING ESSENTIALS')}</div>
           <a class="checkout-item-title" href="/products/${id}">${escapeHtml(p.name)}</a>
           <span class="checkout-item-unit">${money(p.price_cents)} each</span>
           <div class="checkout-item-actions">
@@ -205,10 +205,10 @@
     try {
       const lines = cartLines();
       const result = mode === 'demo'
-        ? await request('/api/checkout/demo', {items: lines, shipping_option: selectedShipping(), shipping_address: address, promo_code: promoCode})
+        ? await request('/api/checkout/demo', {items: lines, shipping_option: selectedShipping(), shipping_address: address, guest_email: $('guest-email')?.value.trim() || '', promo_code: promoCode})
         : await request('/api/checkout', {items: lines, shipping_option: selectedShipping(), promo_code: promoCode});
       if (mode === 'demo') {
-        if (!result.url || !/^\/demo-order\/[a-f0-9-]{36}$/.test(result.url)) throw Error('Unexpected demo destination.');
+        if (!result.url || !/^\/demo-order\/[a-f0-9-]{36}(?:\?access=[A-Za-z0-9._-]+)?$/.test(result.url)) throw Error('Unexpected demo destination.');
         localStorage.removeItem(storageKey);
         location.assign(result.url);
       } else {

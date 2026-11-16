@@ -35,11 +35,13 @@ from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_passw
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
 from payment import create_checkout, verify_webhook, read_stripe_checkout_refunds, StripeError
-from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email
+from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email, email_layout
 from launch_readiness import launch_readiness, sales_prerequisite_failures, OWNER_REVIEW_TASKS
 from backend.catalog import serialize_product, bundle_data, public_catalog
 from backend.serializers import serialize_order
 from backend.merchandising import build_home_merchandising
+from backend.guest_orders import (guest_checkout_enabled, guest_order_token, guest_token_matches,
+    guest_order_signer, GUEST_ORDER_MAX_AGE_SECONDS)
 from middleware.analytics import analytics_summary, ANALYTICS_EVENTS
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
@@ -120,7 +122,7 @@ async def protect_private_pages(request: Request, call_next):
     if public_storefront_preview():
         path = request.url.path
         payment_or_marketing = (path in ('/checkout', '/api/checkout') or
-            path.startswith(('/api/checkout/', '/demo-order/', '/api/newsletter/', '/newsletter/')))
+            path.startswith(('/api/checkout/', '/demo-order/', '/api/newsletter/', '/newsletter/', '/guest/', '/api/guest/')))
         account_path = (path == '/account' or path.startswith(('/account/', '/api/account/')))
         if payment_or_marketing or (account_path and not account_testing_preview()):
             return JSONResponse(status_code=503,
@@ -130,7 +132,8 @@ async def protect_private_pages(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Referrer-Policy'] = ('no-referrer' if path.startswith(
+        ('/guest/orders/', '/demo-order/')) else 'strict-origin-when-cross-origin')
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
     if payment_mode() == 'demo' or os.getenv('APP_ENV') == 'staging':
@@ -142,7 +145,7 @@ async def protect_private_pages(request: Request, call_next):
     if path == '/admin' or path.startswith('/api/admin/'):
         response.headers['Cache-Control'] = 'no-store, private'
         response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
-    elif path.startswith('/newsletter/') or path in ('/account', '/checkout') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/')):
+    elif path.startswith('/newsletter/') or path in ('/account', '/checkout') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/','/guest/','/api/guest/')):
         response.headers['Cache-Control'] = 'no-store, private'
     return response
 
@@ -248,7 +251,7 @@ def home(request: Request):
         settings = store_settings(db)
     return templates.TemplateResponse(request, 'index.html', {'products':products,'categories':categories,'settings':settings,
         'merch':build_home_merchandising(products), 'bundles':[p for p in products if p.get('is_bundle') and p['stock']>0][:3],
-        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'public_preview':public_storefront_preview(), 'checkout_open':(not public_storefront_preview() and (os.getenv('APP_ENV') != 'production' or production_sales_ready())), 'account_testing':account_testing_preview(), 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False})})
+        'canonical_url':public_origin(request) + '/' if public_origin(request) else '', 'customer':customer, 'public_preview':public_storefront_preview(), 'checkout_open':(not public_storefront_preview() and (os.getenv('APP_ENV') != 'production' or production_sales_ready())), 'account_testing':account_testing_preview(), 'customer_json':({'signedIn': True, 'name':customer.full_name} if customer else {'signedIn':False}), 'guest_checkout_enabled':guest_checkout_enabled()})
 
 
 
@@ -265,7 +268,7 @@ def product_detail(product_id: int, request: Request):
             related = [p for p in public_catalog(db) if p['id'] != product_id][:3]
             customer = signed_in_customer(request)
             return templates.TemplateResponse(request, 'product.html', {
-                'product':data, 'related':related, 'customer':customer, 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
+                'product':data, 'related':related, 'customer':customer, 'guest_checkout_enabled':guest_checkout_enabled(), 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
         product = db.get(Product, product_id)
         if not product or not product.active or product.price_cents <= 0:
             raise HTTPException(status_code=404, detail='This product is unavailable.')
@@ -281,7 +284,7 @@ def product_detail(product_id: int, request: Request):
             ).order_by(Product.featured.desc(), Product.id).limit(3 - len(related))).all()]
     customer = signed_in_customer(request)
     return templates.TemplateResponse(request, 'product.html', {
-        'product': data, 'related': related, 'customer': customer, 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
+        'product': data, 'related': related, 'customer': customer, 'guest_checkout_enabled':guest_checkout_enabled(), 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
         'customer_json': {'signedIn': bool(customer)}
     })
 
@@ -1041,6 +1044,7 @@ class ShippingAddress(BaseModel):
 class DemoOrderRequest(CheckoutRequest):
     shipping_option: str = Field(default='standard')
     shipping_address: ShippingAddress
+    guest_email: str = Field(default='', max_length=255)
 
 class QuoteRequest(CheckoutRequest):
     shipping_option: str = Field(default='standard')
@@ -1102,17 +1106,19 @@ def checkout_page(request: Request):
     if os.getenv('APP_ENV') == 'production' and not production_sales_ready():
         raise HTTPException(503, 'Checkout is not yet open. Please check back soon.')
     customer = signed_in_customer(request)
-    if not customer:
+    if not customer and not guest_checkout_enabled():
         return RedirectResponse('/account?next=checkout', status_code=303)
     return templates.TemplateResponse(request, 'checkout.html', {
-        'customer':customer, 'demo':payment_mode() == 'demo'
+        'customer':customer, 'demo':payment_mode() == 'demo',
+        'guest':customer is None
     })
 
 @app.post('/api/checkout/quote')
 def checkout_quote(payload: QuoteRequest, request: Request):
     if not origin_allowed(request):
         raise HTTPException(403, 'Invalid request origin.')
-    require_customer(request)
+    if not guest_checkout_enabled():
+        require_customer(request)
     with SessionLocal() as db:
         lines = quote_lines(db, payload.items)
         subtotal = sum(l['price_cents'] * l['qty'] for l in lines)
@@ -1128,9 +1134,12 @@ def checkout_quote(payload: QuoteRequest, request: Request):
 def demo_checkout(payload: DemoOrderRequest, request: Request):
     if not origin_allowed(request):
         raise HTTPException(403, 'Invalid request origin.')
-    customer = require_customer(request)
+    customer = signed_in_customer(request)
+    if not customer and not guest_checkout_enabled():
+        require_customer(request)
     if payment_mode() != 'demo' or os.getenv('APP_ENV') == 'production':
         raise HTTPException(404, 'Demo checkout is not enabled.')
+    guest_email = normalize_email(payload.guest_email) if not customer else customer.email
     address = payload.shipping_address.model_dump()
     if address['country'] != 'US' or not re.fullmatch(r'\d{5}(?:-\d{4})?', address['postal_code']):
         raise HTTPException(422, 'Demo shipping is limited to valid US ZIP codes.')
@@ -1139,7 +1148,7 @@ def demo_checkout(payload: DemoOrderRequest, request: Request):
         subtotal = sum(l['qty'] * l['price_cents'] for l in lines)
         discount = demo_discount(db,subtotal,payload.promo_code)
         shipping = shipping_price(payload.shipping_option)
-        order = Order(id=str(uuid.uuid4()), email=customer.email, customer_id=customer.id,
+        order = Order(id=str(uuid.uuid4()), email=guest_email, customer_id=customer.id if customer else None,
             status='demo', payment_mode='demo', subtotal_cents=subtotal, shipping_cents=shipping,
             discount_cents=discount,promo_code=payload.promo_code.strip().upper() if discount else '',
             paid_total_cents=0, inventory_reserved=False, items_snapshot=lines,
@@ -1147,18 +1156,31 @@ def demo_checkout(payload: DemoOrderRequest, request: Request):
             fulfillment_status='unfulfilled')
         db.add(order)
         db.commit()
+        token = guest_order_token(order) if not customer else None
         return {'order_id':order.id, 'status':'demo', 'charged':False, 'inventory_changed':False,
-                'url':'/demo-order/'+order.id}
+                'url':'/demo-order/'+order.id+('?access='+token if token else '')}
 
 @app.get('/demo-order/{order_id}', response_class=HTMLResponse)
-def demo_confirmation(order_id: str, request: Request):
-    customer = require_customer(request)
+def demo_confirmation(order_id: str, request: Request, access: str = ''):
+    customer = signed_in_customer(request)
+    if not customer and not guest_checkout_enabled() and not access:
+        require_customer(request)
     with SessionLocal() as db:
         order = db.get(Order, order_id)
-        if not order or order.customer_id != customer.id or order.status != 'demo':
+        if not order or order.status != 'demo' or not (
+            (customer and order.customer_id == customer.id) or
+            guest_token_matches(access, order)
+        ):
             raise HTTPException(404, 'Demo order not found.')
         info = serialize_order(order)
-    return templates.TemplateResponse(request, 'demo_order.html', {'order':info})
+        guest = order.customer_id is None
+    response = templates.TemplateResponse(request, 'demo_order.html', {
+        'order':info, 'guest':guest
+    })
+    response.headers['Cache-Control'] = 'no-store, private'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['X-Robots-Tag'] = 'noindex'
+    return response
 
 
 @app.post('/api/checkout')
@@ -1167,8 +1189,10 @@ async def checkout(payload: CheckoutRequest, request: Request):
         raise HTTPException(403, 'Invalid request origin.')
     if os.getenv('APP_ENV') == 'production' and not production_sales_ready():
         raise HTTPException(503, 'Checkout is not yet open. Please check back soon.')
-    customer = require_customer(request)
-    if os.getenv('APP_ENV') == 'production' and not customer.email_verified:
+    customer = signed_in_customer(request)
+    if not customer and not guest_checkout_enabled():
+        require_customer(request)
+    if os.getenv('APP_ENV') == 'production' and customer and not customer.email_verified:
         raise HTTPException(403, 'Verify your email address before making a purchase.')
     if len(set(line.id for line in payload.items)) != len(payload.items):
         raise HTTPException(400, 'Duplicate product lines.')
@@ -1192,7 +1216,8 @@ async def checkout(payload: CheckoutRequest, request: Request):
                 if reserved.rowcount != 1:
                     raise HTTPException(409, 'Inventory changed. Refresh your shopping bag.')
             subtotal = sum(item['qty'] * item['price_cents'] for item in lines)
-            order = Order(id=order_id, customer_id=customer.id, email=customer.email, status='pending', subtotal_cents=subtotal,
+            order = Order(id=order_id, customer_id=customer.id if customer else None,
+                          email=customer.email if customer else '', status='pending', subtotal_cents=subtotal,
                           shipping_cents=shipping, inventory_reserved=True, items_snapshot=lines,
                           shipping_details={'service': payload.shipping_option}, payment_mode='stripe', fulfillment_status='unfulfilled')
             db.add(order)
@@ -1288,7 +1313,8 @@ async def stripe_webhook(request: Request):
                         o.status = 'paid'
                         o.paid_at = now()
                         customer = session.get('customer_details') or {}
-                        o.email = (customer.get('email') or o.email)[:255]
+                        o.email = (normalize_email(customer.get('email') or session.get('customer_email') or '')
+                                   if o.customer_id is None else (customer.get('email') or o.email)[:255])
                         stripe_shipping = (session.get('collected_information') or {}).get('shipping_details') or session.get('shipping_details') or {}
                         # Preserve the chosen delivery service alongside Stripe's verified address.
                         o.shipping_details = {**(o.shipping_details or {}), **(stripe_shipping if isinstance(stripe_shipping, dict) else {})}
@@ -1321,6 +1347,80 @@ def success(request: Request, session_id: str = ''):
             if o:
                 status = o.status
     return templates.TemplateResponse(request, 'success.html', {'status':status})
+
+
+# Guest order history uses signed, expiring links; order IDs alone are never
+# authorization. Delivery links are only sent to the email Stripe collected.
+guest_order_link_attempts: dict[str, list[float]] = {}
+
+
+class GuestOrderLinkRequest(BaseModel):
+    order_id: str = Field(min_length=36, max_length=36)
+    email: str = Field(min_length=3, max_length=255)
+
+
+@app.get('/guest/order-lookup', response_class=HTMLResponse)
+def guest_order_lookup(request: Request):
+    response = templates.TemplateResponse(request, 'guest_lookup.html', {})
+    response.headers['Cache-Control'] = 'no-store, private'
+    response.headers['X-Robots-Tag'] = 'noindex'
+    return response
+
+
+@app.post('/api/guest/order-link')
+def request_guest_order_link(payload: GuestOrderLinkRequest, request: Request):
+    if not origin_allowed(request):
+        raise HTTPException(403, 'Invalid request origin.')
+    throttle(request, guest_order_link_attempts, 6, 3600)
+    email = normalize_email(payload.email)
+    # Always give the same response regardless of whether an order exists.
+    answer = {'message': 'If this paid guest order matches your email, a secure link will be sent.'}
+    if not re.fullmatch(r'[0-9a-fA-F-]{36}', payload.order_id):
+        return answer
+    with SessionLocal() as db:
+        order = db.get(Order, payload.order_id)
+        if (not order or order.customer_id is not None or
+                order.status not in ('paid', 'partially_refunded', 'refunded') or
+                not hmac.compare_digest((order.email or '').strip().lower(), email)):
+            return answer
+        token = guest_order_token(order)
+        if not token:
+            return answer
+        link = base_url(request) + '/guest/orders/' + token
+        body = ('<p>Use this private link to view the status of your TrueMerit order. '
+                'It expires in 30 days.</p><p><a style="color:#ffad68" href="' +
+                link + '">View my order</a></p>')
+        queue_message(db, 'guest-link:' + order.id + ':' + secrets.token_hex(12),
+            'guest_order_link', order.email, 'TrueMerit secure order link',
+            email_layout('View your order', body), 'Your private order link (30 days): ' + link)
+        db.commit()
+    return answer
+
+
+@app.get('/guest/orders/{token}', response_class=HTMLResponse)
+def guest_order_detail(token: str, request: Request):
+    signer = guest_order_signer()
+    if not signer:
+        raise HTTPException(503, 'Secure order lookup is unavailable.')
+    try:
+        claims = signer.loads(token, max_age=GUEST_ORDER_MAX_AGE_SECONDS)
+    except (BadSignature, SignatureExpired, TypeError, ValueError):
+        raise HTTPException(404, 'Order link is invalid or expired.')
+    order_id = claims.get('id') if isinstance(claims, dict) else None
+    if not isinstance(order_id, str) or not re.fullmatch(r'[0-9a-fA-F-]{36}', order_id):
+        raise HTTPException(404, 'Order link is invalid or expired.')
+    with SessionLocal() as db:
+        order = db.get(Order, order_id)
+        if not guest_token_matches(token, order):
+            raise HTTPException(404, 'Order link is invalid or expired.')
+        details = serialize_order(order)
+    response = templates.TemplateResponse(request, 'order_detail.html', {
+        'order':details, 'guest':True, 'customer':None
+    })
+    response.headers['Cache-Control'] = 'no-store, private'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['X-Robots-Tag'] = 'noindex'
+    return response
 
 
 @app.get('/admin', response_class=HTMLResponse)

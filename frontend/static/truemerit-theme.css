@@ -1090,3 +1090,66 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .admin-body .catalog-upload-actions>span{
   color:#526f8b;
 }
+
+
+/* Release 2 — checkout trust lockup. The original TrueMerit SVG contains navy
+   lettering, so it must sit on a light surface, never directly on the navy page. */
+.checkout-body .checkout-trust{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:21px;
+  min-width:0;
+  margin-top:25px;
+  padding:0;
+}
+.checkout-body .checkout-trust-logo{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex:0 0 auto;
+  width:236px;
+  min-height:104px;
+  padding:14px 16px;
+  background:#fffaf3;
+  border:1px solid #d8e7f4;
+  border-radius:11px;
+  box-shadow:0 7px 24px rgba(0,14,40,.18);
+  box-sizing:border-box;
+}
+.checkout-body .checkout-trust-logo img{
+  display:block;
+  width:198px;
+  max-width:100%;
+  height:auto;
+  aspect-ratio:610/225;
+  object-fit:contain;
+  background:transparent;
+}
+.checkout-body .checkout-trust .checkout-trust-tagline{
+  margin:0;
+  min-width:0;
+  color:#f1f7ff;
+  font-family:inherit;
+  font-size:15px;
+  font-weight:500;
+  line-height:1.65;
+  letter-spacing:.005em;
+}
+.checkout-body .checkout-trust .checkout-trust-tagline strong{
+  color:#ffac67;
+  font-weight:800;
+}
+@media(max-width:480px){
+  .checkout-body .checkout-trust{
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:20px;
+  }
+  .checkout-body .checkout-trust-logo{
+    width:210px;
+    min-height:90px;
+    padding:10px 14px;
+  }
+  .checkout-body .checkout-trust-logo img{width:178px}
+}

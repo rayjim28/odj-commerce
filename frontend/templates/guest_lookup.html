@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">
+<title>Guest order lookup | TrueMerit Cleaning Supplies</title>
+<link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css?v=7-4">
+<link rel="stylesheet" href="/static/truemerit-theme.css?v=9">
+</head><body class="checkout-body">
+<header class="checkout-top"><a class="brand" href="/"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><a class="checkout-back" href="/">← Back to shop</a></header>
+<main class="v6-reset" style="max-width:610px">
+<div class="section-kicker gold">ORDER SUPPORT / NO ACCOUNT REQUIRED</div>
+<h1>Find your <em>order.</em></h1>
+<p>Enter your full order ID and the email used at Stripe checkout. If they match a paid guest order, we'll send a private link to that address. Order details are never shown without a valid link.</p>
+<form id="guest-order-lookup" class="v6-inline-form">
+<label>FULL ORDER ID<input name="order_id" required maxlength="36" minlength="36" autocomplete="off" placeholder="Order ID from your receipt"></label>
+<label>CHECKOUT EMAIL<input name="email" required type="email" maxlength="255" autocomplete="email" placeholder="you@example.com"></label>
+<button class="btn btn-gold" type="submit">Email my secure order link ↗</button>
+<p id="guest-lookup-feedback" role="status" aria-live="polite"></p>
+</form>
+<p>If your confirmation email hasn't arrived, contact <a href="/information/contact" style="color:#ffb277">TrueMerit support</a>. Sending links requires the store's email delivery service to be configured.</p>
+</main>
+<script src="/static/js/guest-lookup.js?v=1" defer></script>
+</body></html>

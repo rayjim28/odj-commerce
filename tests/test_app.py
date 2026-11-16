@@ -459,7 +459,7 @@ def test_v51_checkout_editing_assets_and_public_products(authenticated, monkeypa
         {'id':available,'qty':3}]}).status_code == 409
     html = authenticated.get('/checkout').text
     assert 'checkout-count' in html and 'Edit bag' in html
-    assert '/static/js/checkout.js?v=7-4' in html
+    assert '/static/js/checkout.js?v=release2-1' in html
     js = authenticated.get('/static/js/checkout.js').text
     for feature in ('data-qty-id', 'data-remove-id', 'checkout-item-photo', 'reloadCatalog', 'refreshQuote'):
         assert feature in js
@@ -1025,3 +1025,164 @@ def test_v73_account_can_opt_out_and_public_pages_render(authenticated):
     assert authenticated.get('/api/account/marketing').json()['status']=='unsubscribed'
     with SessionLocal() as db:
         assert db.query(NewsletterSubscriber).filter_by(email=email).one().status=='unsubscribed'
+
+
+# Release 2: account-free checkout (off by default until deployment review).
+def test_r2_guest_demo_checkout_and_secure_confirmation(client, monkeypatch):
+    from urllib.parse import urlsplit, parse_qs
+    monkeypatch.setenv('GUEST_CHECKOUT_ENABLED', 'true')
+    monkeypatch.setenv('PAYMENT_MODE', 'demo')
+    monkeypatch.setenv('APP_ENV', 'development')
+    assert client.post('/api/admin/login',json={'password':'StrongTestPassword!234'}).status_code == 200
+    product_id=create_item(client,'Guest demo scrub',stock=8)
+    response=client.get('/checkout',follow_redirects=False)
+    assert response.status_code == 200
+    assert 'SECURE GUEST CHECKOUT' in response.text
+    assert 'id="guest-email"' in response.text
+    q=client.post('/api/checkout/quote',json={'items':[{'id':product_id,'qty':2}]})
+    assert q.status_code == 200,q.text
+    bad=client.post('/api/checkout/demo',json={
+        'items':[{'id':product_id,'qty':2}], 'guest_email':'not-an-email',
+        'shipping_address':{'name':'Demo Guest','line1':'124 Main Street',
+        'city':'Baltimore','state':'MD','postal_code':'21201'}})
+    assert bad.status_code == 422
+    result=client.post('/api/checkout/demo',json={
+        'items':[{'id':product_id,'qty':2}], 'guest_email':'GUEST@example.com',
+        'shipping_address':{'name':'Demo Guest','line1':'124 Main Street',
+        'city':'Baltimore','state':'MD','postal_code':'21201'}})
+    assert result.status_code == 200,result.text
+    data=result.json()
+    assert data['charged'] is False and data['inventory_changed'] is False
+    assert data['url'].startswith('/demo-order/') and '?access=' in data['url']
+    assert client.get('/demo-order/'+data['order_id']).status_code == 404
+    valid=client.get(data['url'])
+    assert valid.status_code == 200 and 'DEMO' in valid.text
+    assert valid.headers['Cache-Control'] == 'no-store, private'
+    tampered=data['url'][:-4] + 'fake'
+    assert client.get(tampered).status_code == 404
+    with SessionLocal() as db:
+        order=db.get(Order,data['order_id'])
+        assert order.email == 'guest@example.com'
+        assert order.customer_id is None and order.status == 'demo'
+        assert db.get(Product,product_id).stock == 8
+    assert client.get('/api/account/orders').status_code == 401
+
+
+def test_r2_guest_stripe_webhook_email_private_lookup_and_no_stock_double_count(client,monkeypatch):
+    from database import EmailOutbox
+    from sqlalchemy import select
+    import asyncio
+    import main as app_module
+    from backend.guest_orders import guest_order_token
+    monkeypatch.setenv('GUEST_CHECKOUT_ENABLED','true')
+    monkeypatch.setenv('PAYMENT_MODE','stripe')
+    monkeypatch.setenv('APP_ENV','development')
+    monkeypatch.setenv('STRIPE_SECRET_KEY','sk_test_only_fake_r2')
+    monkeypatch.setenv('PUBLIC_BASE_URL','https://truemerit.example')
+    assert client.post('/api/admin/login',json={'password':'StrongTestPassword!234'}).status_code == 200
+    pid=create_item(client,'Guest checkout kit',stock=6)
+    quote=client.post('/api/checkout/quote',json={'items':[{'id':pid,'qty':2}], 'shipping_option':'express'})
+    assert quote.status_code == 200, quote.text
+    assert quote.json()['shipping_cents'] >= 0
+    async def fake_create_checkout(order, base_url):
+        assert order.customer_id is None and not order.email
+        return {'id':'cs_r2_'+order.id,'url':'https://checkout.stripe.com/fake'}
+    monkeypatch.setattr(app_module,'create_checkout',fake_create_checkout)
+    response=client.post('/api/checkout',json={'items':[{'id':pid,'qty':2}],'shipping_option':'express'})
+    assert response.status_code == 200,response.text
+    assert response.json()['url'] == 'https://checkout.stripe.com/fake'
+    with SessionLocal() as db:
+        orders=db.scalars(select(Order).where(Order.status=='pending',Order.customer_id.is_(None))).all()
+        order=orders[-1]
+        oid=order.id
+        assert order.inventory_reserved is True
+        assert db.get(Product,pid).stock == 4
+        amount=order.subtotal_cents+order.shipping_cents
+        stripe_id=order.stripe_session_id
+    # The callback, not the customer redirect, verifies payment and guest email.
+    event={'id':'evt_r2_'+oid,'type':'checkout.session.completed',
+      'data':{'object':{'id':stripe_id,'client_reference_id':oid,
+        'amount_total':amount,'payment_status':'paid',
+        'payment_intent':'pi_r2_'+oid,
+        'customer_details':{'email':'GUEST-CHECKOUT@example.com'},
+        'shipping_details':{'address':{'city':'Baltimore','state':'MD','country':'US',
+                                       'postal_code':'21201'}}}}}
+    body,headers=sign_event(event)
+    webhook=client.post('/api/stripe/webhook',content=body,headers=headers)
+    assert webhook.status_code == 200, webhook.text
+    assert client.post('/api/stripe/webhook',content=body,headers=headers).json()['duplicate'] is True
+    with SessionLocal() as db:
+        saved=db.get(Order,oid)
+        assert saved.customer_id is None and saved.email=='guest-checkout@example.com'
+        assert saved.status=='paid' and saved.inventory_reserved is False
+        assert db.get(Product,pid).stock == 4
+        token=guest_order_token(saved)
+        assert token
+        outbox=db.scalars(select(EmailOutbox).where(EmailOutbox.event_key == 'order:'+oid+':order_confirmation')).all()
+        assert len(outbox)==1
+        assert '/guest/orders/' in outbox[0].html_body and token in outbox[0].html_body
+        assert oid in outbox[0].html_body
+    assert client.get('/api/account/orders').status_code==401
+    private_detail=client.get('/guest/orders/'+token)
+    assert private_detail.status_code==200
+    assert private_detail.headers['Cache-Control']=='no-store, private'
+    assert private_detail.headers['Referrer-Policy']=='no-referrer'
+    assert client.get('/guest/orders/'+token[:-3]+'bad').status_code==404
+    assert client.get('/guest/orders/not-a-token').status_code==404
+    assert client.get('/guest/order-lookup').status_code==200
+    assert client.post('/api/guest/order-link',json={'order_id':oid,'email':'WRONG@example.com'}).status_code==200
+    response=client.post('/api/guest/order-link',json={'order_id':oid,'email':'guest-checkout@example.com'})
+    assert response.status_code==200
+    with SessionLocal() as db:
+        sent=db.scalars(select(EmailOutbox).where(EmailOutbox.kind=='guest_order_link')).all()
+        assert any(link.recipient=='guest-checkout@example.com' for link in sent)
+
+
+def test_r2_flag_off_preserves_legacy_checkout_behavior(client,monkeypatch):
+    monkeypatch.delenv('GUEST_CHECKOUT_ENABLED',raising=False)
+    monkeypatch.setenv('PAYMENT_MODE','demo')
+    assert client.get('/checkout',follow_redirects=False).headers['location'].startswith('/account')
+    assert client.post('/api/checkout/quote',json={'items':[{'id':1,'qty':1}]}).status_code == 401
+    assert client.post('/api/checkout/demo',json={
+      'items':[{'id':1,'qty':1}],'guest_email':'sample@example.com',
+      'shipping_address':{'name':'Sample Guest','line1':'One Main Street',
+        'city':'Baltimore','state':'MD','postal_code':'21201'}}).status_code == 401
+    homepage=client.get('/').text
+    assert "Yes. You can explore products and build a bag as a guest" in homepage
+    assert 'window.ODJ_GUEST_CHECKOUT_ENABLED = false' in homepage
+
+
+def test_r2_real_stripe_checkout_omits_guest_email_prefill(monkeypatch):
+    """Inspect actual form body without making a Stripe network request."""
+    from types import SimpleNamespace
+    from urllib.parse import parse_qs
+    import asyncio
+    import payment
+    captured = []
+    class FakeResponse:
+        status_code = 200
+        def json(self):
+            return {"id":"cs_test_r2_form", "url":"https://checkout.stripe.com/fake"}
+    class FakeClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): return False
+        async def post(self, url, **kwargs):
+            assert url == "https://api.stripe.com/v1/checkout/sessions"
+            fields = parse_qs(kwargs["content"], keep_blank_values=True)
+            captured.append(fields)
+            return FakeResponse()
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_r2_fake_for_form")
+    monkeypatch.setattr(payment.httpx,"AsyncClient",FakeClient)
+    order=SimpleNamespace(id="r2-order",email="",subtotal_cents=1200,
+         shipping_cents=795,shipping_details={"service":"standard"},
+         items_snapshot=[{"name":"Mop","qty":1,"price_cents":1200}])
+    guest=asyncio.run(payment.create_checkout(order,"https://truemerit.example"))
+    assert guest["url"].startswith("https://checkout.stripe.com/")
+    assert "customer_email" not in captured[-1]
+    assert captured[-1]["shipping_address_collection[allowed_countries][0]"] == ["US"]
+    assert captured[-1]["client_reference_id"] == ["r2-order"]
+
+    order.email = "member@example.com"
+    asyncio.run(payment.create_checkout(order,"https://truemerit.example"))
+    assert captured[-1]["customer_email"] == ["member@example.com"]

@@ -5,6 +5,7 @@ Only scripts/send_notifications.py can send pending messages after SMTP is confi
 import html
 import os
 from urllib.parse import quote
+from backend.guest_orders import guest_order_token
 from sqlalchemy import select
 from database import StoreSettings, EmailOutbox
 
@@ -49,6 +50,16 @@ def order_email(order, kind='order_confirmation'):
     address = (order.shipping_details or {}).get('address') or {}
     address_parts = [address.get(field,'') for field in ('name','line1','line2','city','state','postal_code')]
     addr = ', '.join(html.escape(str(part)) for part in address_parts if part)
+    guest_token = guest_order_token(order)
+    guest_link = ((os.getenv('PUBLIC_BASE_URL') or 'http://localhost:8000').rstrip('/')
+                  + '/guest/orders/' + quote(guest_token, safe='')) if guest_token else ''
+    guest_html = ('<p>Full order ID (save this for support): <code>' +
+                  html.escape(order.id) + '</code></p><p><a href="' +
+                  html.escape(guest_link, quote=True) +
+                  '" style="color:#ffae70">View your order securely</a> (link expires in 30 days).</p>'
+                  if guest_link else '')
+    guest_text = ('\nFull order ID: ' + order.id +
+                  '\nSecure order details (30-day link): ' + guest_link) if guest_link else ''
     tracking = ''
     if kind == 'shipping_update':
         tracking = '<p>Carrier: '+html.escape(order.carrier or 'Pending')+'<br>Tracking: '+html.escape(order.tracking_number or 'Not available')+'<br>Status: '+html.escape(order.fulfillment_status or 'processing')+'</p>'
@@ -57,11 +68,11 @@ def order_email(order, kind='order_confirmation'):
          +'<p>Subtotal: '+money(order.subtotal_cents)+(('<br>Promotion: −'+money(order.discount_cents)) if (order.discount_cents or 0) else '')+'<br>Shipping: '+money(order.shipping_cents)
          +(('<br>Sales tax: '+money(order.tax_cents or 0)) if (order.tax_cents or 0) else '')
          +'<br><strong>Order total: '+money((order.paid_total_cents or 0) if not demo and order.paid_total_cents else (order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0)))+'</strong></p>'
-         +(('<p>Shipping address: '+addr+'</p>') if addr else '')+tracking)
+         +(('<p>Shipping address: '+addr+'</p>') if addr else '')+tracking+guest_html)
     notice='DEMO ONLY — NOT PAID. NO REAL PURCHASE OR SHIPMENT.' if demo else ''
     return {'subject':('TRUEMERIT TEST ORDER' if demo else 'TrueMerit '+ ('Shipping update' if kind == 'shipping_update' else 'Order confirmation'))+' #'+order.id[:8].upper(),
             'html':email_layout(header,body,notice),
-            'text':header+'\nOrder #'+order.id[:8].upper()+'\nTax: '+money(order.tax_cents or 0)+'\nTotal: '+money((order.paid_total_cents or 0) if not demo and order.paid_total_cents else (order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0)))+('\nDEMO ONLY — NO PAYMENT' if demo else '')}
+            'text':header+'\nOrder #'+order.id[:8].upper()+'\nTax: '+money(order.tax_cents or 0)+'\nTotal: '+money((order.paid_total_cents or 0) if not demo and order.paid_total_cents else (order.subtotal_cents+order.shipping_cents-(order.discount_cents or 0)))+guest_text+('\nDEMO ONLY — NO PAYMENT' if demo else '')}
 
 
 def queue_message(db, key, kind, recipient, subject, body_html, body_text):

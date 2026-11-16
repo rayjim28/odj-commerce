@@ -49,9 +49,9 @@
     } else {
       byId('checkout-button').disabled=!lines.length;
       byId('checkout-message').textContent='';
-      byId('checkout-button').innerHTML = (window.ODJ_CUSTOMER && window.ODJ_CUSTOMER.signedIn) ? 'Review checkout <span class="checkout-arrow" aria-hidden="true">↗</span>' : 'Sign in to checkout <span class="checkout-arrow" aria-hidden="true">↗</span>';
+      byId('checkout-button').innerHTML = (window.ODJ_GUEST_CHECKOUT_ENABLED || (window.ODJ_CUSTOMER && window.ODJ_CUSTOMER.signedIn)) ? 'Review checkout <span class="checkout-arrow" aria-hidden="true">↗</span>' : 'Sign in to checkout <span class="checkout-arrow" aria-hidden="true">↗</span>';
     }
-    if(!lines.length){byId('drawer-items').innerHTML='<div class="cart-empty"><div class="cart-empty-icon">✧</div><h3>Your bag is feeling empty.</h3><p>Good things start with the right essentials.<br>Explore the collection and find your favorites.</p></div>';return;}
+    if(!lines.length){byId('drawer-items').innerHTML='<div class="cart-empty"><div class="cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.3 13H4.7L6 7Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></div><h3>Your bag is feeling empty.</h3><p>Find dependable cleaning essentials for your home or business.</p><button class="cart-empty-shop-link" type="button">Explore cleaning supplies <span aria-hidden="true">↗</span></button></div>';return;}
     byId('drawer-items').innerHTML=lines.map(({product:p,qty})=>`<div class="cart-line">
       <img alt="${esc(p.name)}" src="${esc(p.image_url||'/static/images/default.svg')}">
       <div class="cart-line-body"><strong>${esc(p.name)}</strong><small>${esc(p.category)}</small><div class="cart-line-price">${money(p.price_cents*qty)}</div>
@@ -99,6 +99,11 @@
   window.addEventListener('keydown',e=>{if(e.key==='Escape')closeCart();});
   byId('drawer-items').addEventListener('click',e=>{
     const btn=e.target.closest('button');if(!btn)return;
+    if(btn.classList.contains('cart-empty-shop-link')){
+      closeCart();
+      byId('shop').scrollIntoView({behavior:'smooth'});
+      return;
+    }
     if(btn.dataset.qty)changeQty(btn.dataset.qty,Number(btn.dataset.step));
     if(btn.dataset.remove){delete cart[btn.dataset.remove];save();renderDrawer();}
   });
@@ -216,7 +221,7 @@
   });
   byId('checkout-button').addEventListener('click', () => {
     if(window.ODJ_PUBLIC_PREVIEW === true || window.ODJ_CHECKOUT_OPEN === false){toast('Online orders will open soon.');return;}
-    if(!window.ODJ_CUSTOMER || !window.ODJ_CUSTOMER.signedIn){
+    if(!window.ODJ_GUEST_CHECKOUT_ENABLED && (!window.ODJ_CUSTOMER || !window.ODJ_CUSTOMER.signedIn)){
       window.location.assign('/account?next=checkout');return;
     }
     if(!validLines().length){toast('Add a product to your bag first.');return;}

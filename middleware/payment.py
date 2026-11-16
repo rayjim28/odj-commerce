@@ -13,7 +13,6 @@ async def create_checkout(order, base_url: str) -> dict:
     fields: list[tuple[str, str]] = [
         ('mode', 'payment'),
         ('client_reference_id', order.id),
-        ('customer_email', order.email),
         ('metadata[order_id]', order.id),
         ('payment_intent_data[metadata][order_id]', order.id),
         ('success_url', f'{base_url}/success?session_id={{CHECKOUT_SESSION_ID}}'),
@@ -22,6 +21,11 @@ async def create_checkout(order, base_url: str) -> dict:
         ('billing_address_collection', 'auto'),
         ('expires_at', str(int(time.time()) + 1800)),
     ]
+    # Signed-in buyers retain prefilled email. For guests, Stripe itself
+    # collects the email and shipping address before payment; the webhook
+    # records the provider-collected email instead of trusting a browser value.
+    if order.email:
+        fields.append(('customer_email', order.email))
     if os.getenv('STRIPE_AUTOMATIC_TAX', 'false').lower() == 'true':
         fields.append(('automatic_tax[enabled]', 'true'))
     for i, item in enumerate(order.items_snapshot):
