@@ -744,7 +744,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   font-size:8px;letter-spacing:.1em;
 }
 .editorial-grid > .editorial-copy{
-  padding:15px 0 15px 28px;
+  padding:15px 0 15px clamp(58px,5.3vw,82px);
 }
 .tm-wholesale{position:relative;isolation:isolate;clear:both}
 .tm-wholesale .tm-wholesale-inner{min-width:0}
@@ -869,4 +869,156 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   color:#4f6984;
   font-weight:500;
   line-height:1.65;
+}
+
+
+/* Release 1 final admin brand audit. Keep interactions unchanged while
+   overriding inherited ODJ brown/gold styles across all admin tabs. */
+.admin-body .admin-sidebar{
+  background:linear-gradient(180deg,#082956 0%,#061d3e 100%);
+  color:#f4f8ff;
+  border-right:1px solid #315f8f;
+}
+.admin-body .sidebar-bottom{
+  border-top-color:#355f89;
+}
+.admin-body .sidebar-bottom a,
+.admin-body .sidebar-bottom button{
+  color:#d4e5f4;
+}
+.admin-body .sidebar-bottom a:hover,
+.admin-body .sidebar-bottom button:hover{color:#ffb37c}
+.admin-body .admin-breadcrumb{color:#1d6094}
+.admin-body .admin-product span,
+.admin-body .stat-card small,
+.admin-body .admin-table-wrap small,
+.admin-body .catalog-help{color:#4f6a83}
+.admin-body .v5-demo-caption,
+.admin-body .admin-welcome .v5-demo-caption{
+  color:#4b6681!important;
+  font-size:12px;
+  font-weight:500;
+}
+.admin-body .admin-welcome .v5-demo-caption strong{color:#0c426e}
+.admin-body .btn-gold{
+  color:#09284e;
+  background:#ff821c;
+  border:1px solid #f47614;
+  font-weight:800;
+  cursor:pointer;
+}
+.admin-body .btn-gold:hover:not(:disabled){
+  color:#09284e;
+  background:#ffa04f;
+  border-color:#ec7215;
+}
+.admin-body .btn-outline,
+.admin-body .v73-promo-admin button{
+  background:#fff;
+  border:1px solid #86add0;
+  color:#144779;
+  font-weight:750;
+}
+.admin-body .btn-outline:hover:not(:disabled),
+.admin-body .v73-promo-admin button:hover:not(:disabled){
+  background:#e9f3ff;
+  border-color:#236da7;
+  color:#0b3c6f;
+}
+.admin-body .btn:focus-visible,
+.admin-body button:focus-visible,
+.admin-body a:focus-visible,
+.admin-body input:focus-visible,
+.admin-body select:focus-visible,
+.admin-body textarea:focus-visible{
+  outline:2px solid #f77d19;
+  outline-offset:2px;
+}
+.admin-body .btn:disabled,
+.admin-body .order-actions button:disabled{opacity:.52;cursor:not-allowed}
+.admin-body .order-actions button{
+  background:#124e83;
+  color:#fff;
+  border:1px solid #226b9c;
+  border-radius:6px;
+}
+.admin-body .order-actions button:hover:not(:disabled){
+  background:#19669e;
+  border-color:#ff9139;
+}
+.admin-body .order-actions select,
+.admin-body .order-actions input{
+  background:#fff;
+  border:1px solid #adc9df;
+  color:#1a3853;
+  border-radius:5px;
+}
+.admin-body .order-actions small,
+.admin-body .orders-note,
+.admin-body .order-address{color:#57728b}
+.admin-body .catalog-modal{
+  background:#fff;
+  color:#153654;
+  border:1px solid #b7cfe5;
+  border-radius:12px;
+  box-shadow:0 28px 75px #031c3850;
+}
+.admin-body .catalog-subtitle,
+.admin-body .catalog-section-title span{
+  color:#587691;
+}
+.admin-body .catalog-section-title{
+  color:#15578c;
+  border-bottom:1px solid #d5e4f1;
+}
+.admin-body .catalog-modal label,
+.admin-body .catalog-modal h3,
+.admin-body .catalog-modal h4{color:#234d73}
+.admin-body .catalog-modal input,
+.admin-body .catalog-modal textarea,
+.admin-body .catalog-modal select{
+  border-color:#b4ccdf;
+  background:#f8fbff;
+  color:#1d3953;
+}
+.admin-body .catalog-modal .catalog-upload-btn{
+  background:#eaf4ff;
+  border:1px solid #9abedd;
+  color:#0d4b82;
+}
+.admin-body .catalog-modal .catalog-upload-btn:hover{background:#d8eaff}
+.admin-body .v73-admin-panel,
+.admin-body .v74-analytics-panel,
+.admin-body .owner-review-item{
+  border-color:#d2e3f1;
+}
+.admin-body .admin-login-help{color:#b7d0e6!important}
+.admin-body .launch-check-group{color:#276b9f}
+.admin-body .launch-status-text{color:#456a89}
+.admin-body .launch-disclaimer{color:#536f88}
+@media(max-width:1100px){
+  .editorial-grid > .editorial-copy{
+    padding-left:34px;
+  }
+}
+@media(max-width:750px){
+  .editorial-grid > .editorial-copy{
+    padding:2px 0 0;
+  }
+}
+
+/* Before any products are published, the front abstract glass card should
+   provide a real route to the shop; decorative rear layers remain visual. */
+.hero-abstract-front-link{
+  display:block;
+  text-decoration:none;
+  cursor:pointer;
+  z-index:4;
+}
+.hero-abstract-front-link:focus-visible{
+  outline:3px solid #ff9b3b;
+  outline-offset:5px;
+}
+.hero-abstract-front-link:hover{
+  filter:brightness(1.1);
 }
