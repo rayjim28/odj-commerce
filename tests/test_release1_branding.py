@@ -187,5 +187,27 @@ def test_admin_overview_text_contrast_and_editorial_spacing():
     assert ".admin-body .admin-welcome p{" in theme
     assert "color:#36536f" in theme
     assert ".admin-body .admin-header p," in theme
-    assert ".editorial-grid > .editorial-copy{\n  padding:15px 0 15px 28px;" in theme
+    assert ".editorial-grid > .editorial-copy{\n  padding:15px 0 15px clamp(58px,5.3vw,82px);" in theme
     assert ".editorial-grid > .editorial-copy{padding:2px 0 0}" in theme
+
+
+def test_admin_control_palette_and_hero_empty_state():
+    css = (STATIC / "truemerit-theme.css").read_text()
+    home = (TEMPLATES / "index.html").read_text()
+    for selector in (
+        ".admin-body .admin-sidebar",
+        ".admin-body .btn-gold",
+        ".admin-body .btn-outline",
+        ".admin-body .order-actions button",
+        ".admin-body .order-actions select",
+        ".admin-body .catalog-modal",
+        ".admin-body .catalog-section-title",
+        ".admin-body .catalog-modal input",
+        ".admin-body .stat-card",
+    ):
+        assert selector in css, f"Missing TrueMerit style for {selector}"
+    assert "#ff821c" in css
+    assert 'class="hero-abstract-layer hero-abstract-layer-front hero-abstract-front-link"' in home
+    assert 'href="#shop" class="hero-abstract-layer hero-abstract-layer-front hero-abstract-front-link"' in home
+    assert 'aria-label="Browse cleaning essentials"' in home
+    assert "hero-abstract-highlight{pointer-events:none}" in css
