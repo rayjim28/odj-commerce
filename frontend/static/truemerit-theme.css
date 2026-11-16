@@ -1023,3 +1023,70 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-abstract-front-link:hover{
   filter:brightness(1.1);
 }
+
+
+/* Remaining product table, inventory and catalog studio controls. */
+.admin-body .admin-table thead{background:#eaf3fb}
+.admin-body .admin-table th{
+  color:#315b7e;
+  font-size:10px;
+  border-bottom:1px solid #cddfea;
+}
+.admin-body .admin-table td{
+  color:#28445f;
+  border-top:1px solid #e0ebf5;
+}
+.admin-body .admin-product img{
+  background:#eef6fc;
+  border:1px solid #d3e4f1;
+  border-radius:6px;
+}
+.admin-body .empty-admin{color:#57728c}
+.admin-body .stock-control{
+  border:1px solid #b2cee4;
+  border-radius:6px;
+  overflow:hidden;
+}
+.admin-body .stock-control button{
+  color:#0d4c83;
+  background:#edf6ff;
+  font-weight:800;
+  cursor:pointer;
+}
+.admin-body .stock-control button:hover:not(:disabled){
+  background:#d6ecff;
+  color:#09396c;
+}
+.admin-body .catalog-photo-area{
+  background:#f3f8fc;
+  border:1px solid #d2e2ef;
+  border-radius:8px;
+}
+.admin-body .catalog-photo-tile{
+  background:#fff;
+  border:1px solid #cbddec;
+  border-radius:7px;
+}
+.admin-body .catalog-photo-tile>img{background:#f0f7fd}
+.admin-body .catalog-photo-caption{color:#245f91}
+.admin-body .catalog-photo-controls{
+  border-top:1px solid #d7e5f1;
+}
+.admin-body .catalog-photo-controls button{
+  color:#1e5684;
+  border-right:1px solid #d7e5f1;
+  background:#fff;
+}
+.admin-body .catalog-photo-controls button:hover{background:#eaf4fd}
+.admin-body .catalog-empty-photos{
+  border-color:#a7c8df;
+  color:#53748e;
+}
+.admin-body .catalog-url-row input{
+  background:#f8fbff;
+  border-color:#b9d0e2;
+  color:#173956;
+}
+.admin-body .catalog-upload-actions>span{
+  color:#526f8b;
+}
