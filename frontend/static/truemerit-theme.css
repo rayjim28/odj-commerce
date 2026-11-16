@@ -711,3 +711,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   .admin-body .v6-email-notes{padding:24px 20px}
   .tm-wholesale h2{font-size:30px}
 }
+
+/* Coupon UI is deferred for Release 1, but underlying promo handling remains intact. */
+.v73-promo[hidden]{display:none!important}
