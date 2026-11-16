@@ -10,7 +10,7 @@
 {% if canonical_url %}<meta property="og:url" content="{{canonical_url}}"><meta property="og:image" content="{{canonical_url}}static/images/truemerit-approved-logo.webp">{% endif %}
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Organization','name':'TrueMerit Cleaning Supplies','url':canonical_url,'description':'Cleaning essentials and accessories'} | tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=3">
+<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=4">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -34,7 +34,7 @@
 </header>{% if settings.announcement and settings.announcement|trim not in ['Welcome to ODJ Cleaning Essentials', 'Welcome to ODJ Group'] %}<div class="v6-announcement">{{settings.announcement|replace('ODJ Cleaning Essentials','TrueMerit Cleaning Supplies')|replace('ODJ Group','TrueMerit Cleaning Supplies')}}</div>{% endif %}
 <main>
 <section class="hero">
-  <div class="hero-noise"></div><div class="hero-orbit hero-orbit-a"></div><div class="hero-orbit hero-orbit-b"></div>
+  <div class="hero-noise"></div>
   <div class="container hero-inner">
     <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> CLEANING ESSENTIALS, CONSIDERED <span class="eyebrow-number">/ 001</span></div>
       <h1>A better clean<br>starts with the<br><em>right tools.</em></h1>
@@ -42,7 +42,11 @@
       <div class="hero-ctas"><a class="btn btn-gold" href="#shop">Shop cleaning essentials <span>↗</span></a><a class="text-link" href="#collections">Explore collections <span>↗</span></a></div>
       <div class="hero-social"><span class="hero-line"></span><span>MOP SYSTEMS</span><span class="hero-bullet">✦</span><span>REFILLS &amp; ACCESSORIES</span></div>
     </div>
-    <div class="hero-art"><div class="hero-art-halo"></div><div class="hero-art-border"></div><img src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies logo" class="hero-logo"/><div class="hero-art-small"><span class="star-icon">✦</span> MADE FOR REAL LIFE <small>01 / COLLECTION</small></div><div class="hero-art-caption"><span>THE TRUEMERIT</span><strong>COLLECTION</strong><span>EST. WITH PURPOSE</span></div></div>
+    <div class="hero-art hero-product-art">
+      <span class="hero-visual-kicker">CURATED FOR EVERYDAY <b aria-hidden="true">✦</b></span>
+      <img src="/static/images/truemerit-hero-products.svg" alt="Illustration of cleaning essentials including a mop, bucket, spray bottle, scrub brush, and cloth" class="hero-product-image" width="720" height="540" fetchpriority="high">
+      <div class="hero-visual-footer"><span>MADE FOR REAL LIFE</span><strong>THE TRUEMERIT COLLECTION</strong></div>
+    </div>
   </div><div class="hero-index">01 — 03 <span>SCROLL TO EXPLORE ↓</span></div>
 </section>
 <section class="v71-benefit-strip" aria-label="Why shop TrueMerit">
@@ -93,7 +97,11 @@
  <details><summary>Where do I see shipping costs? <span aria-hidden="true">+</span></summary><p>{% if public_preview %}Online orders are not available yet. You can explore products while we finish preparing checkout.{% else %}Available shipping choices and their costs appear at checkout. You can also review the <a href="/information/shipping">shipping information</a>. Orders will be processed securely through Stripe when the store opens.{% endif %}</p></details>
  <details><summary>What is the return policy? <span aria-hidden="true">+</span></summary><p>Please check our current <a href="/information/returns">returns and refunds information</a> for the policy set by TrueMerit Cleaning Supplies.</p></details>
  </div></div></section>
-<section class="editorial" id="about"><div class="container editorial-grid"><div class="editorial-image"><img src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies logo" loading="lazy" decoding="async"><div class="editorial-image-overlay"><span>TRUEMERIT SUPPLIES</span><span>BEYOND EVERYDAY</span></div></div><div class="editorial-copy"><div class="section-kicker gold">A NAME BEHIND EVERY DETAIL</div><h2>More than<br><em>just clean.</em></h2><p>TrueMerit Cleaning Supplies brings together useful cleaning tools and supplies from independent brands, making it easier to find what you need in one place.</p><div class="editorial-signature"><span class="signature-mark">TrueMerit</span><span>PRODUCTS YOU CAN TRUST<br>EVERY SINGLE DAY</span></div><a class="btn btn-outline-dark" href="#shop">Explore the shop <span>↗</span></a></div></div></section>
+<section class="editorial" id="about"><div class="container editorial-grid"><div class="editorial-image editorial-promise-panel">
+    <div class="editorial-promise-kicker">THE TRUEMERIT STANDARD <span aria-hidden="true">✦</span></div>
+    <div class="editorial-promise-content"><span>FOCUSED ON WHAT MATTERS</span><strong>Good tools.<br><em>Better routines.</em></strong><p>Cleaning essentials for the work you do every day.</p></div>
+    <div class="editorial-image-overlay"><span>TRUEMERIT CLEANING SUPPLIES</span><span>BEYOND EVERYDAY</span></div>
+  </div><div class="editorial-copy"><div class="section-kicker gold">A NAME BEHIND EVERY DETAIL</div><h2>More than<br><em>just clean.</em></h2><p>TrueMerit Cleaning Supplies brings together useful cleaning tools and supplies from independent brands, making it easier to find what you need in one place.</p><div class="editorial-signature"><span class="signature-mark">TrueMerit</span><span>PRODUCTS YOU CAN TRUST<br>EVERY SINGLE DAY</span></div><a class="btn btn-outline-dark" href="#shop">Explore the shop <span>↗</span></a></div></div></section>
 {% if not public_preview %}<section class="v73-newsletter" id="odj-updates"><div class="container v73-newsletter-grid"><div><div class="section-kicker gold">STAY IN THE KNOW</div><h2>Good things in <em>your inbox.</em></h2><p>Product launches, cleaning essentials and occasional offers. Only occasional product news and offers when available.</p></div><form id="newsletter-form"><label for="newsletter-email">EMAIL ADDRESS</label><div class="v73-newsletter-fields"><input type="email" id="newsletter-email" autocomplete="email" maxlength="255" placeholder="you@example.com" required><button class="btn btn-gold" type="submit">Join TrueMerit updates ↗</button></div><label class="v73-consent"><input id="newsletter-consent" type="checkbox" required> I agree to receive marketing emails from TrueMerit Cleaning Supplies. I can unsubscribe at any time.</label><p id="newsletter-feedback" role="status" aria-live="polite"></p></form></div></section>{% endif %}
 <section class="bottom-cta"><div class="container"><span>GOOD THINGS START HERE</span><h2>Make room for <em>better.</em></h2><a class="btn btn-gold" href="#shop">Shop TrueMerit essentials <span>↗</span></a></div></section>
 </main>

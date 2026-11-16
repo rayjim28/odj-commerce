@@ -156,33 +156,61 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   --cream:var(--tm-surface);
 }
 
-/* The wordmark is an SVG with a transparent background, not a raster
-   screenshot with white pixels baked into its image. */
+/* Keep the approved brand mark in the header: the hero should show
+   cleaning essentials, not a giant logo placard. */
 .tm-brand-logo { background:transparent; image-rendering:auto; }
-.hero-art::before {
-  content:""; position:absolute; inset:17% 0 17%; border-radius:16px;
-  background:linear-gradient(135deg,#f9fcff,#e9f4ff);
-  border:1px solid #7aa7d1;
-  box-shadow:0 24px 65px #02142950;
+.hero-product-art::before { content:none; }
+.hero-product-art .hero-product-image {
+  position:relative; z-index:1; display:block;
+  width:110%; max-width:690px; height:100%; object-fit:contain;
+  background:transparent; padding:0; border:0;
+  filter:drop-shadow(0 13px 25px #03162f55);
 }
-.hero-art .hero-logo {
-  position:relative; z-index:1; width:92%; max-width:92%;
-  height:auto; padding:0; border:0; background:transparent;
-  mix-blend-mode:normal; filter:none;
+.hero-visual-kicker {
+  position:absolute; z-index:2; top:0; right:0;
+  color:#c5daf0; font-size:9px; font-weight:800; letter-spacing:.22em;
 }
-.hero-art-small,.hero-art-caption { z-index:2; }
+.hero-visual-kicker b { font-size:15px; color:var(--tm-orange); padding-left:10px; }
+.hero-visual-footer {
+  position:absolute; z-index:2; bottom:-3px; right:0;
+  display:flex; flex-wrap:wrap; justify-content:flex-end;
+  align-items:center; gap:16px; padding-top:14px;
+  border-top:1px solid #6088ac7a; color:#a9c6df;
+  font-size:8px; letter-spacing:.16em; font-weight:800;
+}
+.hero-visual-footer strong { color:#ff9e53; }
 .editorial { background:#082956; }
-.editorial-image {
-  background:linear-gradient(140deg,#f7fbff,#e8f3fc);
-  border:1px solid #9cc2e4; border-radius:8px;
+.editorial-promise-panel {
+  background:radial-gradient(ellipse at 83% 18%,#248ad54f,transparent 50%),
+    linear-gradient(135deg,#123e72 0%,#0b315c 51%,#061c3b 100%);
+  border:1px solid #32608c; border-radius:7px;
+  padding:52px 45px; justify-content:flex-start; align-items:stretch;
+  isolation:isolate;
 }
-.editorial-image img {
-  display:block; width:94%; max-width:94%; max-height:84%;
-  object-fit:contain; background:transparent; padding:0; filter:none;
+.editorial-promise-panel::before {
+  content:""; position:absolute; width:300px; height:300px;
+  top:-137px; right:-102px; border:1px solid #71b8e540;
+  border-radius:50%; box-shadow:0 0 0 50px #71b8e508;
 }
-.editorial-image-overlay,.editorial-signature .signature-mark {
-  color:var(--tm-orange);
+.editorial-promise-kicker {
+  color:#b7d6f1; letter-spacing:.19em; font-size:10px; font-weight:800;
+  position:relative; z-index:1;
 }
+.editorial-promise-kicker span { color:var(--tm-orange); margin-left:12px; }
+.editorial-promise-content { margin:auto 0; position:relative; z-index:1; }
+.editorial-promise-content>span { font-size:9px; color:#a6d3f4; letter-spacing:.17em; font-weight:800; }
+.editorial-promise-content strong {
+  display:block; color:#fff; margin:17px 0 13px;
+  font-size:clamp(33px,3.7vw,57px); font-weight:700;
+  line-height:1.13; letter-spacing:-.065em;
+}
+.editorial-promise-content strong em {
+  font-family:var(--serif); font-weight:500;
+  color:#ff9334; letter-spacing:-.06em;
+}
+.editorial-promise-content p { color:#b9d5ed; font-size:12px; line-height:1.7; }
+.editorial-promise-panel .editorial-image-overlay { color:#a3c8e7; }
+.editorial-image-overlay,.editorial-signature .signature-mark { color:var(--tm-orange); }
 .editorial-copy>p { color:#c5d8ed; }
 .editorial-signature>span:last-child { color:#bdcee0; border-left-color:#4b759d; }
 
@@ -285,6 +313,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   background:#164978; border-color:#ff821c;
 }
 @media(max-width:750px){
-  .hero-art::before { inset:15% 0 20%; border-radius:12px; }
-  .hero-art .hero-logo { width:94%; max-width:94%; }
+  .hero-product-art { height:300px; margin:23px 0 9px; }
+  .hero-product-art .hero-product-image { width:104%; max-width:100%; }
+  .hero-visual-kicker { top:4px; right:8px; font-size:8px; }
+  .hero-visual-footer { bottom:-5px; font-size:7px; }
+  .editorial-promise-panel { min-height:360px; padding:30px; }
+}
+@media(max-width:420px){
+  .hero-product-art { height:265px; }
+  .hero-visual-footer { gap:9px; letter-spacing:.08em; }
+  .editorial-promise-content strong { font-size:38px; }
 }
