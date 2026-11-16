@@ -11,13 +11,13 @@
 {% if seo_images %}<meta property="og:image" content="{{seo_images[0]}}">{% endif %}
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Product','name':product.name,'description':product.description or product.name,'image':seo_images,'sku':product.sku or '', 'offers':{'@type':'Offer','url':canonical_url,'priceCurrency':'USD','price':'%.2f'|format(product.price_cents / 100),'availability':'https://schema.org/InStock' if product.stock > 0 else 'https://schema.org/OutOfStock'}}|tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=2">
+<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=3">
 </head>
 <body class="product-page-body">
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
 <header class="site-header"><div class="container nav-wrap">
-<a class="brand" href="/" aria-label="TrueMerit Cleaning Supplies home"><img class="tm-brand-logo" src="/static/images/truemerit-approved-logo.webp" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a>
+<a class="brand" href="/" aria-label="TrueMerit Cleaning Supplies home"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a>
 <nav class="main-nav" aria-label="Main navigation"><a href="/">Home</a><a class="nav-active" href="/#shop">Shop all</a><a href="/#about">Our promise</a></nav>
 <div class="nav-actions">{% if not public_preview or account_testing %}<a class="account-nav" href="/account" aria-label="{% if customer %}My account{% else %}Sign in{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 21c0-5.5 14.4-5.5 14.4 0"/></svg><span>{% if customer %}My account{% else %}Sign in{% endif %}</span></a>{% endif %}<a class="product-bag-link" href="/?cart=1" aria-label="Open shopping bag">Bag <span id="detail-bag-count">0</span></a></div>
 </div></header>

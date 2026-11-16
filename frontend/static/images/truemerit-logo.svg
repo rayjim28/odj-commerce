@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 610 225" role="img" aria-labelledby="logo-title logo-description">
+<title id="logo-title">TrueMerit Cleaning Supplies</title>
+<desc id="logo-description">Navy TrueMerit wordmark and orange Cleaning Supplies text with a swoosh, a house and a green leaf</desc>
+<defs><linearGradient id="swoosh" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#f9a41b"/><stop offset=".52" stop-color="#ff7e00"/><stop offset="1" stop-color="#fa6e00"/></linearGradient><linearGradient id="leaf" x1="0" x2="1" y1="1" y2="0"><stop stop-color="#2b970a"/><stop offset="1" stop-color="#52b621"/></linearGradient></defs>
+<path d="M92 211C40 191 15 169 27 132 38 89 116 48 218 23 309 2 396 5 452 12 362 6 278 15 203 37 106 65 48 104 38 142 27 173 51 195 92 211Z" fill="url(#swoosh)"/>
+<path d="M242 80 324 25 397 70 397 84 324 41 263 83 239 83Z" fill="#082956"/>
+<path d="M272 63V45h15v9" fill="#082956"/>
+<path d="M309 64h13v13h-13zm17 0h13v13h-13zm-17 17h13v13h-13zm17 0h13v13h-13z" fill="#ff7c12"/>
+<path d="M386 92C397 58 417 26 461 20 489 16 505 9 515 3 510 50 493 77 462 88 431 98 404 82 386 92Z" fill="url(#leaf)"/>
+<path d="M386 91C412 59 454 44 507 21" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+<text x="99" y="164" fill="#082956" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="98" font-style="italic" font-weight="900" letter-spacing="-5" textLength="490" lengthAdjust="spacingAndGlyphs">TrueMerit</text>
+<text x="132" y="204" fill="#e75a06" font-family="Liberation Sans, Arial, Helvetica, sans-serif" font-size="43" font-style="italic" font-weight="800" letter-spacing="-1" textLength="428" lengthAdjust="spacingAndGlyphs">Cleaning Supplies</text>
+</svg>

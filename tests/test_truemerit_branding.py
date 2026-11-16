@@ -13,9 +13,11 @@ def test_brand_assets_are_valid_svg():
         assert path.is_file()
         doc = ElementTree.parse(path)
         assert doc.getroot().tag.endswith("svg")
-    logo = (ASSETS / "images" / "truemerit-approved-logo.webp").read_bytes()
-    assert logo.startswith(b"RIFF")
-    assert logo[8:12] == b"WEBP"
+    logo = ASSETS / "images" / "truemerit-logo.svg"
+    assert logo.is_file()
+    root = ElementTree.parse(logo).getroot()
+    assert root.tag.endswith("svg")
+    assert root.attrib.get("viewBox") == "0 0 610 225"
 
 
 def test_original_page_structure_has_brand_layer():
@@ -23,9 +25,9 @@ def test_original_page_structure_has_brand_layer():
                 "success.html", "order_detail.html", "store_info.html", "reset_password.html", "demo_order.html")
     for name in required:
         page = (TEMPLATES / name).read_text()
-        assert 'href="/static/truemerit-theme.css?v=2"' in page
+        assert 'href="/static/truemerit-theme.css?v=3"' in page
         assert "TrueMerit" in page
-        assert "/static/images/truemerit-approved-logo.webp" in page
+        assert "/static/images/truemerit-logo.svg" in page
     home = (TEMPLATES / "index.html").read_text()
     for landmark in ("id=\"shop\"", 'class="hero"', 'class="main-nav"', 'class="footer"'):
         assert landmark in home
@@ -50,4 +52,4 @@ def test_approved_storefront_header_and_legacy_announcement_guard():
     assert ".nav-actions .search-trigger{display:flex" in css
     admin = (TEMPLATES / "admin.html").read_text()
     assert 'class="admin-welcome"' in admin
-    assert 'truemerit-approved-logo.webp' in admin
+    assert 'truemerit-logo.svg' in admin
