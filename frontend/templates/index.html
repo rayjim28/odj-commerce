@@ -42,6 +42,24 @@
       <div class="hero-ctas"><a class="btn btn-gold" href="#shop">Shop cleaning essentials <span>↗</span></a><a class="text-link" href="#collections">Explore collections <span>↗</span></a></div>
       
     </div>
+    {% if merch.hero_products %}
+    <div class="hero-art hero-featured-art" aria-label="Featured cleaning supplies">
+      <div class="hero-featured-heading"><span class="hero-featured-marker"></span> FEATURED CLEANING SUPPLIES</div>
+      <div class="hero-featured-grid hero-featured-count-{{ merch.hero_products | length }}">
+        {% for product in merch.hero_products %}
+        <a class="hero-featured-card" href="/products/{{ product.id }}" aria-label="View {{ product.name }}">
+          <span class="hero-featured-photo"><img src="{{ product.image_url }}" alt="{{ product.name }}" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async"></span>
+          <span class="hero-featured-details">
+            <small>{{ product.category }}</small>
+            <strong>{{ product.name }}</strong>
+            <span class="hero-featured-price">${{ '%.2f' | format(product.price_cents / 100) }} <b aria-hidden="true">↗</b></span>
+          </span>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="hero-featured-footer">Products from independent brands</div>
+    </div>
+    {% else %}
     <div class="hero-art hero-abstract-art" aria-hidden="true">
       <div class="hero-abstract-glow"></div>
       <div class="hero-abstract-layer hero-abstract-layer-back"></div>
@@ -49,6 +67,7 @@
       <div class="hero-abstract-layer hero-abstract-layer-front"></div>
       <div class="hero-abstract-highlight"></div>
     </div>
+    {% endif %}
   </div>
 </section>
 <section class="v71-benefit-strip" aria-label="Why shop TrueMerit">
