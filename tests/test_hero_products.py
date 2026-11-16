@@ -80,8 +80,8 @@ def test_layered_fan_matches_reference_and_uses_real_catalog():
     html = (ROOT / "frontend" / "templates" / "index.html").read_text()
     for n in range(5):
         assert f'.hero-stack-card[data-slot="{n}"]' in css
-    assert '--fan-angle:-25deg' in css
-    assert '--fan-angle:22deg' in css
+    assert '--fan-angle:-24deg' in css
+    assert '--fan-angle:20deg' in css
     assert 'hero-stack-dots' in html
     assert 'src="/static/js/hero-stack.js?v=1"' in html
     assert 'event.preventDefault()' in js
