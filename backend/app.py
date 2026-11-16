@@ -1162,6 +1162,8 @@ def demo_checkout(payload: DemoOrderRequest, request: Request):
 @app.get('/demo-order/{order_id}', response_class=HTMLResponse)
 def demo_confirmation(order_id: str, request: Request, access: str = ''):
     customer = signed_in_customer(request)
+    if not customer and not guest_checkout_enabled() and not access:
+        require_customer(request)
     with SessionLocal() as db:
         order = db.get(Order, order_id)
         if not order or order.status != 'demo' or not (
