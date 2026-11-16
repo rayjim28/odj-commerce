@@ -744,7 +744,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   font-size:8px;letter-spacing:.1em;
 }
 .editorial-grid > .editorial-copy{
-  padding:15px 0;
+  padding:15px 0 15px 28px;
 }
 .tm-wholesale{position:relative;isolation:isolate;clear:both}
 .tm-wholesale .tm-wholesale-inner{min-width:0}
@@ -847,3 +847,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .admin-body .launch-ready .launch-status{background:#e5f6eb;color:#247341}
 .admin-body .launch-check-explainer{padding:18px 22px;margin:24px 0 15px}
 .admin-body .launch-disclaimer{font-size:12px;line-height:1.7}
+
+/* Release 1 owner-review readability: the overview card is white.
+   Legacy admin-welcome text was still designed for a dark background. */
+.admin-body .admin-welcome h2{color:#082956}
+.admin-body .admin-welcome h2 em{color:#d96c14}
+.admin-body .admin-welcome .section-kicker{color:#c35b0b!important}
+.admin-body .admin-welcome p{
+  color:#36536f;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.7;
+}
+.admin-body .admin-welcome .v5-demo-caption{
+  color:#4b6681;
+  font-size:12px;
+}
+.admin-body .admin-welcome .v5-demo-caption strong{color:#123d68}
+.admin-body .admin-header p,
+.admin-body .admin-section-toolbar p{
+  color:#4f6984;
+  font-weight:500;
+  line-height:1.65;
+}
