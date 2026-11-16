@@ -69,6 +69,12 @@ async def lifespan(app: FastAPI):
         if payment_mode() != 'demo':
             raise RuntimeError('Staging must use PAYMENT_MODE=demo in this release.')
     create_tables()
+    # This legacy-only data correction is idempotent and leaves owner-edited
+    # fields, product data, policies, payment configuration and orders untouched.
+    if os.getenv('APP_ENV') == 'production':
+        from backend.brand_settings import rebrand_legacy_store_settings
+        with SessionLocal() as db:
+            rebrand_legacy_store_settings(db)
     yield
 
 def public_storefront_preview() -> bool:
