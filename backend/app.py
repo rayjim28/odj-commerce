@@ -122,7 +122,7 @@ async def protect_private_pages(request: Request, call_next):
     if public_storefront_preview():
         path = request.url.path
         payment_or_marketing = (path in ('/checkout', '/api/checkout') or
-            path.startswith(('/api/checkout/', '/demo-order/', '/api/newsletter/', '/newsletter/')))
+            path.startswith(('/api/checkout/', '/demo-order/', '/api/newsletter/', '/newsletter/', '/guest/', '/api/guest/')))
         account_path = (path == '/account' or path.startswith(('/account/', '/api/account/')))
         if payment_or_marketing or (account_path and not account_testing_preview()):
             return JSONResponse(status_code=503,
