@@ -117,7 +117,8 @@ def test_rebranded_all_page_stylesheets_and_no_guest_checkout_claim():
         "store_info.html", "reset_password.html", "demo_order.html"
     )
     for page in pages:
-        assert 'truemerit-theme.css?v=9' in (TEMPLATES / page).read_text()
+        version = 'release2-2' if page == 'checkout.html' else '9'
+        assert f'truemerit-theme.css?v={version}' in (TEMPLATES / page).read_text()
     home = (TEMPLATES / "index.html").read_text()
     assert "Yes. You can explore products and build a bag as a guest" in home
     app = (ROOT / "backend" / "app.py").read_text()
