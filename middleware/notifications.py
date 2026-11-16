@@ -20,7 +20,7 @@ def store_settings(db):
             'express_shipping_cents':saved.express_shipping_cents,
         }
     return {
-        'contact_email':'','contact_phone':'','announcement':'',
+        'contact_email':'truemeritsupplies@gmail.com','contact_phone':'(347) 754-7717','announcement':'',
         'shipping_policy':'','return_policy':'',
         'standard_shipping_cents':int(os.getenv('SHIPPING_CENTS','795')),
         'express_shipping_cents':int(os.getenv('EXPRESS_SHIPPING_CENTS','1495')),
@@ -32,13 +32,13 @@ def money(cents):
 
 
 def email_layout(heading, body, notice=''):
-    notice_html = '<p style="padding:12px;background:#4b2b19;color:#ffdd9c">'+html.escape(notice)+'</p>' if notice else ''
+    notice_html = '<p style="padding:12px;background:#173e68;color:#fff0de;border-left:3px solid #ff821c">'+html.escape(notice)+'</p>' if notice else ''
     return ('''<!doctype html><html lang="en"><head><meta charset="utf-8"><title>TrueMerit Cleaning Supplies</title></head>
     <body style="margin:0;background:#061b3a;padding:32px 12px;font-family:Arial,sans-serif;color:#f5f0e8">
     <main style="max-width:600px;margin:auto;padding:36px;background:#0d2e58;border:1px solid #3574ac">
     <p style="font-size:12px;letter-spacing:4px;color:#ff9b42">TRUEMERIT CLEANING SUPPLIES</p>
     <h1 style="font-family:Georgia,serif;font-size:32px;color:#f5faff">'''+html.escape(heading)+'''</h1>'''+notice_html+body+'''
-    <hr style="border:0;border-top:1px solid #5a4730;margin:28px 0">
+    <hr style="border:0;border-top:1px solid #3c6590;margin:28px 0">
     <p style="font-size:12px;color:#c5d7e9">TrueMerit Cleaning Supplies · Operated by ODJ Group LLC</p></main></body></html>''')
 
 

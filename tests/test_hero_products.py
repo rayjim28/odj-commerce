@@ -44,6 +44,7 @@ def test_only_eligible_real_photographed_products_appear():
         make_product(6, price=0),
         make_product(7, active=False),
         make_product(8, is_bundle=True),
+        make_product(20, image="/static/images/cloth.svg"),
         make_product(9),
         make_product(10),
         make_product(11),

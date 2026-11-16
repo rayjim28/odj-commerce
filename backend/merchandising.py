@@ -13,7 +13,9 @@ def build_home_merchandising(products):
     # out-of-stock products, bundles, or entries lacking a real product photo.
     def valid_hero_photo(url):
         url = (url or '').strip()
-        return bool(url) and not any(
+        # Supplier photos should be real images, not our built-in SVG
+        # sample illustrations or the generic missing-photo placeholders.
+        return bool(url) and not url.lower().split('?', 1)[0].endswith('.svg') and not any(
             token in url.lower() for token in
             ('default.svg', 'placeholder.svg', 'odj-bundle-placeholder.svg')
         )
