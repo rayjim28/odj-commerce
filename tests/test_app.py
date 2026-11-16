@@ -685,9 +685,27 @@ def test_home_hero_shows_first_published_product_without_price(authenticated):
         'name': 'Supplier mop', 'category': 'Mop systems',
         'description': 'Product details provided by its supplier.',
         'price_cents': 2549, 'stock': 6,
-        'image_url': '/static/images/cloth.svg',
+        'image_url': '',
         'active': True, 'featured': False, 'badge': '',
     }
+    # A product without a real photo must not appear in the hero.
+    assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
+    no_photo = authenticated.get('/')
+    assert 'data-hero-stack' not in no_photo.text.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
+
+    # Upload a real image using the same admin endpoint as the owner uses.
+    from PIL import Image
+    from io import BytesIO
+    buffer = BytesIO()
+    Image.new('RGB', (96, 96), (38, 110, 170)).save(buffer, format='PNG')
+    upload = authenticated.post('/api/admin/upload-image',
+        files={'file':('supplier-mop.png', buffer.getvalue(), 'image/png')})
+    assert upload.status_code == 200, upload.text
+    url = upload.json()['url']
+    assert url.startswith('/media/')
+    assert authenticated.get(url).status_code == 200
+
+    product['image_url'] = url
     assert authenticated.patch(f'/api/admin/products/{pid}', json=product).status_code == 200
     response = authenticated.get('/')
     assert response.status_code == 200
@@ -695,7 +713,7 @@ def test_home_hero_shows_first_published_product_without_price(authenticated):
     assert 'data-hero-stack' in hero
     assert 'data-hero-card' in hero
     assert 'Supplier mop' in hero
-    assert '/static/images/cloth.svg' in hero
+    assert url in hero
     assert f'href="/products/{pid}"' in hero
     assert '$25.49' not in hero
 
