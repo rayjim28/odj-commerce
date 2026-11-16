@@ -32,3 +32,49 @@ def test_checkout_logo_is_in_light_high_contrast_card():
     light = relative_luminance("#fffaf3")
     navy = relative_luminance("#082956")
     assert (light + .05) / (navy + .05) >= 7.0, "Navy brand lettering needs high contrast"
+
+
+def test_full_true_merit_checkout_theme():
+    """Make sure the legacy ODJ checkout colors cannot show through."""
+    template = TEMPLATE.read_text()
+    css_path = ROOT / "frontend/static/truemerit-checkout.css"
+    assert css_path.exists()
+    css = css_path.read_text()
+    assert '/static/truemerit-checkout.css?v=release2-1' in template
+    assert template.index('truemerit-theme.css?v=release2-2') < template.index('truemerit-checkout.css?v=release2-1')
+    required = (
+        ".checkout-body",
+        ".checkout-body .checkout-simulation",
+        ".checkout-body .v74-progress-step",
+        ".checkout-body .checkout-panel",
+        ".checkout-body .checkout-step",
+        ".checkout-body .checkout-bag-heading",
+        ".checkout-body .checkout-item",
+        ".checkout-body .checkout-empty",
+        ".checkout-body .shipping-option",
+        ".checkout-body .shipping-option:has(input:checked)",
+        ".checkout-body .shipping-fields input",
+        ".checkout-body .checkout-summary",
+        ".checkout-body .checkout-grand",
+        ".checkout-body #checkout-submit",
+        ".checkout-body #checkout-submit:disabled",
+    )
+    for rule in required:
+        assert rule in css, f"Missing TrueMerit checkout color override for {rule}"
+    # Brand color and readable light panels, not old brown/black surfaces.
+    assert "background:#f8fbff;" in css
+    assert "background:#fff;" in css
+    assert "background:#ff821c;" in css
+    assert "color:#102f52;" in css
+    assert "color:#708a9f;" in css  # readable field placeholders
+    assert "@media(max-width:550px)" in css
+    assert "@media(max-width:900px)" in css
+
+
+def test_checkout_styles_are_scoped_to_checkout_only():
+    css = (ROOT / "frontend/static/truemerit-checkout.css").read_text()
+    import re
+    selectors = [m.group(1).strip() for m in re.finditer(r"([^{}]+)\\{[^{}]*\\}", css)]
+    # Do not override storefront or admin components while fixing checkout.
+    assert ".admin-body" not in css and ".site-header" not in css
+    assert len(selectors) >= 30
