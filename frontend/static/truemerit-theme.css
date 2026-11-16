@@ -384,6 +384,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   background:#164978; border-color:#ff821c;
 }
 
+/* Avoid the inherited 52% + 48% grid tracks overflowing their gap. */
+.editorial-grid { grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:clamp(28px,4vw,68px); }
+@media(max-width:750px){.editorial-grid{display:flex;flex-direction:column;align-items:stretch}}
+
 /* Keep About message truly centered within its own panel, not aligned right by row flexbox. */
 .editorial-promise-panel { display:flex;flex-direction:column;align-items:stretch;justify-content:space-between; }
 .editorial-promise-content { align-self:center;max-width:100%;text-align:center; }
