@@ -105,6 +105,9 @@ def test_admin_policy_styles_and_no_coupon_panel_on_screen():
     ):
         assert selector in css
     assert ".admin-body .v73-admin-panel[hidden]{display:none!important}" in css
+    checkout = (TEMPLATES / "checkout.html").read_text()
+    assert 'hidden aria-hidden="true" data-feature="deferred-coupons"' in checkout
+    assert ".v73-promo[hidden]{display:none!important}" in css
 
 
 def test_rebranded_all_page_stylesheets_and_no_guest_checkout_claim():
