@@ -35,12 +35,13 @@ from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_passw
     make_password_hash, origin_allowed, CUSTOMER_COOKIE, CUSTOMER_MAX_AGE,
     customer_claims, create_customer_token)
 from payment import create_checkout, verify_webhook, read_stripe_checkout_refunds, StripeError
-from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email
+from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email, email_layout
 from launch_readiness import launch_readiness, sales_prerequisite_failures, OWNER_REVIEW_TASKS
 from backend.catalog import serialize_product, bundle_data, public_catalog
 from backend.serializers import serialize_order
 from backend.merchandising import build_home_merchandising
-from backend.guest_orders import guest_checkout_enabled, guest_order_token, guest_token_matches
+from backend.guest_orders import (guest_checkout_enabled, guest_order_token, guest_token_matches,
+    guest_order_signer, GUEST_ORDER_MAX_AGE_SECONDS)
 from middleware.analytics import analytics_summary, ANALYTICS_EVENTS
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
@@ -1343,6 +1344,80 @@ def success(request: Request, session_id: str = ''):
             if o:
                 status = o.status
     return templates.TemplateResponse(request, 'success.html', {'status':status})
+
+
+# Guest order history uses signed, expiring links; order IDs alone are never
+# authorization. Delivery links are only sent to the email Stripe collected.
+guest_order_link_attempts: dict[str, list[float]] = {}
+
+
+class GuestOrderLinkRequest(BaseModel):
+    order_id: str = Field(min_length=36, max_length=36)
+    email: str = Field(min_length=3, max_length=255)
+
+
+@app.get('/guest/order-lookup', response_class=HTMLResponse)
+def guest_order_lookup(request: Request):
+    response = templates.TemplateResponse(request, 'guest_lookup.html', {})
+    response.headers['Cache-Control'] = 'no-store, private'
+    response.headers['X-Robots-Tag'] = 'noindex'
+    return response
+
+
+@app.post('/api/guest/order-link')
+def request_guest_order_link(payload: GuestOrderLinkRequest, request: Request):
+    if not origin_allowed(request):
+        raise HTTPException(403, 'Invalid request origin.')
+    throttle(request, guest_order_link_attempts, 6, 3600)
+    email = normalize_email(payload.email)
+    # Always give the same response regardless of whether an order exists.
+    answer = {'message': 'If this paid guest order matches your email, a secure link will be sent.'}
+    if not re.fullmatch(r'[0-9a-fA-F-]{36}', payload.order_id):
+        return answer
+    with SessionLocal() as db:
+        order = db.get(Order, payload.order_id)
+        if (not order or order.customer_id is not None or
+                order.status not in ('paid', 'partially_refunded', 'refunded') or
+                not hmac.compare_digest((order.email or '').strip().lower(), email)):
+            return answer
+        token = guest_order_token(order)
+        if not token:
+            return answer
+        link = base_url(request) + '/guest/orders/' + token
+        body = ('<p>Use this private link to view the status of your TrueMerit order. '
+                'It expires in 30 days.</p><p><a style="color:#ffad68" href="' +
+                link + '">View my order</a></p>')
+        queue_message(db, 'guest-link:' + order.id + ':' + secrets.token_hex(12),
+            'guest_order_link', order.email, 'TrueMerit secure order link',
+            email_layout('View your order', body), 'Your private order link (30 days): ' + link)
+        db.commit()
+    return answer
+
+
+@app.get('/guest/orders/{token}', response_class=HTMLResponse)
+def guest_order_detail(token: str, request: Request):
+    signer = guest_order_signer()
+    if not signer:
+        raise HTTPException(503, 'Secure order lookup is unavailable.')
+    try:
+        claims = signer.loads(token, max_age=GUEST_ORDER_MAX_AGE_SECONDS)
+    except (BadSignature, SignatureExpired, TypeError, ValueError):
+        raise HTTPException(404, 'Order link is invalid or expired.')
+    order_id = claims.get('id') if isinstance(claims, dict) else None
+    if not isinstance(order_id, str) or not re.fullmatch(r'[0-9a-fA-F-]{36}', order_id):
+        raise HTTPException(404, 'Order link is invalid or expired.')
+    with SessionLocal() as db:
+        order = db.get(Order, order_id)
+        if not guest_token_matches(token, order):
+            raise HTTPException(404, 'Order link is invalid or expired.')
+        details = serialize_order(order)
+    response = templates.TemplateResponse(request, 'order_detail.html', {
+        'order':details, 'guest':True, 'customer':None
+    })
+    response.headers['Cache-Control'] = 'no-store, private'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['X-Robots-Tag'] = 'noindex'
+    return response
 
 
 @app.get('/admin', response_class=HTMLResponse)
