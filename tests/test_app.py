@@ -692,7 +692,8 @@ def test_home_hero_shows_first_published_product_without_price(authenticated):
     response = authenticated.get('/')
     assert response.status_code == 200
     hero = response.text.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
-    assert 'hero-featured-grid hero-featured-count-1' in hero
+    assert 'data-hero-stack' in hero
+    assert 'data-hero-card' in hero
     assert 'Supplier mop' in hero
     assert '/static/images/cloth.svg' in hero
     assert f'href="/products/{pid}"' in hero
@@ -704,7 +705,7 @@ def test_home_hero_shows_first_published_product_without_price(authenticated):
     response = authenticated.get('/')
     hero = response.text.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
     assert 'class="hero-art hero-abstract-art"' in hero
-    assert 'hero-featured-grid hero-featured-count-1' not in hero
+    assert 'data-hero-stack' not in hero
 
 
 # V7.2 bundles and promotions
