@@ -1123,7 +1123,10 @@ def test_r2_guest_stripe_webhook_email_private_lookup_and_no_stock_double_count(
         assert '/guest/orders/' in outbox[0].html_body and token in outbox[0].html_body
         assert oid in outbox[0].html_body
     assert client.get('/api/account/orders').status_code==401
-    assert client.get('/guest/orders/'+token).status_code==200
+    private_detail=client.get('/guest/orders/'+token)
+    assert private_detail.status_code==200
+    assert private_detail.headers['Cache-Control']=='no-store, private'
+    assert private_detail.headers['Referrer-Policy']=='no-referrer'
     assert client.get('/guest/orders/'+token[:-3]+'bad').status_code==404
     assert client.get('/guest/orders/not-a-token').status_code==404
     assert client.get('/guest/order-lookup').status_code==200
