@@ -521,3 +521,193 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .editorial-promise-content { align-self:center;max-width:100%;text-align:center; }
 .editorial-promise-content strong { text-align:center; }
 @media(max-width:750px){.editorial-promise-panel{padding:28px;min-height:355px}.editorial-promise-content strong{font-size:clamp(34px,8vw,47px)}}
+
+
+/* ================================================================
+   TRUEMERIT RELEASE 1 — BRAND & OWNER EXPERIENCE
+   Owner-approved navy/orange brand layer over legacy ODJ layout.
+   ================================================================ */
+:root{
+  --tm-card:#ffffff;
+  --tm-border-soft:#d6e3f1;
+  --tm-copy:#213a55;
+}
+.hero-copy>.hero-promise-line{
+  color:#ffb575;
+  font-size:clamp(12px,1.25vw,16px);
+  font-weight:800;
+  line-height:1.5;
+  letter-spacing:.01em;
+  margin-top:12px;
+  max-width:530px;
+}
+.hero-copy>.hero-promise-line span{color:#f9fcff}
+.tm-wholesale{
+  background:linear-gradient(123deg,#f2f8ff,#eaf4fd);
+  border-top:1px solid #d3e5f4;
+  border-bottom:1px solid #c8dcee;
+  padding:38px 0;
+}
+.tm-wholesale-inner{display:flex;align-items:center;justify-content:space-between;gap:32px}
+.tm-wholesale-inner>div{max-width:780px;min-width:0}
+.tm-wholesale h2{
+  font-size:clamp(27px,3vw,43px);
+  letter-spacing:-.055em;
+  line-height:1.16;
+  color:var(--tm-navy);
+  margin:9px 0 12px;
+}
+.tm-wholesale h2 em{color:#da6a11;font-family:var(--serif);font-weight:500}
+.tm-wholesale p{font-size:13px;color:#53708e;line-height:1.75;max-width:735px}
+.tm-wholesale .tm-wholesale-link{
+  flex:none;display:flex;align-items:center;gap:20px;
+  text-decoration:none;border:1px solid #4f8abb;
+  color:#0c4276;padding:17px 21px;
+  background:#fff;font-size:12px;font-weight:800;
+}
+.tm-wholesale-link:hover{border-color:#ef7920;background:#f9fcff}
+.editorial-promise-content strong{
+  font-size:clamp(29px,3vw,49px);
+  line-height:1.13;
+  letter-spacing:-.065em;
+}
+.editorial-promise-content>span{color:#c1e0f4}
+.editorial-promise-content p{font-size:13px}
+.editorial-copy>p{font-size:14px;line-height:1.85}
+.v73-newsletter-grid{align-items:start}
+.v73-newsletter form{padding-top:12px}
+.v73-newsletter h2 em{color:#ff9a38}
+.v73-newsletter-fields button{white-space:nowrap}
+.v73-consent{color:#d8e5f2}
+.v73-consent input{accent-color:var(--tm-orange);width:16px;height:16px}
+
+/* Store policies and customer contact: remove the former black/brown card. */
+.tm-info-body{min-height:100vh;background:#eff5fb;color:var(--tm-navy)}
+.tm-info-body .checkout-top{background:var(--tm-deep)}
+.tm-info-card{
+  max-width:840px;
+  margin:55px auto 85px;
+  padding:clamp(25px,5vw,60px);
+  border:1px solid #d0e1ef;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 18px 50px #09284f14;
+  color:var(--tm-copy);
+}
+.tm-info-card h1{font-size:clamp(32px,4.6vw,51px);color:var(--tm-navy);line-height:1.15;letter-spacing:-.045em}
+.tm-info-card h2{color:var(--tm-navy);font-size:25px;line-height:1.25}
+.tm-info-card .section-kicker{letter-spacing:.15em}
+.tm-info-card .v6-policy-text{
+  color:#344f68;
+  font-size:14px;
+  line-height:1.9;
+  white-space:pre-line;
+  margin:0 0 24px;
+  overflow-wrap:anywhere;
+}
+.tm-policy-prose{border-top:1px solid var(--tm-border-soft);padding-top:25px}
+.tm-info-intro{color:#52718d;font-size:15px;line-height:1.8}
+.tm-policy-contact{padding:20px;background:#f1f7fc;border-left:3px solid var(--tm-orange);font-size:13px;color:#36546f}
+.tm-info-card a:not(.btn){color:#105899;text-underline-offset:3px}
+.tm-contact-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:32px 0}
+.tm-contact-options>div{min-width:0;padding:24px;background:#f2f8fc;border:1px solid #d5e6f4;border-radius:10px}
+.tm-contact-options>div span,.tm-wholesale-info>span{display:block;font-size:10px;font-weight:800;letter-spacing:.15em;color:#c0640f;margin-bottom:12px}
+.tm-contact-options a{overflow-wrap:anywhere;font-size:15px;font-weight:800}
+.tm-wholesale-info{background:linear-gradient(125deg,#f6faff,#e4f2ff);border:1px solid #d1e6f6;border-radius:10px;padding:26px;margin-bottom:27px}
+.tm-wholesale-info p{font-size:13px;color:#526e87;line-height:1.7;margin:12px 0 21px}
+.tm-wholesale-info .btn{display:inline-flex;justify-content:center;text-decoration:none;font-size:12px;padding:13px 18px}
+.tm-info-card .v6-outline-link{display:inline-block;margin-top:13px;border-bottom:1px solid #d4e5f4;padding-bottom:7px;font-size:12px;font-weight:800}
+
+/* All admin surfaces should feel like TrueMerit, not ODJ black/gold. */
+.admin-body,.admin-body .admin-main{background:#f2f7fc;color:var(--tm-copy)}
+.admin-body .admin-header{border-bottom-color:#dce8f3}
+.admin-body .admin-breadcrumb{color:#225b92}
+.admin-body .admin-breadcrumb span{color:#6e849c}
+.admin-body .admin-user-dot{background:#154679;color:#fff;border-color:#a4c8e5}
+.admin-body .admin-section-toolbar h2,.admin-body .admin-header h1{color:var(--tm-navy)}
+.admin-body .admin-section-toolbar p,.admin-body .admin-header p{color:#67819a}
+.admin-body .sidebar-title{color:#ffab67}
+.admin-body .side-nav{transition:background .2s,color .2s}
+.admin-body .side-nav:hover{background:#144675;color:#fff}
+.admin-body .side-nav.selected{background:#195086;color:#fff;border-left-color:var(--tm-orange)}
+.admin-body .stat-card,.admin-body .v74-analytics-panel,.admin-body .v73-admin-panel,
+.admin-body .admin-table-wrap,.admin-body .admin-welcome{
+  background:#fff;border-color:#d3e3f1;color:var(--tm-copy);
+  box-shadow:0 5px 24px #123e670b;
+  border-radius:11px;
+}
+.admin-body .stat-card strong,.admin-body .v73-admin-panel h3{color:var(--tm-navy)}
+.admin-body .stat-card span,.admin-body .v74-analytics-note{color:#5f7891}
+.admin-body .v73-admin-panel label{color:#315a80}
+.admin-body .v73-admin-panel input{border-color:#c4d6e7;background:#f9fcff;color:var(--tm-navy)}
+.admin-body .v73-promo-admin{border-bottom-color:#d4e2ef}
+.admin-body .v73-promo-admin button{color:var(--tm-blue);border-color:#b1cce5}
+.admin-body .v73-admin-panel[hidden]{display:none!important}
+.admin-body .v6-admin-settings{
+  grid-template-columns:minmax(0,1.65fr) minmax(260px,.95fr);
+  gap:22px;
+  align-items:start;
+}
+.admin-body .v6-settings-form{
+  background:#fff;border:1px solid #d3e3f1;border-radius:12px;
+  padding:clamp(20px,3vw,34px);gap:20px;
+  box-shadow:0 10px 28px #112c4c0a;
+}
+.admin-body .v6-settings-form h3{
+  color:#0b315b;
+  font-size:15px;
+  border-bottom:1px solid #d7e5f0;
+  padding-bottom:14px;
+}
+.admin-body .v6-settings-form label{
+  color:#3d627f;
+  font-size:11px;letter-spacing:.075em;line-height:1.5;
+}
+.admin-body .v6-settings-form input,.admin-body .v6-settings-form textarea{
+  background:#f7faff;color:#142d4a;
+  border:1px solid #bdcfe1;border-radius:7px;
+  font-family:var(--font);line-height:1.5;
+}
+.admin-body .v6-settings-form textarea{resize:vertical;min-height:130px}
+.admin-body .v6-settings-form input:focus,.admin-body .v6-settings-form textarea:focus{
+  outline:2px solid #fa8422;outline-offset:1px;border-color:#e98433;
+}
+.admin-body .v6-settings-form #settings-status{color:#1d5c82}
+.admin-body .v6-email-notes{
+  padding:clamp(23px,3vw,35px);
+  background:linear-gradient(155deg,#113d6b,#061d3c);
+  border:1px solid #39709f;border-radius:12px;
+  color:#fff;box-shadow:0 12px 30px #082b4e1f;
+}
+.admin-body .v6-email-notes h3{color:#fff;font-size:26px;letter-spacing:-.035em}
+.admin-body .v6-email-notes p{color:#d0e0ee;font-size:13px;line-height:1.75}
+.admin-body .v6-email-notes #email-queue-status{
+  border-top:1px solid #42749e;color:#ffc08b;
+  font-size:12px;padding:17px 0 0;
+}
+.admin-body .v6-preview-email{color:#1c619f}
+.admin-body .admin-welcome img{object-fit:contain;background:transparent}
+.admin-body .login-panel input{background:#102f52;border-color:#4f769c}
+.admin-body .login-panel label{color:#ffae71}
+.admin-body .login-panel .return-store{color:#c6ddee}
+.admin-body .login-visual{background:radial-gradient(circle at 47% 40%,#184d84,#061b3a 67%)}
+.admin-body .login-visual:before{border-color:#71b9e841;box-shadow:0 0 120px #2a80cb24}
+@media(max-width:1000px){
+  .admin-body .v6-admin-settings{grid-template-columns:1fr}
+}
+@media(max-width:750px){
+  .tm-wholesale-inner{flex-direction:column;align-items:stretch;gap:19px}
+  .tm-wholesale{padding:30px 0}
+  .tm-wholesale .tm-wholesale-link{align-self:flex-start}
+  .editorial-promise-content strong{font-size:clamp(28px,6.8vw,41px)}
+  .hero-copy>.hero-promise-line{font-size:13px}
+  .tm-contact-options{grid-template-columns:1fr}
+  .tm-info-card{margin:20px 12px 52px}
+  .v73-newsletter-fields button{white-space:normal}
+}
+@media(max-width:480px){
+  .tm-info-card{padding:22px 17px}
+  .admin-body .v6-settings-form{padding:20px 15px}
+  .admin-body .v6-email-notes{padding:24px 20px}
+  .tm-wholesale h2{font-size:30px}
+}
