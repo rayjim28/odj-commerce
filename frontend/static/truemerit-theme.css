@@ -714,3 +714,136 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* Coupon UI is deferred for Release 1, but underlying promo handling remains intact. */
 .v73-promo[hidden]{display:none!important}
+
+
+/* Release 1 visual review: keep About text and overlay within their actual
+   parent grid cell. The corresponding HTML nesting is verified in tests. */
+.editorial-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  align-items:center;
+  gap:clamp(24px,4vw,64px);
+}
+.editorial-grid > .editorial-promise-panel,
+.editorial-grid > .editorial-copy{min-width:0;box-sizing:border-box;width:100%;max-width:100%}
+.editorial-grid > .editorial-promise-panel{
+  height:auto;
+  min-height:430px;
+  padding:clamp(28px,3vw,44px);
+  position:relative;
+  overflow:hidden;
+}
+.editorial-grid > .editorial-promise-panel .editorial-promise-content{
+  width:100%;max-width:100%;margin:auto 0;text-align:center;
+}
+.editorial-grid > .editorial-promise-panel .editorial-promise-content strong{
+  font-size:clamp(28px,2.75vw,42px);line-height:1.17;letter-spacing:-.06em;
+}
+.editorial-grid > .editorial-promise-panel .editorial-image-overlay{
+  left:24px;right:24px;bottom:19px;
+  font-size:8px;letter-spacing:.1em;
+}
+.editorial-grid > .editorial-copy{
+  padding:15px 0;
+}
+.tm-wholesale{position:relative;isolation:isolate;clear:both}
+.tm-wholesale .tm-wholesale-inner{min-width:0}
+.tm-wholesale .tm-wholesale-inner > div{flex:1 1 auto;min-width:0}
+.tm-wholesale .tm-wholesale-link{white-space:nowrap}
+@media(max-width:750px){
+  .editorial-grid{display:flex;flex-direction:column;align-items:stretch;gap:25px}
+  .editorial-grid > .editorial-promise-panel{min-height:360px;padding:30px 24px}
+  .editorial-grid > .editorial-promise-panel .editorial-promise-content strong{
+    font-size:clamp(27px,6.5vw,38px);
+  }
+  .editorial-grid > .editorial-copy{padding:2px 0 0}
+  .tm-wholesale .tm-wholesale-link{white-space:normal}
+}
+@media(max-width:390px){
+  .editorial-grid > .editorial-promise-panel .editorial-image-overlay{font-size:7px;left:13px;right:13px}
+}
+
+/* Launch readiness: neutral TrueMerit management UI, no old ODJ black/gold. */
+.admin-body .launch-intro{
+  background:linear-gradient(125deg,#143d6b 0%,#09274d 70%,#061b37 100%);
+  color:#f5faff;
+  border:1px solid #376b9a;
+  border-radius:12px;
+  box-shadow:0 12px 28px #103c641c;
+  padding:clamp(23px,3vw,36px);
+}
+.admin-body .launch-intro .section-kicker{color:#ffab67!important}
+.admin-body .launch-intro h3{
+  font-family:inherit;
+  font-weight:750;
+  font-size:clamp(28px,3vw,41px);
+  line-height:1.14;
+  color:#fff;
+  letter-spacing:-.05em;
+}
+.admin-body .launch-intro p{
+  color:#cbddef;
+  font-size:13px;
+  line-height:1.75;
+}
+.admin-body .launch-intro strong{
+  color:#ffc48e;
+  font-size:12px;
+  letter-spacing:.025em;
+}
+.admin-body .owner-sales-panel,
+.admin-body .owner-review-panel,
+.admin-body .launch-check,
+.admin-body .launch-check-explainer{
+  background:#fff;
+  border:1px solid #d3e2ee;
+  border-radius:11px;
+  color:#213d5b;
+  box-shadow:0 6px 23px #173d6209;
+}
+.admin-body .owner-sales-panel,
+.admin-body .owner-review-panel{
+  padding:clamp(18px,2vw,27px);
+}
+.admin-body .owner-sales-panel h3,
+.admin-body .owner-review-heading h3,
+.admin-body .launch-check-explainer strong,
+.admin-body .launch-check h4{color:var(--tm-navy)}
+.admin-body .owner-sales-panel p,
+.admin-body .owner-sales-panel li,
+.admin-body .owner-review-heading p,
+.admin-body .launch-check-explainer,
+.admin-body .launch-check-explainer p,
+.admin-body .launch-check p,
+.admin-body .launch-disclaimer{color:#506f8c}
+.admin-body .owner-sales-panel li{line-height:1.55}
+.admin-body .owner-sales-ack{
+  color:#263f59;
+  border-top:1px solid #e5eff6;
+  padding-top:18px;
+}
+.admin-body .owner-sales-ack input,
+.admin-body .owner-review-item input{accent-color:#1475bc}
+.admin-body .owner-sales-panel #owner-sales-feedback,
+.admin-body .owner-review-panel #owner-review-feedback{color:#2e6689}
+.admin-body .owner-review-heading > strong{color:#1b65a0}
+.admin-body .owner-review-item{
+  border:1px solid #d5e4f2;
+  border-radius:8px;
+  background:#f6faff;
+}
+.admin-body .owner-review-item-content small{color:#5b7891}
+.admin-body .owner-review-proof{color:#a45a11}
+.admin-body .owner-review-complete{
+  background:#eef9f1;
+  border-color:#add8bd;
+}
+.admin-body .owner-review-complete .owner-review-proof{color:#236a43}
+.admin-body .launch-check{padding:22px}
+.admin-body .launch-check-group{color:#2e719f}
+.admin-body .launch-status-text{color:#57718d}
+.admin-body .launch-status{background:#e5f0fa;color:#245e93}
+.admin-body .launch-review .launch-status{background:#fff3e1;color:#ad6819}
+.admin-body .launch-ready .launch-status{background:#e5f6eb;color:#247341}
+.admin-body .launch-check-explainer{padding:18px 22px;margin:24px 0 15px}
+.admin-body .launch-disclaimer{font-size:12px;line-height:1.7}
