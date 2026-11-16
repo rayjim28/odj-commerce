@@ -139,3 +139,152 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
  .admin-welcome img{width:min(100%,310px);max-width:310px;max-height:145px;margin-top:22px}
  .editorial-image img{width:92%}
 }
+
+
+/* ============================================================
+   TRUE MERIT | storefront visual consistency
+   Keep brand-specific overrides here; style.css retains layout.
+   ============================================================ */
+
+/* Brand tokens: orange and blue replace the former ODJ gold/brown. */
+:root {
+  --tm-surface:#f4f8fd;
+  --tm-border:#d5e3f1;
+  --tm-muted:#647c97;
+  --gold:var(--tm-orange);
+  --gold2:#ffab61;
+  --cream:var(--tm-surface);
+}
+
+/* The wordmark is an SVG with a transparent background, not a raster
+   screenshot with white pixels baked into its image. */
+.tm-brand-logo { background:transparent; image-rendering:auto; }
+.hero-art::before {
+  content:""; position:absolute; inset:17% 0 17%; border-radius:16px;
+  background:linear-gradient(135deg,#f9fcff,#e9f4ff);
+  border:1px solid #7aa7d1;
+  box-shadow:0 24px 65px #02142950;
+}
+.hero-art .hero-logo {
+  position:relative; z-index:1; width:92%; max-width:92%;
+  height:auto; padding:0; border:0; background:transparent;
+  mix-blend-mode:normal; filter:none;
+}
+.hero-art-small,.hero-art-caption { z-index:2; }
+.editorial { background:#082956; }
+.editorial-image {
+  background:linear-gradient(140deg,#f7fbff,#e8f3fc);
+  border:1px solid #9cc2e4; border-radius:8px;
+}
+.editorial-image img {
+  display:block; width:94%; max-width:94%; max-height:84%;
+  object-fit:contain; background:transparent; padding:0; filter:none;
+}
+.editorial-image-overlay,.editorial-signature .signature-mark {
+  color:var(--tm-orange);
+}
+.editorial-copy>p { color:#c5d8ed; }
+.editorial-signature>span:last-child { color:#bdcee0; border-left-color:#4b759d; }
+
+/* The featured selection and product navigation share the clean light theme. */
+.v71-feature-section { background:var(--tm-surface); }
+.v71-feature-photo {
+  background:radial-gradient(circle at 45% 40%,#fff,#e5f1fb 75%);
+  border-color:var(--tm-border);
+}
+.v71-photo-label { color:#24588a; }
+.v71-feature-copy>p { color:var(--tm-muted); }
+.v71-feature-price { color:var(--tm-navy); }
+.v71-feature-copy .section-kicker,
+.v71-section-head .section-kicker,
+.v71-faq-intro .section-kicker { color:var(--tm-orange); }
+.v71-feature-copy h2 em,
+.v71-section-head h2 em,
+.v71-faq-intro h2 em,
+.v71-collections .v71-section-head h2 em,
+.v71-companions .v71-section-head h2 em {
+  color:var(--tm-orange);
+}
+
+/* Gold and brown collection cards were inherited from the ODJ storefront. */
+.v71-collections,.v71-companions,.v72-home-bundles {
+  background:#082956; color:#fff;
+}
+.v71-collections .v71-section-head p,
+.v71-companions .v71-section-head p,
+.v72-home-bundles .v71-section-head p { color:#c6d8eb; }
+.v71-view-all { color:#ffad6b; border-bottom-color:#ff821c; }
+.v71-collection-card {
+  border-color:#3b6994;
+  background:linear-gradient(138deg,#174a7c,#071d3d 76%);
+}
+.v71-collection-card:hover { border-color:var(--tm-orange); }
+.v71-collection-card:after {
+  background:linear-gradient(0deg,#04172dda,transparent 55%);
+}
+.v71-collection-copy>small,.v71-collection-more { color:#ffb26b; }
+.v71-collection-copy p { color:#c7d9e9; }
+.v71-collection-more b { border-color:#7bb1dc; }
+.v71-companion-card,.v72-home-bundle {
+  background:#123b69; border-color:#356a9a; color:#fff;
+}
+.v71-companion-card:hover,.v72-home-bundle:hover,
+.v72-home-bundle:focus-visible {
+  background:#174d84; border-color:var(--tm-orange);
+}
+.v71-companion-image,.v72-home-bundle .v73-bundle-photo {
+  background:#eaf3fc;
+}
+.v71-companion-info>span,
+.v71-companion-info small,
+.v72-home-bundle .v73-bundle-info small,
+.v72-home-bundle .v73-bundle-info b { color:#ffb26b; }
+.v72-home-bundle .v73-bundle-info strong,
+.v73-bundle-price { color:#fff; }
+.v73-bundle-includes { color:#c1d5e8; }
+
+/* FAQ: remove the beige surface, antique gold text and tan rules. */
+.v71-faq { background:#f3f8fd; color:var(--tm-navy); }
+.v71-faq-intro>p { color:#61758c; }
+.v71-faq-questions { border-top-color:#c6d9e9; }
+.v71-faq-questions details { border-bottom-color:#c6d9e9; }
+.v71-faq-questions summary { color:#183a5d; }
+.v71-faq-questions summary span { color:var(--tm-orange); }
+.v71-faq-questions details p { color:#526e8a; }
+.v71-faq-questions details p a { color:#1153a2; }
+.v71-faq .btn-outline-dark {
+  color:#0c427a; border-color:#5d9bca; background:transparent;
+}
+.v71-faq .btn-outline-dark:hover {
+  background:#e3f1ff; border-color:var(--tm-blue);
+}
+
+/* Newsletter: replace the leftover ochre heading, tan form and brown border. */
+.v73-newsletter {
+  background:var(--tm-deep); color:#fff; border-block-color:#204a76;
+}
+.v73-newsletter h2 em { color:var(--tm-orange); }
+.v73-newsletter p { color:#bed1e5; }
+.v73-newsletter-fields input {
+  border-color:#b6cde3; background:#fff; color:var(--tm-navy);
+}
+.v73-newsletter-fields input:focus {
+  border-color:var(--tm-orange); outline-color:var(--tm-orange);
+}
+.v73-newsletter #newsletter-feedback { color:#ffbc83; }
+.v73-consent { color:#c4d6e7; }
+
+/* Bottom call-to-action and links should carry the same brand identity. */
+.bottom-cta { background:#e8f3fd; }
+.bottom-cta>div>span { color:#1553a1; }
+.bottom-cta h2 em { color:var(--tm-orange); }
+.editorial .btn-outline-dark {
+  color:#f5fbff; border-color:#91b7d5;
+}
+.editorial .btn-outline-dark:hover {
+  background:#164978; border-color:#ff821c;
+}
+@media(max-width:750px){
+  .hero-art::before { inset:15% 0 20%; border-radius:12px; }
+  .hero-art .hero-logo { width:94%; max-width:94%; }
+}
