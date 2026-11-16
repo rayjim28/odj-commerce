@@ -39,6 +39,21 @@ def test_original_page_structure_has_brand_layer():
     assert ElementTree.parse(hero_asset).getroot().tag.endswith("svg")
 
 
+
+def test_hero_represents_independent_brands_without_invented_product_labels():
+    home = (TEMPLATES / "index.html").read_text()
+    art = (ASSETS / "images" / "truemerit-hero-products.svg").read_text()
+    assert "CLEANING SUPPLIES FROM INDEPENDENT BRANDS" in home
+    assert "THE TRUEMERIT COLLECTION" not in home
+    assert "FROM THE TRUEMERIT COLLECTION" not in home
+    assert "TOOLS FOR EVERYDAY CLEANING" in home
+    assert "Unbranded cleaning tools" in art
+    # Brand artwork belongs to store chrome, not imagined supplier packaging.
+    assert 'transform="translate(304 391)"' not in art
+    assert 'x="28" y="135"' not in art
+    assert "truemerit-logo.svg" in home
+
+
 def test_existing_technical_names_are_stable():
     import main
     from backend.security import COOKIE_NAME
