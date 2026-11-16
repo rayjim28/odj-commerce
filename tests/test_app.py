@@ -1120,7 +1120,14 @@ def test_r2_guest_stripe_webhook_email_private_lookup_and_no_stock_double_count(
         assert token
         outbox=db.scalars(select(EmailOutbox).where(EmailOutbox.event_key == 'order:'+oid+':order_confirmation')).all()
         assert len(outbox)==1
-        assert '/guest/orders/' in outbox[0].html_body and token in outbox[0].html_body
+        # Each signed link embeds its creation timestamp; regenerating it
+        # across a one-second boundary can produce a different valid token.
+        # Validate the actual emailed link instead of comparing token bytes.
+        import re
+        from backend.guest_orders import guest_token_matches
+        emailed_tokens = re.findall(r'/guest/orders/([A-Za-z0-9._-]+)', outbox[0].html_body)
+        assert len(emailed_tokens) == 1
+        assert guest_token_matches(emailed_tokens[0], saved)
         assert oid in outbox[0].html_body
     assert client.get('/api/account/orders').status_code==401
     private_detail=client.get('/guest/orders/'+token)
