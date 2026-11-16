@@ -53,10 +53,13 @@ def order_email(order, kind='order_confirmation'):
     guest_token = guest_order_token(order)
     guest_link = ((os.getenv('PUBLIC_BASE_URL') or 'http://localhost:8000').rstrip('/')
                   + '/guest/orders/' + quote(guest_token, safe='')) if guest_token else ''
-    guest_html = ('<p><a href="' + html.escape(guest_link, quote=True) +
+    guest_html = ('<p>Full order ID (save this for support): <code>' +
+                  html.escape(order.id) + '</code></p><p><a href="' +
+                  html.escape(guest_link, quote=True) +
                   '" style="color:#ffae70">View your order securely</a> (link expires in 30 days).</p>'
                   if guest_link else '')
-    guest_text = ('\nSecure order details (30-day link): ' + guest_link) if guest_link else ''
+    guest_text = ('\nFull order ID: ' + order.id +
+                  '\nSecure order details (30-day link): ' + guest_link) if guest_link else ''
     tracking = ''
     if kind == 'shipping_update':
         tracking = '<p>Carrier: '+html.escape(order.carrier or 'Pending')+'<br>Tracking: '+html.escape(order.tracking_number or 'Not available')+'<br>Status: '+html.escape(order.fulfillment_status or 'processing')+'</p>'
