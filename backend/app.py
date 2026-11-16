@@ -267,7 +267,7 @@ def product_detail(product_id: int, request: Request):
             related = [p for p in public_catalog(db) if p['id'] != product_id][:3]
             customer = signed_in_customer(request)
             return templates.TemplateResponse(request, 'product.html', {
-                'product':data, 'related':related, 'customer':customer, 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
+                'product':data, 'related':related, 'customer':customer, 'guest_checkout_enabled':guest_checkout_enabled(), 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
         product = db.get(Product, product_id)
         if not product or not product.active or product.price_cents <= 0:
             raise HTTPException(status_code=404, detail='This product is unavailable.')
@@ -283,7 +283,7 @@ def product_detail(product_id: int, request: Request):
             ).order_by(Product.featured.desc(), Product.id).limit(3 - len(related))).all()]
     customer = signed_in_customer(request)
     return templates.TemplateResponse(request, 'product.html', {
-        'product': data, 'related': related, 'customer': customer, 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
+        'product': data, 'related': related, 'customer': customer, 'guest_checkout_enabled':guest_checkout_enabled(), 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
         'customer_json': {'signedIn': bool(customer)}
     })
 
