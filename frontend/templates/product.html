@@ -11,7 +11,7 @@
 {% if seo_images %}<meta property="og:image" content="{{seo_images[0]}}">{% endif %}
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Product','name':product.name,'description':product.description or product.name,'image':seo_images,'sku':product.sku or '', 'offers':{'@type':'Offer','url':canonical_url,'priceCurrency':'USD','price':'%.2f'|format(product.price_cents / 100),'availability':'https://schema.org/InStock' if product.stock > 0 else 'https://schema.org/OutOfStock'}}|tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=5">
+<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=6">
 </head>
 <body class="product-page-body">
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
