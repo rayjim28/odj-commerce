@@ -11,8 +11,10 @@ GUEST_ORDER_MAX_AGE_SECONDS = 30 * 24 * 60 * 60
 
 
 def guest_checkout_enabled() -> bool:
+    public_preview = (os.getenv("APP_ENV", "").lower() == "staging"
+        and os.getenv("PUBLIC_STOREFRONT", "").strip().lower() in ("1", "true", "yes", "on"))
     return (os.getenv("GUEST_CHECKOUT_ENABLED", "false").strip().lower() == "true"
-            and os.getenv("PUBLIC_STOREFRONT_PREVIEW", "false").strip().lower() != "true")
+            and not public_preview)
 
 
 def guest_order_signer():
