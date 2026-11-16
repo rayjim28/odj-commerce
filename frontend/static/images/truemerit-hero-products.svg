@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 540" role="img" aria-labelledby="title desc">
-<title id="title">Cleaning essentials</title><desc id="desc">A coordinated blue mop and bucket, spray bottle, scrub brush and microfiber cloth</desc>
+<title id="title">Cleaning essentials</title><desc id="desc">Unbranded cleaning tools: a mop, plain blue bucket, blank spray bottle, scrub brush and microfiber cloth</desc>
 <defs>
 <linearGradient id="stage" x1=".15" y1="0" x2=".8" y2="1"><stop stop-color="#2b6ca7" stop-opacity=".88"/><stop offset=".65" stop-color="#0b3766" stop-opacity=".7"/><stop offset="1" stop-color="#10345b" stop-opacity="0"/></linearGradient>
 <radialGradient id="aura"><stop stop-color="#4ca2e8" stop-opacity=".34"/><stop offset="1" stop-color="#4ca2e8" stop-opacity="0"/></radialGradient>
@@ -39,7 +39,7 @@
 <ellipse cx="348" cy="315" rx="108" ry="13" fill="#0f3767"/>
 <ellipse cx="348" cy="309" rx="104" ry="8" fill="#74b5d9" opacity=".38"/>
 <path d="M306 390c26 12 57 12 87 0" fill="none" stroke="#8dc4e3" stroke-width="3" opacity=".5"/>
-<g transform="translate(304 391)"><rect width="89" height="37" rx="8" fill="#eefaff" opacity=".94"/><path d="M21 27l6-16 10 10 10-10 10 16" fill="none" stroke="#1f6ca7" stroke-width="3" stroke-linejoin="round"/><path d="M49 10c6-5 15-6 23-2-2 10-10 17-22 13" fill="#6ac44c"/></g>
+
 <g transform="translate(470 210)">
 <ellipse cx="72" cy="260" rx="66" ry="14" fill="#01152e" opacity=".35" filter="url(#soft)"/>
 <path d="M51 2h41l5 20-4 23-12 11v15h20q22 17 26 43l13 123q2 25-21 27H22Q0 262 4 236l17-121q5-29 30-43V48l-9-11z" fill="url(#spray)" stroke="#e1f6ff" stroke-width="4"/>
@@ -48,12 +48,7 @@
 <path d="M132 2l31-6v12l-31 5z" fill="#ff922f"/>
 <path d="M52 13c-18-1-21 12-20 22h20" fill="none" stroke="#1d568e" stroke-width="8"/>
 <path d="M13 131q-4 65-8 106 0 20 12 24" fill="none" stroke="#fff" stroke-width="7" opacity=".43"/>
-<rect x="28" y="135" width="96" height="84" rx="14" fill="#fff" stroke="#c5def1" stroke-width="2"/>
-<path d="M34 155h84" stroke="#ff882d" stroke-width="5" stroke-linecap="round"/>
-<path d="M57 183c13-20 33-15 41-30-1 27-16 34-39 33z" fill="#4db340"/>
-<path d="M59 189c10-17 22-22 39-34" fill="none" stroke="#fff" stroke-width="3"/>
-<path d="M54 198h49" stroke="#1b558c" stroke-width="4" stroke-linecap="round"/>
-<path d="M61 208h35" stroke="#8eb0cd" stroke-width="3" stroke-linecap="round"/>
+<path d="M27 147q-7 53-9 78" fill="none" stroke="#ffffff" stroke-opacity=".27" stroke-width="7" stroke-linecap="round"/>
 </g>
 <g transform="translate(110 375) rotate(-12 80 55)">
 <ellipse cx="95" cy="105" rx="86" ry="13" fill="#000e26" opacity=".25" filter="url(#soft)"/>
