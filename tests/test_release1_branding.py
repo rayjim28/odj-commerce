@@ -122,3 +122,57 @@ def test_rebranded_all_page_stylesheets_and_no_guest_checkout_claim():
     assert "Yes. You can explore products and build a bag as a guest" in home
     app = (ROOT / "backend" / "app.py").read_text()
     assert "RedirectResponse('/account?next=checkout'" in app
+
+
+def test_our_promise_overlay_nested_inside_panel_and_copy_in_grid():
+    """Catch the exact misnested closing div shown in browser review screenshots."""
+    from html.parser import HTMLParser
+
+    html = (TEMPLATES / "index.html").read_text()
+    section = '<section class="editorial"' + html.split('<section class="editorial"', 1)[1].split('</section>', 1)[0] + '</section>'
+
+    class EditorialParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.div_stack = []
+            self.overlay_inside_panel = False
+            self.copy_inside_grid = False
+
+        def handle_starttag(self, tag, attrs):
+            if tag != "div":
+                return
+            classes = dict(attrs).get("class", "").split()
+            if "editorial-image-overlay" in classes:
+                self.overlay_inside_panel = any(
+                    "editorial-promise-panel" in parent for parent in self.div_stack
+                )
+            if "editorial-copy" in classes:
+                self.copy_inside_grid = (
+                    any("editorial-grid" in parent for parent in self.div_stack)
+                    and not any("editorial-promise-panel" in parent for parent in self.div_stack)
+                )
+            self.div_stack.append(classes)
+
+        def handle_endtag(self, tag):
+            if tag == "div" and self.div_stack:
+                self.div_stack.pop()
+
+    parser = EditorialParser()
+    parser.feed(section)
+    assert parser.overlay_inside_panel, "Promise overlay must stay inside the branded panel"
+    assert parser.copy_inside_grid, "About text must be the other grid column"
+    assert not parser.div_stack, "Editorial section must close all div containers"
+
+
+def test_wholesale_and_launch_layout_css_are_real_screen_targets():
+    css = (STATIC / "truemerit-theme.css").read_text()
+    html = (TEMPLATES / "index.html").read_text()
+    admin = (TEMPLATES / "admin.html").read_text()
+    assert 'id="wholesale"' in html
+    assert ".editorial-grid > .editorial-promise-panel" in css
+    assert ".editorial-grid > .editorial-copy" in css
+    assert ".tm-wholesale{position:relative;isolation:isolate;clear:both}" in css
+    assert ".admin-body .launch-intro" in css
+    assert ".admin-body .owner-sales-panel" in css
+    assert ".admin-body .launch-check" in css
+    assert "Open when you're ready." in admin
