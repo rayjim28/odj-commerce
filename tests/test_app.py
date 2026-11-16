@@ -1121,6 +1121,7 @@ def test_r2_guest_stripe_webhook_email_private_lookup_and_no_stock_double_count(
         outbox=db.scalars(select(EmailOutbox).where(EmailOutbox.event_key == 'order:'+oid+':order_confirmation')).all()
         assert len(outbox)==1
         assert '/guest/orders/' in outbox[0].html_body and token in outbox[0].html_body
+        assert oid in outbox[0].html_body
     assert client.get('/api/account/orders').status_code==401
     assert client.get('/guest/orders/'+token).status_code==200
     assert client.get('/guest/orders/'+token[:-3]+'bad').status_code==404
