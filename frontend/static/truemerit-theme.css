@@ -1013,8 +1013,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   display:block;
   text-decoration:none;
   cursor:pointer;
-  z-index:4;
+  z-index:2;
 }
+.hero-abstract-highlight{pointer-events:none}
 .hero-abstract-front-link:focus-visible{
   outline:3px solid #ff9b3b;
   outline-offset:5px;
