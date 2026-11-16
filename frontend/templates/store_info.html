@@ -1,4 +1,36 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{title}} | TrueMerit Cleaning Supplies</title><link rel="icon" href="/static/images/favicon.svg"><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/truemerit-theme.css?v=5"></head><body class="checkout-body"><header class="checkout-top"><a class="brand" href="/"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><a href="/" class="checkout-back">← Return to shop</a></header><main class="v6-policy-page"><div class="section-kicker gold">TRUEMERIT CLEANING SUPPLIES / INFORMATION</div><h1>{{title}}</h1>
-{% if body %}<p class="v6-policy-text">{{body}}</p>{% else %}<p class="v6-policy-text">Details will be available before the store starts accepting live purchases.</p>{% endif %}
-{% if topic == 'contact' %}{% if settings.contact_email %}<p><a href="mailto:{{settings.contact_email}}">{{settings.contact_email}}</a></p>{% endif %}{% if settings.contact_phone %}<p>{{settings.contact_phone}}</p>{% endif %}{% endif %}
-<a class="v6-outline-link" href="/">Return to shopping ↗</a></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}} | TrueMerit Cleaning Supplies</title>
+<meta name="description" content="TrueMerit Cleaning Supplies: retail and wholesale cleaning essentials, customer support, shipping and returns information.">
+<link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css?v=7-4">
+<link rel="stylesheet" href="/static/truemerit-theme.css?v=6">
+</head>
+<body class="checkout-body tm-info-body">
+<header class="checkout-top"><a class="brand" href="/"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><a href="/" class="checkout-back">← Return to shop</a></header>
+<main class="v6-policy-page tm-info-card">
+  <span class="section-kicker">TRUEMERIT CLEANING SUPPLIES / INFORMATION</span>
+  <h1>{{title}}</h1>
+  {% if topic == 'contact' %}
+  <p class="tm-info-intro">Questions about an order, product availability, or buying supplies in larger quantities? We're here to help.</p>
+  <div class="tm-contact-options">
+    {% if settings.contact_email %}<div><span>EMAIL SUPPORT</span><a href="mailto:{{settings.contact_email}}">{{settings.contact_email}}</a></div>{% endif %}
+    {% if settings.contact_phone %}<div><span>CALL TRUE MERIT</span><a href="tel:{{settings.contact_phone | replace('(','') | replace(')','') | replace(' ','') | replace('-','')}}">{{settings.contact_phone}}</a></div>{% endif %}
+  </div>
+  <div class="tm-wholesale-info"><span>RETAIL &amp; WHOLESALE</span><h2>Need supplies for your business?</h2><p>Ask about larger orders and product availability. Wholesale terms and pricing are provided directly by the store.</p>
+    <a href="mailto:{{settings.contact_email or 'truemeritsupplies@gmail.com'}}?subject=Wholesale%20Supply%20Inquiry" class="btn btn-gold">Send a wholesale inquiry ↗</a>
+  </div>
+  {% else %}
+  {% if body %}
+  <div class="tm-policy-prose">
+   {% for paragraph in body.split('\n\n') %}{% if paragraph | trim %}<p class="v6-policy-text">{{paragraph | trim}}</p>{% endif %}{% endfor %}
+  </div>
+  {% else %}<p class="v6-policy-text">Details will be available before the store starts accepting live purchases.</p>{% endif %}
+  <p class="tm-policy-contact">Need help understanding this policy? <a href="/information/contact">Contact TrueMerit customer support</a>.</p>
+  {% endif %}
+  <a class="v6-outline-link" href="/">← Return to shopping</a>
+</main>
+</body>
+</html>
