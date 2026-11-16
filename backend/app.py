@@ -1169,8 +1169,9 @@ def demo_confirmation(order_id: str, request: Request, access: str = ''):
         ):
             raise HTTPException(404, 'Demo order not found.')
         info = serialize_order(order)
+        guest = order.customer_id is None
     response = templates.TemplateResponse(request, 'demo_order.html', {
-        'order':info, 'guest':order['customer_id'] is None if isinstance(order, dict) else info.get('customer_id') is None
+        'order':info, 'guest':guest
     })
     response.headers['Cache-Control'] = 'no-store, private'
     response.headers['Referrer-Policy'] = 'no-referrer'
