@@ -1,12 +1,11 @@
-"""Regression tests for real photographed featured products in the hero."""
+"""The homepage uses the first eligible published products, without prices."""
 from pathlib import Path
-
 from backend.merchandising import build_home_merchandising
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def make_product(pid, *, featured=True, active=True, stock=3, price=1299,
+def make_product(pid, *, featured=False, active=True, stock=3, price=1299,
                  image="/media/real-product-photo.webp", is_bundle=False):
     return {
         "id": pid,
@@ -22,18 +21,20 @@ def make_product(pid, *, featured=True, active=True, stock=3, price=1299,
     }
 
 
-def test_zero_one_two_three_featured_products():
+def test_zero_to_five_product_cards_in_catalog_order():
     assert build_home_merchandising([])["hero_products"] == []
-    for count in (1, 2, 3):
+    for count in range(1, 6):
         items = [make_product(i) for i in range(1, count + 1)]
-        result = build_home_merchandising(items)
-        assert len(result["hero_products"]) == count
-        assert [p["id"] for p in result["hero_products"]] == list(
-            range(count, 0, -1)
-        )
+        hero = build_home_merchandising(items)["hero_products"]
+        assert [p["id"] for p in hero] == list(range(1, count + 1))
 
 
-def test_only_eligible_featured_photographed_products_appear():
+def test_limits_to_first_five_of_six_without_requiring_featured():
+    items = [make_product(i, featured=False) for i in range(1, 7)]
+    assert [p["id"] for p in build_home_merchandising(items)["hero_products"]] == [1, 2, 3, 4, 5]
+
+
+def test_only_eligible_real_photographed_products_appear():
     catalog = [
         make_product(1),
         make_product(2, featured=False),
@@ -46,30 +47,34 @@ def test_only_eligible_featured_photographed_products_appear():
         make_product(9),
         make_product(10),
         make_product(11),
+        make_product(12),
+        make_product(13),
     ]
     hero = build_home_merchandising(catalog)["hero_products"]
-    assert [item["id"] for item in hero] == [11, 10, 9]
-    assert all(p["stock"] > 0 and p["featured"] for p in hero)
+    assert [p["id"] for p in hero] == [1, 2, 9, 10, 11]
+    assert all(p["stock"] > 0 for p in hero)
     assert all(p["image_url"] for p in hero)
 
 
-def test_homepage_uses_catalog_values_and_abstract_fallback():
+def test_real_images_names_links_no_prices_and_abstract_fallback():
     html = (ROOT / "frontend" / "templates" / "index.html").read_text()
-    assert "{% if merch.hero_products %}" in html
-    assert "{% for product in merch.hero_products %}" in html
-    assert 'src="{{ product.image_url }}"' in html
-    assert "{{ product.name }}" in html
-    assert "{{ product.category }}" in html
-    assert "product.price_cents / 100" in html
-    assert 'href="/products/{{ product.id }}"' in html
-    assert "hero-featured-count-{{ merch.hero_products | length }}" in html
-    assert 'class="hero-art hero-abstract-art"' in html
-    assert "{% else %}" in html
+    hero = html.split('<section class="hero">', 1)[1].split("</section>", 1)[0]
+    assert "{% if merch.hero_products %}" in hero
+    assert "{% for product in merch.hero_products %}" in hero
+    assert 'src="{{ product.image_url }}"' in hero
+    assert "{{ product.name }}" in hero
+    assert "{{ product.category }}" in hero
+    assert 'href="/products/{{ product.id }}"' in hero
+    assert "hero-featured-count-{{ merch.hero_products | length }}" in hero
+    assert 'class="hero-art hero-abstract-art"' in hero
+    assert "hero-featured-price" not in hero
+    assert "product.price_cents" not in hero
+    assert "$" not in hero
 
 
-def test_no_fake_hero_card_data_in_site_assets():
-    html = (ROOT / "frontend" / "templates" / "index.html").read_text()
+def test_cards_arrange_three_to_five_desktop_and_scroll_mobile():
     css = (ROOT / "frontend" / "static" / "truemerit-theme.css").read_text()
-    assert "hero-featured-card" in html
-    assert ".hero-featured-card" in css
+    assert ".hero-featured-count-4 .hero-featured-card" in css
+    assert ".hero-featured-count-5 .hero-featured-card:nth-child(n+4)" in css
+    assert "grid-template-columns:repeat(6,minmax(0,1fr))" in css
     assert "scroll-snap-type:x mandatory" in css
