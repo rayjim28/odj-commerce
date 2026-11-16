@@ -7,9 +7,10 @@ def build_home_merchandising(products):
     highlighted = sorted(available, key=lambda p: (not p['featured'], p['id']))
     spotlight = highlighted[0] if highlighted else None
 
-    # Hero cards are opt-in, real catalog items only. Product uploads do not
-    # automatically become featured; the owner must publish, price, stock,
-    # photograph and mark them Featured in the admin dashboard.
+    # Show the first five eligible products already in storefront order.
+    # Uploaded products appear automatically after the owner publishes them;
+    # no separate Featured checkbox is required. Never promote drafts,
+    # out-of-stock products, bundles, or entries lacking a real product photo.
     def valid_hero_photo(url):
         url = (url or '').strip()
         return bool(url) and not any(
@@ -17,17 +18,14 @@ def build_home_merchandising(products):
             ('default.svg', 'placeholder.svg', 'odj-bundle-placeholder.svg')
         )
 
-    hero_products = sorted(
-        (p for p in available
-         if p.get('active', True)
-         and p.get('featured')
-         and not p.get('is_bundle', False)
-         and p['id'] > 0
-         and p.get('price_cents', 0) > 0
-         and valid_hero_photo(p.get('image_url'))),
-        key=lambda p: p['id'],
-        reverse=True,
-    )[:3]
+    hero_products = [
+        p for p in available
+        if p.get('active', True)
+        and not p.get('is_bundle', False)
+        and p['id'] > 0
+        and p.get('price_cents', 0) > 0
+        and valid_hero_photo(p.get('image_url'))
+    ][:5]
     themes = (
         ('Mop systems', 'Start with the essentials for your floors.', ('mop', 'bucket', 'spin'), ('head', 'refill', 'replacement', 'handle')),
         ('Parts & refills', 'Keep the right replacement items close by.', ('head', 'refill', 'replacement', 'handle'), ()),
