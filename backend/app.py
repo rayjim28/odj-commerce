@@ -132,7 +132,8 @@ async def protect_private_pages(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Referrer-Policy'] = ('no-referrer' if path.startswith(
+        ('/guest/orders/', '/demo-order/')) else 'strict-origin-when-cross-origin')
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
     if payment_mode() == 'demo' or os.getenv('APP_ENV') == 'staging':
@@ -144,7 +145,7 @@ async def protect_private_pages(request: Request, call_next):
     if path == '/admin' or path.startswith('/api/admin/'):
         response.headers['Cache-Control'] = 'no-store, private'
         response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
-    elif path.startswith('/newsletter/') or path in ('/account', '/checkout') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/')):
+    elif path.startswith('/newsletter/') or path in ('/account', '/checkout') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/','/guest/','/api/guest/')):
         response.headers['Cache-Control'] = 'no-store, private'
     return response
 
