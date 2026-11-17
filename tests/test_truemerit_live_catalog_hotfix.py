@@ -36,8 +36,8 @@ def test_product_detail_has_final_brand_layer_with_legible_bag():
 def test_collection_card_does_not_use_arbitrary_uploaded_product_image():
     html = (TEMPLATES / "index.html").read_text()
     css = (STATIC / "truemerit-merchandising.css").read_text()
-    assert 'truemerit-merchandising.css?v=hotfix1' in html
-    assert html.index('truemerit-theme.css?v=9') < html.index('truemerit-merchandising.css?v=hotfix1')
+    assert 'truemerit-merchandising.css?v=hotfix2' in html
+    assert html.index('truemerit-theme.css?v=9') < html.index('truemerit-merchandising.css?v=hotfix2')
     section = html.split('<div class="v71-collections-grid">', 1)[1].split('</section>', 1)[0]
     assert 'guide.image_url' not in section
     assert 'data-merch-ids="{{ guide.ids|join(\',\') }}"' in section
