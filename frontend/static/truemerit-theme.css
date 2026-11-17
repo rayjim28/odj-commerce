@@ -1544,3 +1544,165 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 
 /* EXPLORE POLISH END */
+
+/* TrueMerit information/contact page controls: match the approved storefront. */
+.tm-info-body {
+  font-family:var(--font);
+  background:#f3f8fe;
+  color:#102f53;
+}
+.tm-info-body .checkout-top {
+  height:88px;
+  padding:0 clamp(18px,5vw,92px);
+  background:#fff;
+  border-top:4px solid #ff821c;
+  border-bottom:1px solid #dbe8f3;
+}
+.tm-info-body .checkout-top .checkout-back {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:10px 18px;
+  border:1px solid #bfd6eb;
+  border-radius:10px;
+  color:#164c7e;
+  background:#f4f9ff;
+  font-size:12px;
+  font-weight:800;
+  text-decoration:none;
+  transition:background .18s,border-color .18s;
+}
+.tm-info-body .checkout-top .checkout-back:hover {
+  background:#e4f2fd;
+  border-color:#8dbce0;
+}
+.tm-info-body .tm-info-card {
+  max-width:880px;
+  margin:42px auto 76px;
+  padding:clamp(24px,4.2vw,52px);
+  border-radius:22px;
+  box-shadow:0 16px 42px rgba(8,41,86,.065);
+  font-family:var(--font);
+}
+.tm-info-body .tm-info-card h1 {
+  max-width:740px;
+  margin:16px 0 19px;
+  font-family:var(--font);
+  font-size:clamp(34px,4.2vw,51px);
+  font-weight:800;
+  letter-spacing:-.055em;
+  line-height:1.12;
+  color:#102f53;
+}
+.tm-info-body .tm-info-card h2 {
+  font-family:var(--font);
+  font-size:clamp(22px,2.8vw,29px);
+  font-weight:800;
+  letter-spacing:-.035em;
+  line-height:1.24;
+  color:#102f53;
+}
+.tm-info-body .tm-info-card .section-kicker,
+.tm-info-body .tm-info-card .tm-contact-options>div>span,
+.tm-info-body .tm-info-card .tm-wholesale-info>span {
+  color:#e87516;
+}
+.tm-info-body .tm-info-intro {
+  max-width:680px;
+  color:#58758f;
+  font-size:14px;
+  line-height:1.8;
+}
+.tm-info-body .tm-contact-options {gap:16px;margin:28px 0 24px}
+.tm-info-body .tm-contact-options>div {
+  padding:23px;
+  border-radius:14px;
+  border:1px solid #d1e3f2;
+  background:#edf6ff;
+}
+.tm-info-body .tm-contact-options a {
+  font-size:15px;
+  color:#12558d;
+  text-decoration:none;
+}
+.tm-info-body .tm-contact-options a:hover {text-decoration:underline}
+.tm-info-body .tm-wholesale-info {
+  display:flex;
+  flex-direction:column;
+  padding:clamp(22px,3vw,30px);
+  margin-bottom:24px;
+  border-radius:16px;
+  border-color:#cae0f3;
+  background:linear-gradient(130deg,#f1f8ff,#e3f1fe);
+}
+.tm-info-body .tm-wholesale-info p {
+  margin:10px 0 23px;
+  color:#506f8b;
+  font-size:13px;
+  line-height:1.7;
+}
+.tm-info-body .tm-info-card .tm-info-primary-action {
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  align-self:center;
+  min-width:245px;
+  min-height:50px;
+  padding:13px 43px;
+  box-sizing:border-box;
+  border:1px solid #ff821c;
+  border-radius:12px;
+  background:#ff821c;
+  color:#082956;
+  font-family:var(--font);
+  font-size:12px;
+  font-weight:800;
+  text-align:center;
+  text-decoration:none;
+  box-shadow:0 7px 18px rgba(255,130,28,.13);
+  transition:background .18s,transform .18s;
+}
+.tm-info-body .tm-info-card .tm-info-primary-action:hover {
+  background:#ff9d42;
+  transform:translateY(-1px);
+}
+.tm-info-body .tm-info-card .tm-info-primary-action>span {
+  position:absolute;
+  right:17px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:18px;
+}
+.tm-info-body .tm-info-card .tm-info-secondary-action {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:43px;
+  margin-top:10px;
+  padding:10px 19px;
+  border:1px solid #bfd6eb;
+  border-radius:10px;
+  background:#fff;
+  color:#15558d;
+  font-family:var(--font);
+  font-size:12px;
+  font-weight:800;
+  text-decoration:none;
+  transition:background .18s,border-color .18s;
+}
+.tm-info-body .tm-info-card .tm-info-secondary-action:hover {
+  background:#eaf5ff;
+  border-color:#8ab8de;
+}
+@media (max-width:700px) {
+  .tm-info-body .checkout-top {height:80px;gap:12px;padding:0 16px}
+  .tm-info-body .checkout-top .checkout-back {padding:9px 12px;font-size:11px}
+  .tm-info-body .tm-info-card {margin:20px 12px 52px}
+  .tm-info-body .tm-contact-options {grid-template-columns:1fr}
+  .tm-info-body .tm-info-card .tm-info-primary-action {
+    width:100%;
+    min-width:0;
+  }
+}

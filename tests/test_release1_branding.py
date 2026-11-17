@@ -98,7 +98,11 @@ def test_admin_policy_styles_and_no_coupon_panel_on_screen():
     assert 'truemeritsupplies@gmail.com' in admin
     assert 'class="v6-policy-page tm-info-card"' in policy
     assert "body.split('\\n\\n')" in policy
-    assert "Wholesale%20Supply%20Inquiry" in policy
+    assert 'href="/wholesale"' in policy
+    assert "Request Bulk Pricing" in policy
+    assert 'class="tm-info-primary-action"' in policy
+    assert 'tm-info-secondary-action' in policy
+    assert ".tm-info-body .tm-info-card .tm-info-primary-action" in css
     for selector in (
         ".admin-body .v6-settings-form",
         ".admin-body .v6-email-notes",
