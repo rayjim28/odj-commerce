@@ -1,52 +1,54 @@
-/* Progressive enhancement for the five overlapping product cards.
- * Clicking a rear card reveals it; clicking the front card opens its product page.
- * Dots and arrow keys make the same products accessible without a pointer. */
+/* All product previews stay visible. Each product card opens its details
+ * on the FIRST click. Dots and arrow keys scroll a compact native carousel.
+ * Do not resurrect the old fanned hidden-image implementation. */
 (() => {
   "use strict";
   const stack = document.querySelector("[data-hero-stack]");
   if (!stack) return;
 
+  const track = stack.querySelector("[data-hero-track]");
   const cards = [...stack.querySelectorAll("[data-hero-card]")];
   const dots = [...stack.querySelectorAll("[data-hero-dot]")];
-  if (!cards.length) return;
+  if (!track || !cards.length) return;
   let activeIndex = 0;
 
-  function select(index) {
-    activeIndex = (index + cards.length) % cards.length;
+  function offset(index) {
+    return Math.max(0, cards[index].offsetLeft - cards[0].offsetLeft);
+  }
+  function setActive(index) {
+    activeIndex = Math.max(0, Math.min(cards.length - 1, index));
     cards.forEach((card, i) => {
-      const slot = (i - activeIndex + cards.length) % cards.length;
-      card.dataset.slot = String(slot);
-      if (i === activeIndex) {
-        card.setAttribute("aria-current", "true");
-      } else {
-        card.removeAttribute("aria-current");
-      }
+      if (i === activeIndex) card.setAttribute("aria-current", "true");
+      else card.removeAttribute("aria-current");
     });
     dots.forEach((dot, i) => {
       dot.setAttribute("aria-pressed", i === activeIndex ? "true" : "false");
     });
   }
-
-  cards.forEach((card, index) => {
-    card.addEventListener("click", (event) => {
-      if (index !== activeIndex) {
-        event.preventDefault();
-        select(index);
-      }
-    });
-  });
-
+  function select(index) {
+    setActive(index);
+    track.scrollTo({ left: offset(activeIndex), behavior: "smooth" });
+  }
   dots.forEach((dot, index) => {
     dot.addEventListener("click", () => select(index));
   });
-
+  track.addEventListener("scroll", () => {
+    let nearest = 0;
+    let min = Infinity;
+    cards.forEach((card, i) => {
+      const dist = Math.abs(offset(i) - track.scrollLeft);
+      if (dist < min) { nearest = i; min = dist; }
+    });
+    setActive(nearest);
+  }, { passive: true });
   stack.addEventListener("keydown", (event) => {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     if (!stack.contains(document.activeElement)) return;
     event.preventDefault();
-    select(activeIndex + (event.key === "ArrowRight" ? 1 : -1));
-    dots[activeIndex]?.focus();
+    const next = (activeIndex + (event.key === "ArrowRight" ? 1 : -1) + cards.length) % cards.length;
+    select(next);
+    dots[next]?.focus();
   });
-
-  select(0);
+  // Do not intercept clicks on product cards: all cards are visible links.
+  setActive(0);
 })();
