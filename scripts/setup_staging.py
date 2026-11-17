@@ -15,7 +15,7 @@ from staging_setup import generate_staging_config, render_env, valid_hostname
 
 
 def main():
-    p = argparse.ArgumentParser(description='Create ODJ private staging configuration; no payments or email.')
+    p = argparse.ArgumentParser(description='Create TrueMerit private staging configuration; no payments or email.')
     p.add_argument('--domain', required=True, help='DNS hostname such as preview.example.com')
     p.add_argument('--staging-user', default='odj-review')
     args = p.parse_args()
@@ -24,7 +24,7 @@ def main():
         raise SystemExit('.env.staging already exists. Existing credentials were NOT changed.')
     if not valid_hostname(args.domain):
         raise SystemExit('Please supply a valid public DNS hostname (no http://, ports or paths).')
-    print('ODJ private staging: choose TWO different passwords. Nothing is sent online.')
+    print('TrueMerit private staging: choose TWO different passwords. Nothing is sent online.')
     admin_pwd = getpass('New staging ADMIN password (12+ chars): ')
     admin_confirmation = getpass('Confirm staging admin password: ')
     site_pwd = getpass('Private staging SITE password (20+ chars): ')
