@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parents[1]
 env=root/'.env'
 if env.exists():
     raise SystemExit('.env already exists; will not overwrite your secrets.')
-pwd=getpass('Choose a new ODJ admin password (12+ characters): ')
+pwd=getpass('Choose a new TrueMerit admin password (12+ characters): ')
 confirm=getpass('Confirm admin password: ')
 if len(pwd)<12 or pwd != confirm:
     raise SystemExit('Passwords must match and contain at least 12 characters.')

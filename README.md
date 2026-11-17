@@ -77,8 +77,8 @@ The app records successful payments from signed Stripe webhook events. A refund 
 Requires **Python 3.12+**.
 
 ```bash
-git clone https://github.com/rayjim28/odj-commerce.git
-cd odj-commerce
+git clone https://github.com/rayjim28/truemerit.git
+cd truemerit
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt

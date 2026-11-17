@@ -69,7 +69,7 @@ def assess():
 
 if __name__ == '__main__':
     status = assess()
-    print('ODJ operational checks')
+    print('TrueMerit operational checks')
     for label, success, note in status:
         print(f"[{'PASS' if success else 'REVIEW'}] {label}: {note}")
     print('These checks are configuration diagnostics, not proof of a live transaction or backup restore.')
