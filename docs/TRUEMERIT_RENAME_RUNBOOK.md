@@ -1,74 +1,42 @@
-# TrueMerit infrastructure rename — safe execution plan
+# TrueMerit repository and infrastructure naming — verified status
 
-This checklist keeps the **existing** PostgreSQL database, images, order history, checkout endpoint and Render disk. This is a **rename**, not a new store or data migration.
+This document records the **existing** TrueMerit system. It is not a plan to recreate or migrate a store. Keep its PostgreSQL database, uploaded images, orders, Stripe configuration, custom domain and persistent Render disk intact.
 
-## Target names
+## Current names (verified November 16, 2026)
 
-| Resource | Current name | Proposed name |
+| Resource | Current | Action |
 | --- | --- | --- |
-| GitHub repository | `rayjim28/odj-commerce` | `rayjim28/truemerit-cleaning-supplies` |
-| Render production web service | `odj-commerce` | `truemerit-store` |
-| Render scheduled sender | `odj-email-sender` | `truemerit-email-sender` |
-| Render staging preview | `truemerit-pr19-stage-26` | Repoint to current `main` or retire after confirming it is no longer needed |
-| Render PostgreSQL | `odj-postgres` | Optional **display-name-only** rename; do not create another DB |
-| Legal operator | ODJ Group LLC | Preserve wherever legally accurate |
+| GitHub repository | `rayjim28/truemerit` | **Already renamed; no further rename needed** |
+| GitHub production branch | `main` | Keep |
+| GitHub legacy feature branches | Previously retired | Keep merged history; delete the final naming branch after PR approval |
+| Render production web service | `odj-commerce` | Optional **display-name-only** rename to `truemerit-store` after separately checking dependencies |
+| Render scheduled email sender | `odj-email-sender` | Optional **display-name-only** rename to `truemerit-email-sender` |
+| Render preview service | `truemerit-pr19-stage-26` | Already targets `main`; confirm it is not needed before deleting |
+| Render PostgreSQL | Existing production PostgreSQL | Do not create or migrate a database merely to change its name |
+| Legal operating company | ODJ Group LLC | Preserve wherever legally accurate |
 
-Do **not** rename internal SQL databases, DB users, cookie names, localStorage keys, Stripe signing salts, image paths or environment-variable keys simply to remove the letters ODJ. Those are compatibility contracts; changing them can log customers out, make carts disappear or break signing, database connections and payment/notification flows.
+The **production web service, preview service and cron email sender already reference** `https://github.com/rayjim28/truemerit` and `main`. This is not proof that transactional email delivery or Stripe guest checkout has been verified.
 
-## 1 — Before any dashboard rename
+## Completed branding and source organization
 
-- Verify latest GitHub Actions on `main` succeeds and Render reports production `Live`.
-- Confirm the owner has a recent usable **PostgreSQL** backup and uploaded-image backup.
-- Check custom domains and current `PUBLIC_BASE_URL`, `STRIPE_WEBHOOK_SECRET`, Stripe webhook destination, live checkout and email sender. **Do not paste credentials into chat or code.**
-- Keep `GUEST_CHECKOUT_ENABLED=false` until the separate Stripe/SMTP test and owner approval.
+The storefront, cart drawer, checkout, SVG logo, admin visual theme and customer support details were updated in Releases 1 and 2. The frontend, middleware and backend are separate source directories within a single FastAPI service. This naming-cleanup pull request changes only a few remaining display strings, cache metadata, tests and documentation.
 
-## 2 — GitHub repository rename
+Do **not** globally rename internal SQL database names, users, cookie names, `localStorage` keys, Stripe signing salts, image paths or environment-variable keys just because they contain `odj`. These are compatibility identifiers: changing them could invalidate sessions, stored carts, authentication or webhook processing. Keep `GUEST_CHECKOUT_ENABLED=false` until the separate Stripe test-mode, SMTP delivery and owner-approval checks pass.
 
-- Open repository **Settings → General → Repository name** and rename `odj-commerce` to `truemerit-cleaning-supplies`.
-- Check the renamed repository still shows its `main` branch, existing issues, pull requests and Actions.
-- GitHub redirects legacy repo URLs, but update external integrations and developer clone URLs to the new canonical URL when convenient.
-- Inspect GitHub Actions and Render's connected repository after the rename. Do not immediately delete the old service or clone a duplicate repo.
+## Optional Render service display-name cleanup
 
-## 3 — Render service display names
+Before changing the names of **existing** services, confirm GitHub Actions is passing and Render reports the production app as Live. Confirm there is a recoverable PostgreSQL backup and uploaded-image backup. Check configured custom domains, `PUBLIC_BASE_URL`, current Stripe webhook destination, SSL and the scheduled email sender. **Never paste secrets into chat or commit credentials.**
 
-- Rename the **existing** web service `odj-commerce` to `truemerit-store`.
-- Rename the **existing** scheduled sender `odj-email-sender` to `truemerit-email-sender`.
-- Keep the persistent disk, PostgreSQL instance, environment variables, cron schedule, deployment branch and owner billing unchanged.
-- The default `.onrender.com` hostname may be different after a Render service rename. Verify it, but preserve the working custom domain(s).
-- Verify the Render GitHub connection targets the renamed repository and `main`. If Render cannot follow the redirect, reconnect the **same** service instead of creating a replacement.
-- Keep the existing configured Stripe webhook URL intact unless a separately tested domain transition is explicitly approved.
+If the owner chooses to rename Render services, rename each **existing resource** in the Render dashboard and preserve its service ID, deployed branch, environment variables, persistent disk, PostgreSQL connection, cron schedule and billing. Do not create replacement services. Confirm any Render-provided `.onrender.com` hostname and update external integration URLs only after independently verifying a controlled transition. Preserve working custom domains and Stripe webhook endpoints.
 
-## 4 — Retire old merged GitHub branches only when safe
+## Post-merge acceptance checks
 
-At the time of preparation, these eight non-`main` branches correspond to **merged** PRs:
+- GitHub `main` passes CI at the merged commit; no release branch is merged again.
+- Render production and the scheduled sender remain linked to `rayjim28/truemerit`, branch `main`.
+- Homepage, customer login, storefront search, real-product hero cards, cart, checkout, admin products/stock, Store Settings and policies load.
+- Production logs show no persistent 5xx errors.
+- Stripe webhook signing and actual email delivery require their own provider checks, not just code tests.
+- Guest checkout remains disabled until independent test-mode payment, webhook, receipt email, and private order-link verification pass.
+- After the pull request merges, delete `chore/truemerit-naming-prep-20261116` via the GitHub branches page or `git push origin --delete chore/truemerit-naming-prep-20261116`. **Keep `main`.**
 
-- `feature/truemerit-guest-checkout-release2`
-- `release/truemerit-branding-phase1-nov2026`
-- `fix/true-merit-approved-logo-20261115`
-- `fix/truemerit-brand-cleanup-2026-11-16`
-- `fix/truemerit-hero-showcase-2026-11-16`
-- `fix/truemerit-third-party-retailer-2026-11-16`
-- `three-tier-project-layout-20261111`
-- `truemerit-cleaning-brand-20261115`
-
-**Do not delete** `fix/truemerit-third-party-retailer-2026-11-16` while the preview service still deploys from it. First repoint or retire the preview in Render. Recheck branch/PR state before deletion, since it may change.
-
-Remove no branches until the main app and email sender both work on the renamed repository. GitHub offers a branch deletion control on merged PR pages and the repository branches page.
-
-## 5 — Post-rename verification
-
-- Homepage, sharp SVG wordmark, products, search, hero cards and shopping bag load.
-- Admin login, products, stock, orders, Store Settings, policy pages and image uploads work.
-- Render web service health and request logs show no persistent 5xx errors.
-- Stripe webhook URL and signed deliveries remain valid; do not trigger real charges just to verify a rename.
-- Scheduled email sender is still configured and running; verify actual email delivery with a controlled test.
-- Guest checkout remains **disabled** in production until the independent release gate passes.
-
-## 6 — Final code-reference cleanup (after renames)
-
-- Update service names, GitHub clone URL and current canonical domain in `README.md`, `docs/OPERATIONS.md`, and `LAUNCH_HANDOFF.md`.
-- Keep the legal name ODJ Group LLC where required.
-- Do not globally replace `odj` in source files: some old names intentionally protect existing sessions, carts, passwords, webhooks and database paths.
-- Run GitHub Actions again and verify Render follows `main`.
-
-**Status:** This document only prepares the rename. Dashboard resources have not been renamed by this commit.
+**Status:** GitHub repository rename and retirement of eight old merged feature branches completed. Render display-name renames are optional and have not been performed by this code change.
