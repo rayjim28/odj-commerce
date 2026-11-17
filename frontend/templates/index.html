@@ -10,7 +10,7 @@
 {% if canonical_url %}<meta property="og:url" content="{{canonical_url}}"><meta property="og:image" content="{{canonical_url}}static/images/truemerit-logo.svg">{% endif %}
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Organization','name':'TrueMerit Cleaning Supplies','url':canonical_url,'description':'Cleaning essentials and accessories'} | tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="stylesheet" href="/static/truemerit-cart.css?v=release2-1"><link rel="stylesheet" href="/static/truemerit-merchandising.css?v=hotfix1">
+<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="stylesheet" href="/static/truemerit-cart.css?v=release2-1"><link rel="stylesheet" href="/static/truemerit-merchandising.css?v=hotfix2">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -43,8 +43,8 @@
       
     </div>
     {% if merch.hero_products %}
-    <div class="hero-art hero-stack" data-hero-stack aria-label="Browse our first products">
-      <div class="hero-stack-stage">
+    <div class="hero-art hero-stack" data-hero-stack aria-label="Browse products">
+      <div class="hero-stack-stage" data-hero-track tabindex="0" aria-label="Scrollable product previews">
         {% for product in merch.hero_products %}
         <a class="hero-stack-card" data-hero-card data-slot="{{ loop.index0 }}" href="/products/{{ product.id }}" aria-label="View {{ product.name }}" {% if loop.first %}aria-current="true"{% endif %}>
           <span class="hero-stack-photo"><img src="{{ product.image_url }}" alt="" loading="{{ 'eager' if loop.first else 'lazy' }}" decoding="async"></span>
@@ -55,7 +55,7 @@
         </a>
         {% endfor %}
       </div>
-      <div class="hero-stack-dots" aria-label="Select a product to view">
+      <div class="hero-stack-dots" aria-label="Scroll to a product">
         {% for product in merch.hero_products %}
         <button type="button" data-hero-dot="{{ loop.index0 }}" aria-label="Show {{ product.name }}" aria-pressed="{{ 'true' if loop.first else 'false' }}"></button>
         {% endfor %}
@@ -85,16 +85,31 @@
     <a class="btn btn-outline-dark tm-wholesale-link" href="mailto:truemeritsupplies@gmail.com?subject=Wholesale%20Supply%20Inquiry">Ask about wholesale <span aria-hidden="true">↗</span></a>
   </div>
 </section>
-{% if merch.spotlight %}
-<section class="v71-feature-section" aria-labelledby="v71-feature-heading"><div class="container v71-feature-grid">
- <div class="v71-feature-photo"><a href="/products/{{ merch.spotlight.id }}" aria-label="See {{ merch.spotlight.name }} details"><img src="{{ merch.spotlight.image_url or '/static/images/default.svg' }}" alt="{{ merch.spotlight.name }}" loading="lazy" decoding="async"></a><span class="v71-photo-label">FEATURED CLEANING SUPPLIES</span></div>
- <div class="v71-feature-copy"><div class="section-kicker">THE FEATURED PICK</div><h2 id="v71-feature-heading">A good place<br>to <em>start.</em></h2><h3>{{ merch.spotlight.name }}</h3><p>{{ merch.spotlight.description or 'Explore the details and see whether this item is right for your cleaning routine.' }}</p><div class="v71-feature-price">${{ '%.2f'|format(merch.spotlight.price_cents / 100) }}</div><a class="btn btn-gold" href="/products/{{ merch.spotlight.id }}">Explore this product <span aria-hidden="true">↗</span></a></div>
-</div></section>
+{% if merch.featured_products %}
+<section class="v71-feature-section" aria-labelledby="v71-feature-heading">
+ <div class="container tm-featured-wrap" data-featured-carousel>
+  <div class="tm-featured-top">
+   <div><span class="section-kicker">HAND-PICKED CLEANING ESSENTIALS</span><h2 id="v71-feature-heading">Featured <em>products.</em></h2><p>Explore the products selected by the TrueMerit store owner.</p></div>
+   {% if merch.featured_products|length > 1 %}
+   <div class="tm-carousel-controls"><button type="button" data-featured-prev aria-label="Previous featured product">←</button><span data-featured-count aria-live="polite">1 / {{ merch.featured_products|length }}</span><button type="button" data-featured-next aria-label="Next featured product">→</button></div>
+   {% endif %}
+  </div>
+  <div class="tm-featured-track" data-featured-track tabindex="0" aria-label="Featured cleaning products">
+   {% for product in merch.featured_products %}
+   <article class="tm-featured-slide" data-featured-slide>
+    <a class="tm-featured-photo" href="/products/{{ product.id }}" aria-label="View {{ product.name }}"><img src="{{ product.image_url or '/static/images/default.svg' }}" alt="{{ product.name }}" loading="lazy" decoding="async"></a>
+    <div class="tm-featured-copy"><span class="tm-featured-category">FEATURED / {{ product.category|upper }}</span><h3>{{ product.name }}</h3><p>{{ product.description or 'Review this product and its details before ordering.' }}</p><div class="tm-featured-price">${{ '%.2f'|format(product.price_cents / 100) }}</div><a class="btn btn-gold" href="/products/{{ product.id }}">Explore product <span aria-hidden="true">↗</span></a></div>
+   </article>
+   {% endfor %}
+  </div>
+ </div>
+</section>
 {% endif %}
 {% if merch.guides %}
 <section class="v71-collections" id="collections" aria-labelledby="v71-collections-title"><div class="container">
  <div class="v71-section-head"><div><span class="section-kicker">SHOP BY WHAT YOU NEED</span><h2 id="v71-collections-title">Find your <em>routine.</em></h2><p>Start with a system, find replacement parts, or discover small essentials for the finishing touches.</p></div><a href="#shop" class="v71-view-all">Browse everything <span aria-hidden="true">↗</span></a></div>
- <div class="v71-collections-grid">
+ <div class="tm-collection-controls"><span>Explore collections</span><div><button type="button" data-collection-prev aria-label="Scroll collections left">←</button><button type="button" data-collection-next aria-label="Scroll collections right">→</button></div></div>
+ <div class="v71-collections-grid" data-collection-track tabindex="0" aria-label="Browse product collections">
  {% for guide in merch.guides %}<a href="#shop" class="v71-collection-card" data-merch-ids="{{ guide.ids|join(',') }}" data-merch-title="{{ guide.title }}" aria-label="Browse {{ guide.title }}: {{ guide.count }} products">
   <div class="v71-collection-copy"><small>COLLECTION / 0{{ loop.index }}</small><h3>{{ guide.title }}</h3><p>{{ guide.subtitle }}</p><span class="v71-collection-more">{{ guide.count }} {{ 'product' if guide.count == 1 else 'products' }} <b aria-hidden="true">↗</b></span></div>
   {# Category cards are intentionally illustration-free: uploaded catalog images can be test screenshots or supplier photos unrelated to the category. Actual product pages show owner-supplied images. #}
@@ -137,5 +152,5 @@
 <footer class="footer"><div class="container"><div class="footer-top"><div><a class="footer-brand" href="#top">TrueMerit<span>.</span></a><p>Quality You Can Trust. Prices You'll Appreciate.<br>Retail and wholesale cleaning supplies.<br>Operated by ODJ Group LLC</p></div><div class="footer-links"><div><strong>EXPLORE</strong><a href="#shop">Shop all</a><a href="#about">Our promise</a><a href="#wholesale">Wholesale inquiries</a><a href="#top">Back to top</a></div><div><strong>INFORMATION</strong><a href="/information/contact">Customer support</a><a href="/information/shipping">Shipping policy</a><a href="/information/returns">Returns &amp; refunds</a><a href="mailto:truemeritsupplies@gmail.com">Contact TrueMerit</a></div></div></div><div class="footer-bottom"><span>© <span id="copyright-year">2026</span> TrueMerit Cleaning Supplies. Operated by ODJ Group LLC.</span><span>SECURE CHECKOUT VIA STRIPE <span class="footer-sparkle">✦</span></span></div></div></footer>
 <div class="drawer-backdrop" id="drawer-backdrop" hidden></div><aside class="cart-drawer" id="cart-drawer" aria-label="Shopping cart" aria-modal="true" role="dialog" aria-hidden="true"><div class="drawer-head"><div><small>TRUEMERIT / YOUR BAG</small><h2>Shopping bag <span id="drawer-count">(0)</span></h2></div><button class="close-cart" id="close-cart" aria-label="Close cart">×</button></div><div class="drawer-items" id="drawer-items"></div><div class="drawer-bottom"><div class="drawer-subtotal"><span>Subtotal</span><strong id="cart-subtotal">$0.00</strong></div><p>{% if not checkout_open %}Online orders are not available yet.{% else %}Shipping and applicable tax calculated at checkout.{% endif %}</p><button class="btn btn-gold checkout-button" id="checkout-button" type="button">Secure checkout <span class="checkout-arrow" aria-hidden="true">↗</span></button><div id="checkout-message" class="checkout-message" role="status"></div><div class="payments-caption">🔒 Secure checkout powered by Stripe</div></div></aside>
 <div class="toast" id="toast" aria-live="polite"></div>
-<script>window.ODJ_PRODUCTS = {{products | tojson}}; window.ODJ_CUSTOMER = {{customer_json | tojson}}; window.ODJ_PUBLIC_PREVIEW = {{public_preview | tojson}}; window.ODJ_CHECKOUT_OPEN = {{checkout_open | tojson}}; window.ODJ_GUEST_CHECKOUT_ENABLED = {{guest_checkout_enabled | tojson}};</script><script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/store.js?v=release2-2" defer></script><script src="/static/js/hero-stack.js?v=1" defer></script>
+<script>window.ODJ_PRODUCTS = {{products | tojson}}; window.ODJ_CUSTOMER = {{customer_json | tojson}}; window.ODJ_PUBLIC_PREVIEW = {{public_preview | tojson}}; window.ODJ_CHECKOUT_OPEN = {{checkout_open | tojson}}; window.ODJ_GUEST_CHECKOUT_ENABLED = {{guest_checkout_enabled | tojson}};</script><script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/store.js?v=release2-2" defer></script><script src="/static/js/hero-stack.js?v=2" defer></script><script src="/static/js/merchandising-carousel.js?v=1" defer></script>
 </body></html>
