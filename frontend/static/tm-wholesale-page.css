@@ -242,3 +242,11 @@
     top: 50%;
     transform: translateY(-50%);
 }
+
+/* Center the empty-state Contact TrueMerit action without affecting the form submit button. */
+.tm-bulk-page .tm-wp-form-card > a.tm-wp-send {
+  width: min(100%, 280px);
+  margin: 0 auto;
+  justify-content: center;
+  text-align: center;
+}
