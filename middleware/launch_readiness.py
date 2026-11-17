@@ -141,14 +141,14 @@ def launch_readiness():
         _item('sales_switch', 'Owner-approved sales switch', owner_approved and not blockers,
               'The business owner can open or pause checkout from this dashboard after setup and approval.', 'Payments'),
         _item('refunds', 'Refund reconciliation', bool(synced_refunds),
-              ('A successful refund has been reconciled in ODJ. This does not verify future webhook delivery.'
+              ('A successful refund has been reconciled in TrueMerit. This does not verify future webhook delivery.'
                if synced_refunds else
                'No successful refund reconciliation is recorded yet.'), 'Payments',
               review=not bool(synced_refunds)),
         _item('refund_webhooks', 'Live refund webhook delivery', bool(delivered_refund_events),
-              ('ODJ has received and recorded a refund event; verify Stripe delivered it successfully.'
+              ('TrueMerit has received and recorded a refund event; verify Stripe delivered it successfully.'
                if delivered_refund_events else
-               'The webhook subscription is configured, but no refund event has been processed by ODJ yet.'),
+               'The webhook subscription is configured, but no refund event has been processed by TrueMerit yet.'),
               'Payments', review=not bool(delivered_refund_events)),
         _item('email', 'Transactional email service', all(os.getenv(k) for k in ('SMTP_HOST','SMTP_FROM','SMTP_USERNAME','SMTP_PASSWORD')),
               'Configure an authorized sender and test real delivery and password recovery.', 'Communications'),
