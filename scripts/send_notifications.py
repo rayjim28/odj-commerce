@@ -1,4 +1,4 @@
-"""Send pending ODJ notification emails via SMTP when explicitly enabled.
+"""Send pending TrueMerit notification emails via SMTP when explicitly enabled.
 
 Usage:
  python scripts/send_notifications.py            # count pending, safe no-op
