@@ -10,7 +10,7 @@
 {% if canonical_url %}<meta property="og:url" content="{{canonical_url}}"><meta property="og:image" content="{{canonical_url}}static/images/truemerit-logo.svg">{% endif %}
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Organization','name':'TrueMerit Cleaning Supplies','url':canonical_url,'description':'Cleaning essentials and accessories'} | tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="stylesheet" href="/static/truemerit-cart.css?v=release2-1">
+<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="stylesheet" href="/static/truemerit-cart.css?v=release2-1"><link rel="stylesheet" href="/static/truemerit-merchandising.css?v=hotfix1">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -97,7 +97,7 @@
  <div class="v71-collections-grid">
  {% for guide in merch.guides %}<a href="#shop" class="v71-collection-card" data-merch-ids="{{ guide.ids|join(',') }}" data-merch-title="{{ guide.title }}" aria-label="Browse {{ guide.title }}: {{ guide.count }} products">
   <div class="v71-collection-copy"><small>COLLECTION / 0{{ loop.index }}</small><h3>{{ guide.title }}</h3><p>{{ guide.subtitle }}</p><span class="v71-collection-more">{{ guide.count }} {{ 'product' if guide.count == 1 else 'products' }} <b aria-hidden="true">↗</b></span></div>
-  <img src="{{ guide.image_url }}" alt="" loading="lazy" decoding="async">
+  {# Category cards are intentionally illustration-free: uploaded catalog images can be test screenshots or supplier photos unrelated to the category. Actual product pages show owner-supplied images. #}
  </a>{% endfor %}
  </div>
 </div></section>
