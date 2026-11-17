@@ -43,14 +43,32 @@ def build_home_merchandising(products):
         ('Parts & refills', 'Keep the right replacement items close by.', ('head', 'refill', 'replacement', 'handle'), ()),
         ('Cleaning extras', 'The finishing touches for everyday upkeep.', ('cloth', 'brush', 'scrub', 'microfiber', 'wipes', 'cleaner'), ()),
     )
+    # Named collections group known supplies first. For other genuine catalog
+    # categories, append more cards automatically; the UI scrolls horizontally.
+    # Use only public, priced, in-stock items, never drafts or bundle products.
+    eligible = [p for p in available if p.get('active', True)
+                and p.get('price_cents', 0) > 0 and not p.get('is_bundle', False)]
     guides = []
+    represented_ids = set()
     for title, subtitle, terms, excluded in themes:
-        matches = [p for p in products if any(w in (p['name'] + ' ' + p['category']).lower() for w in terms)
+        matches = [p for p in eligible
+                   if any(w in (p['name'] + ' ' + p['category']).lower() for w in terms)
                    and not any(w in p['name'].lower() for w in excluded)]
         if matches:
             guides.append({'title': title, 'subtitle': subtitle,
                            'image_url': matches[0]['image_url'] or '/static/images/default.svg',
                            'ids': [p['id'] for p in matches], 'count': len(matches)})
+            represented_ids.update(p['id'] for p in matches)
+    extra_categories = {}
+    for product in eligible:
+        if product['id'] in represented_ids:
+            continue
+        name = (product.get('category') or '').strip() or 'Everyday essentials'
+        extra_categories.setdefault(name, []).append(product)
+    for name, matches in extra_categories.items():
+        guides.append({'title': name, 'subtitle': 'Explore this cleaning supplies collection.',
+                       'image_url': matches[0]['image_url'] or '/static/images/default.svg',
+                       'ids': [p['id'] for p in matches], 'count': len(matches)})
     # Cross-sell adjacent catalog products as suggestions, not a promised compatible kit
     # or a discount. Restrict to listed, currently in-stock items.
     companion = [p for p in highlighted if spotlight and p['id'] != spotlight['id']]
