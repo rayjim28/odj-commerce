@@ -114,3 +114,21 @@ def test_featured_respects_owner_checkbox_and_publication_and_stock():
     featured = build_home_merchandising(items)["featured_products"]
     assert [p["id"] for p in featured] == [2, 7]
     assert build_home_merchandising([make_product(9)])["featured_products"] == []
+
+
+def test_new_catalog_categories_generate_collection_slides():
+    products = [
+        {**make_product(1), "name":"Mop system", "category":"Mop systems"},
+        {**make_product(2), "name":"Window squeegee", "category":"Window cleaning"},
+        {**make_product(3), "name":"Glass squeegee", "category":"Window cleaning"},
+        {**make_product(4), "name":"Floor buffer", "category":"Floor machines"},
+        {**make_product(5, active=False), "name":"Hidden machine", "category":"Private"},
+    ]
+    guides = build_home_merchandising(products)["guides"]
+    names = [g["title"] for g in guides]
+    assert "Mop systems" in names
+    assert "Window cleaning" in names
+    assert "Floor machines" in names
+    assert "Private" not in names
+    window = next(g for g in guides if g["title"] == "Window cleaning")
+    assert window["count"] == 2 and window["ids"] == [2, 3]
