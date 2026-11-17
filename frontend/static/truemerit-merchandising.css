@@ -1,0 +1,61 @@
+/* TrueMerit homepage merchandising polish.
+   Collection cards use no unreviewed product image as category artwork.
+   Once owner uploads approved supplier photos, individual product cards
+   and the hero continue to use their genuine catalog images. */
+.v71-collection-card{
+  background:linear-gradient(130deg,#174575 0%,#0a2850 68%,#061a36 100%);
+  border:1px solid #3e729f;
+  border-radius:9px;
+  min-height:290px;
+}
+.v71-collection-card::before{
+  content:"";
+  position:absolute;
+  right:-57px;
+  top:37px;
+  width:230px;
+  height:230px;
+  border:1px solid rgba(112,184,233,.32);
+  border-radius:50%;
+  background:radial-gradient(circle at 33% 33%,rgba(67,149,212,.21),transparent 70%);
+  pointer-events:none;
+}
+.v71-collection-card::after{
+  background:linear-gradient(0deg,rgba(2,22,47,.9),transparent 67%);
+}
+.v71-collection-card:hover{
+  background:linear-gradient(135deg,#205b93,#08284f);
+  border-color:#ff963e;
+}
+.v71-collection-copy{z-index:2}
+.v71-collection-copy>small,
+.v71-collection-more{color:#ffaf6c}
+.v71-collection-copy h3{color:#fff;max-width:280px}
+.v71-collection-copy p{color:#cee3f3;max-width:270px}
+.v71-collection-more b{
+  color:#ffac6c;
+  border-color:#8ab9dd;
+  border-radius:5px;
+}
+.v71-collection-card:focus-visible{outline:3px solid #ffac63}
+.hero-stack-card[data-slot="0"] .hero-stack-photo{
+  opacity:1!important;
+  visibility:visible;
+  display:flex;
+  z-index:3;
+}
+.hero-stack-card[data-slot="0"] .hero-stack-card-caption{
+  opacity:1!important;
+  visibility:visible;
+  z-index:4;
+}
+.hero-stack-card:not([data-slot="0"]) .hero-stack-photo{
+  opacity:.3;
+  visibility:visible;
+}
+.hero-stack-card .hero-stack-photo img{display:block;opacity:1;visibility:visible}
+.hero-stack-card::after{z-index:1}
+@media(max-width:750px){
+  .v71-collection-card{min-height:255px}
+  .v71-collection-card::before{width:185px;height:185px;right:-40px}
+}
