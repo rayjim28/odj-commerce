@@ -659,7 +659,8 @@ def test_v71_merchandising_only_uses_public_catalog():
     assert {p['id'] for p in data['companions']} == {72, 73}
     assert {g['title'] for g in data['guides']} == {'Mop systems', 'Parts & refills', 'Cleaning extras'}
     assert all(set(g['ids']).issubset({71, 72, 73}) for g in data['guides'])
-    assert main.build_home_merchandising([]) == {'spotlight':None,'guides':[],'companions':[],'hero_products':[]}
+    assert [p['id'] for p in data['featured_products']] == [71]
+    assert main.build_home_merchandising([]) == {'spotlight':None,'featured_products':[],'guides':[],'companions':[],'hero_products':[]}
 
 
 def test_v71_home_uses_published_products_only(authenticated):
