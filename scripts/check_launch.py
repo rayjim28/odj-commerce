@@ -13,7 +13,7 @@ from launch_readiness import launch_readiness
 def main():
     data = launch_readiness()
     labels = {'ready': 'PASS', 'todo': 'SETUP', 'review': 'REVIEW'}
-    print(f"ODJ launch checks: {data['ready_count']}/{data['total_count']} configured")
+    print(f"TrueMerit launch checks: {data['ready_count']}/{data['total_count']} configured")
     for check in data['checks']:
         print(f"  [{labels[check['status']]}] {check['title']} — {check['note']}")
     print(f"Owner reviews: {data.get('owner_confirmed_count', 0)}/{data.get('owner_total_count', 0)} confirmed")
