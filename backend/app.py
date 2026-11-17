@@ -100,6 +100,8 @@ def account_testing_preview() -> bool:
 
 app = FastAPI(title='TrueMerit Cleaning Supplies', lifespan=lifespan, docs_url=None if os.getenv('APP_ENV') == 'production' else '/docs')
 app.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
+from backend.wholesale_inquiries import router as tm_bulk_router
+app.include_router(tm_bulk_router)
 MEDIA_DIR = Path(os.getenv('MEDIA_DIR') or (ROOT / 'media')).resolve()
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 app.mount('/media', StaticFiles(directory=MEDIA_DIR), name='media')
@@ -1515,6 +1517,7 @@ class ProductInput(BaseModel):
     sku: str = Field(default='', max_length=64)
     badge: str = Field(default='', max_length=50)
     featured: bool = False
+    wholesale_available: bool = False
     active: bool = False
 
 

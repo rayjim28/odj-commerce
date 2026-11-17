@@ -216,7 +216,7 @@
     $('modal-title').textContent=p?'Edit product':'Add a product';
     if(p){for(const key of ['name','category','description','sku','badge','stock'])form.elements[key].value=p[key]??'';
       form.elements.price.value=p.price_cents?(p.price_cents/100).toFixed(2):'';
-      form.elements.active.checked=p.active;form.elements.featured.checked=p.featured;
+      form.elements.active.checked=p.active;form.elements.featured.checked=p.featured;form.elements.wholesale_available.checked=!!p.wholesale_available;
       photos=[p.image_url,...(p.additional_images||[])].filter(Boolean).map(url=>({url}));
     } else {form.elements.active.checked=false;form.elements.category.value='Cleaning Essentials';form.elements.stock.value='0';}
     renderPhotos();$('product-modal').hidden=false;document.body.style.overflow='hidden';
@@ -268,7 +268,7 @@
           const data=await r.json();if(!r.ok)throw new Error(data.detail||'Photo upload failed');urls.push(data.url);
         }else urls.push(photo.url);
       }
-      const form={name:f.elements.name.value.trim(),category:f.elements.category.value.trim(),sku:f.elements.sku.value.trim(),description:f.elements.description.value.trim(),price_cents:price,stock:Number(f.elements.stock.value),image_url:urls[0]||'',additional_images:urls.slice(1),badge:f.elements.badge.value.trim(),active:f.elements.active.checked,featured:f.elements.featured.checked};
+      const form={name:f.elements.name.value.trim(),category:f.elements.category.value.trim(),sku:f.elements.sku.value.trim(),description:f.elements.description.value.trim(),price_cents:price,stock:Number(f.elements.stock.value),image_url:urls[0]||'',additional_images:urls.slice(1),badge:f.elements.badge.value.trim(),active:f.elements.active.checked,featured:f.elements.featured.checked,wholesale_available:f.elements.wholesale_available.checked};
       await api(editingId?`/api/admin/products/${editingId}`:'/api/admin/products',{method:editingId?'PATCH':'POST',body:JSON.stringify(form)});
       busy=false;closeModal();await loadProducts();summary();
     }catch(err){status.style.color='#a44b42';status.textContent=err.message;}

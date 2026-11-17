@@ -12,6 +12,9 @@
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Product','name':product.name,'description':product.description or product.name,'image':seo_images,'sku':product.sku or '', 'offers':{'@type':'Offer','url':canonical_url,'priceCurrency':'USD','price':'%.2f'|format(product.price_cents / 100),'availability':'https://schema.org/InStock' if product.stock > 0 else 'https://schema.org/OutOfStock'}}|tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9">
+<link rel="stylesheet" href="/static/truemerit-product-polish.css?v=detail-final-2">
+<link rel="stylesheet" href="/static/tm-detail-wholesale.css?v=1">
+<link rel="stylesheet" href="/static/tm-bulk-form.css?v=1">
 </head>
 <body class="product-page-body">
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
@@ -37,7 +40,12 @@
   <div class="product-detail-status"><span class="stock-dot {% if product.stock == 0 %}stock-none{% endif %}"></span><strong id="stock-label">{% if product.stock == 0 %}Currently sold out{% elif product.stock < 6 %}Only {{product.stock}} left in stock{% else %}In stock &amp; ready to order{% endif %}</strong>{% if product.stock > 0 %}<small>{{product.stock}} available</small>{% endif %}</div>
   <div class="product-detail-quantity-title"><span>QUANTITY</span><span>SELECT YOUR AMOUNT</span></div>
   <div class="product-detail-purchase"><div class="detail-quantity" aria-label="Quantity selector"><button id="detail-minus" type="button" aria-label="Decrease quantity" {% if product.stock == 0 %}disabled{% endif %}>−</button><output id="detail-qty" aria-live="polite">1</output><button id="detail-plus" type="button" aria-label="Increase quantity" {% if product.stock == 0 %}disabled{% endif %}>+</button></div><button class="btn btn-gold detail-add" id="detail-add" type="button" {% if product.stock == 0 %}disabled{% endif %}>{% if product.stock == 0 %}Sold out{% else %}Add to bag <span>↗</span>{% endif %}</button></div>
-  <button type="button" class="v73-detail-favorite" id="detail-favorite">♡ Save to favorites</button><div class="product-detail-feedback" id="detail-feedback" role="status" aria-live="polite"></div>
+  <div class="tm-detail-secondary-actions">
+<button type="button" class="v73-detail-favorite" id="detail-favorite">♡ Save to favorites</button>
+{% if product.get('wholesale_available', False) %}
+<a class="tm-wholesale-request" href="mailto:truemeritsupplies@gmail.com?subject={{ ('Wholesale quote: ' ~ product.name ~ ' (SKU: ' ~ (product.sku or 'N/A') ~ ')') | urlencode }}">Request wholesale quote <span aria-hidden="true">↗</span></a>
+{% endif %}
+</div><div class="product-detail-feedback" id="detail-feedback" role="status" aria-live="polite"></div>
   <div class="product-detail-next"><a id="detail-view-bag" href="/?cart=1">View shopping bag <span>↗</span></a><a href="/#shop">Continue shopping <span>↗</span></a></div>
   {% if public_preview %}<p role="status"><strong>Online ordering is coming soon.</strong> You can browse this collection now; no purchases are being accepted.</p>{% endif %}
   <div class="product-detail-promise"><div><span>✧</span><div><strong>Quality selected</strong><small>Everyday essentials for your space</small></div></div>{% if not public_preview %}<div><span>◇</span><div><strong>Secure checkout</strong><small>Stripe payment processing</small></div></div><div><span>↗</span><div><strong>{% if guest_checkout_enabled %}Guest checkout available{% else %}Customer account{% endif %}</strong><small>{% if customer %}You're signed in{% elif guest_checkout_enabled %}No account required to purchase{% else %}<a href="/account">Sign in</a> to complete checkout{% endif %}</small></div></div>{% endif %}</div>
@@ -48,4 +56,5 @@
 <footer class="product-detail-footer"><div class="container"><a href="/" class="footer-brand">TrueMerit<span>.</span></a><p>PRODUCTS YOU CAN TRUST. EVERY SINGLE DAY.</p><span>© TRUEMERIT CLEANING SUPPLIES · {{ now_year or '2026' }}</span></div></footer>
 <script>window.ODJ_DETAIL_PRODUCT = {{ product | tojson }};</script>
 <script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/product.js?v=7-4" defer></script>
+<script src="/static/js/tm-bulk-form.js?v=1" defer></script>
 </body></html>

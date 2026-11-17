@@ -326,8 +326,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;
   -webkit-line-clamp:2;overflow-wrap:anywhere;
 }
-.hero-stack-card:not([data-slot="0"]) .hero-stack-photo{opacity:0}
-.hero-stack-card:not([data-slot="0"]) .hero-stack-card-caption{opacity:0}
+
+
 .hero-stack-dots{
   position:relative;z-index:25;display:flex;align-items:center;
   justify-content:center;gap:9px;min-height:19px;margin-top:-5px;
@@ -1153,3 +1153,394 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   }
   .checkout-body .checkout-trust-logo img{width:178px}
 }
+
+
+
+
+/* REAL FEATURED PICK POLISH START */
+
+/* Smaller, cleaner featured section */
+.v71-feature-section {
+    padding:56px 0 !important;
+}
+
+.v71-feature-section .v71-feature-grid {
+    max-width:1000px !important;
+    margin:0 auto !important;
+    display:grid !important;
+    grid-template-columns:0.95fr 1.05fr !important;
+    align-items:center !important;
+    gap:42px !important;
+}
+
+/* Rounded product image panel */
+.v71-feature-section .v71-feature-photo {
+    width:100% !important;
+    height:340px !important;
+    min-height:0 !important;
+    border-radius:20px !important;
+    overflow:hidden !important;
+    border:1px solid #d2e3f1 !important;
+    background:linear-gradient(145deg,#f5faff,#e4f0fa) !important;
+    box-shadow:0 12px 30px rgba(8,41,86,.07) !important;
+}
+
+/* Keep the original image fully visible */
+.v71-feature-section .v71-feature-photo img {
+    width:88% !important;
+    height:78% !important;
+    max-height:270px !important;
+    object-fit:contain !important;
+    filter:none !important;
+}
+
+/* Image label */
+.v71-feature-section .v71-photo-label {
+    left:23px !important;
+    bottom:20px !important;
+    font-size:9px !important;
+}
+
+/* Right side typography */
+.v71-feature-section .v71-feature-copy {
+    min-width:0 !important;
+}
+
+.v71-feature-section .v71-feature-copy h2 {
+    font-size:clamp(35px,4vw,50px) !important;
+    line-height:1.08 !important;
+    margin:15px 0 20px !important;
+}
+
+.v71-feature-section .v71-feature-copy h3 {
+    font-size:21px !important;
+    margin-bottom:8px !important;
+}
+
+.v71-feature-section .v71-feature-copy > p {
+    font-size:13px !important;
+    line-height:1.6 !important;
+}
+
+.v71-feature-section .v71-feature-price {
+    font-size:24px !important;
+    margin:18px 0 20px !important;
+}
+
+/* Rounded orange button */
+.v71-feature-section .v71-feature-copy .btn {
+    border-radius:10px !important;
+    padding:15px 22px !important;
+    min-height:0 !important;
+    box-shadow:0 7px 16px rgba(255,130,28,.14) !important;
+    transition:transform .2s,box-shadow .2s;
+}
+
+.v71-feature-section .v71-feature-copy .btn:hover {
+    transform:translateY(-2px);
+    box-shadow:0 10px 22px rgba(255,130,28,.22) !important;
+}
+
+/* Responsive */
+@media(max-width:720px) {
+    .v71-feature-section {
+        padding:42px 0 !important;
+    }
+    .v71-feature-section .v71-feature-grid {
+        grid-template-columns:1fr !important;
+        gap:26px !important;
+    }
+    .v71-feature-section .v71-feature-photo {
+        height:260px !important;
+    }
+    .v71-feature-section .v71-feature-copy h2 {
+        font-size:clamp(34px,8vw,44px) !important;
+    }
+}
+
+/* REAL FEATURED PICK POLISH END */
+
+
+/* SHOP COMPACT V1 START */
+
+/* Five compact cards across on desktop */
+#shop #product-grid.product-grid {
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:14px!important;
+  overflow:visible!important;
+}
+
+/* Rounded product cards */
+#shop #product-grid .product-card {
+  display:flex!important;
+  flex-direction:column!important;
+  min-width:0!important;
+  min-height:308px!important;
+  border-radius:16px!important;
+  overflow:hidden!important;
+  border:1px solid #dce8f3!important;
+  background:white;
+  box-shadow:0 7px 18px rgba(9,41,75,.035);
+}
+
+/* Smaller image area */
+#shop #product-grid .product-image {
+  height:164px!important;
+  min-height:164px!important;
+  flex:0 0 164px!important;
+  overflow:hidden!important;
+  border-radius:16px 16px 0 0!important;
+}
+
+#shop #product-grid .product-image-link img {
+  width:100%!important;
+  height:100%!important;
+  padding:10px!important;
+  box-sizing:border-box!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
+
+/* Rounded labels and quick-add button */
+#shop #product-grid .product-badge {
+  top:10px!important;
+  left:10px!important;
+  padding:6px 8px!important;
+  border-radius:7px!important;
+  font-size:8px!important;
+}
+
+#shop #product-grid .product-quick-add {
+  right:10px!important;
+  bottom:10px!important;
+  width:33px!important;
+  height:33px!important;
+  border-radius:9px!important;
+}
+
+/* Compact product information */
+#shop #product-grid .product-info {
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1!important;
+  min-width:0!important;
+  padding:13px 13px 12px!important;
+  box-sizing:border-box!important;
+}
+
+#shop #product-grid .product-category {
+  font-size:9px!important;
+}
+
+#shop #product-grid .product-name-row {
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:7px!important;
+  margin:9px 0!important;
+}
+
+#shop #product-grid .product-name-row h3 {
+  font-size:13px!important;
+  line-height:1.3!important;
+  overflow-wrap:anywhere;
+}
+
+#shop #product-grid .product-name-row strong {
+  font-size:13px!important;
+  white-space:nowrap!important;
+}
+
+/* Keep long descriptions from stretching cards */
+#shop #product-grid .product-info>p {
+  min-height:0!important;
+  margin:0 0 12px!important;
+  font-size:11px!important;
+  line-height:1.45!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+
+/* Keep product actions aligned */
+#shop #product-grid .product-card-actions {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+  margin-top:auto!important;
+  padding-top:10px!important;
+}
+
+#shop #product-grid .product-view-link,
+#shop #product-grid .product-card-actions .add-button {
+  font-size:10px!important;
+}
+
+/* Responsive product grid */
+@media(max-width:1250px) {
+  #shop #product-grid.product-grid {
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:1000px) {
+  #shop #product-grid.product-grid {
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:720px) {
+  #shop #product-grid.product-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:460px) {
+  #shop #product-grid.product-grid {
+    grid-template-columns:1fr!important;
+  }
+  #shop #product-grid .product-image {
+    height:188px!important;
+    min-height:188px!important;
+    flex-basis:188px!important;
+  }
+}
+
+/* SHOP COMPACT V1 END */
+
+
+/* EXPLORE POLISH START */
+
+/* Only Explore what goes next */
+.v71-companions {
+    padding:70px 0 76px !important;
+}
+
+.v71-companions .v71-section-head {
+    margin-bottom:25px !important;
+}
+
+.v71-companions .v71-companion-grid {
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:16px !important;
+}
+
+/* Rounded horizontal product cards */
+.v71-companions .v71-companion-card {
+    display:grid !important;
+    grid-template-columns:116px minmax(0,1fr) !important;
+    gap:14px !important;
+    align-items:center !important;
+    min-height:148px !important;
+    padding:12px !important;
+    box-sizing:border-box !important;
+    border-radius:16px !important;
+    overflow:hidden !important;
+    border:1px solid #4276a4 !important;
+    background:linear-gradient(145deg,#194978,#10335e) !important;
+    box-shadow:0 10px 25px rgba(0,16,38,.16) !important;
+    transition:transform .2s,box-shadow .2s,border-color .2s;
+}
+
+.v71-companions .v71-companion-card:hover {
+    transform:translateY(-3px) !important;
+    border-color:#ff9a40 !important;
+    box-shadow:0 15px 30px rgba(0,14,32,.3) !important;
+}
+
+.v71-companions .v71-companion-card:focus-visible {
+    outline:3px solid #ff9a40;
+    outline-offset:3px;
+}
+
+/* Center images inside a rounded frame */
+.v71-companions .v71-companion-image {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:116px !important;
+    height:116px !important;
+    min-height:0 !important;
+    padding:8px !important;
+    box-sizing:border-box !important;
+    background:#e9f4fc !important;
+    border:1px solid #cfe3f2 !important;
+    border-radius:12px !important;
+    overflow:hidden !important;
+}
+
+.v71-companions .v71-companion-image img {
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    max-width:100% !important;
+    max-height:100% !important;
+    object-fit:contain !important;
+    object-position:center !important;
+    filter:none !important;
+}
+
+/* Cleaner product information */
+.v71-companions .v71-companion-info {
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    min-width:0 !important;
+    min-height:116px !important;
+    padding:4px 2px 4px 0 !important;
+    box-sizing:border-box !important;
+}
+
+.v71-companions .v71-companion-info > span {
+    font-size:9px !important;
+    color:#ffb579 !important;
+}
+
+.v71-companions .v71-companion-info strong {
+    font-size:15px !important;
+    line-height:1.3 !important;
+    color:white !important;
+}
+
+.v71-companions .v71-companion-info small {
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:center !important;
+    margin-top:auto !important;
+    font-size:14px !important;
+    color:#ffac64 !important;
+}
+
+.v71-companions .v71-companion-info small span {
+    display:grid;
+    place-items:center;
+    width:27px;
+    height:27px;
+    border:1px solid #7daed4;
+    border-radius:7px;
+    font-size:16px;
+}
+
+/* Responsive */
+@media(max-width:1050px) {
+    .v71-companions .v71-companion-grid {
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    }
+}
+
+@media(max-width:700px) {
+    .v71-companions .v71-companion-grid {
+        grid-template-columns:1fr !important;
+    }
+    .v71-companions .v71-companion-card {
+        grid-template-columns:100px minmax(0,1fr) !important;
+    }
+    .v71-companions .v71-companion-image {
+        width:100px !important;
+        height:110px !important;
+    }
+}
+
+/* EXPLORE POLISH END */
