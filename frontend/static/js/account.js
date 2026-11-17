@@ -61,7 +61,7 @@
   if(marketingStatus){
     const optOut=$('marketing-opt-out');
     fetch('/api/account/marketing').then(r=>r.json()).then(d=>{
-      const statuses={confirmed:'Subscribed to ODJ updates.',pending:'Confirmation pending; marketing emails are not active.',unsubscribed:'Unsubscribed.',not_subscribed:'Not subscribed.'};
+      const statuses={confirmed:'Subscribed to TrueMerit updates.',pending:'Confirmation pending; marketing emails are not active.',unsubscribed:'Unsubscribed.',not_subscribed:'Not subscribed.'};
       marketingStatus.textContent=statuses[d.status]||'Not subscribed.';
       optOut.hidden=!['confirmed','pending'].includes(d.status);
     }).catch(()=>{marketingStatus.textContent='Could not load marketing preferences.';});
