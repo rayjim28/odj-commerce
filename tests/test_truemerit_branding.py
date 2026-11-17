@@ -1,5 +1,6 @@
 """Brand assets stay separate from business logic and keep their public paths."""
 from pathlib import Path
+import re
 from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,8 +26,11 @@ def test_original_page_structure_has_brand_layer():
                 "success.html", "order_detail.html", "store_info.html", "reset_password.html", "demo_order.html")
     for name in required:
         page = (TEMPLATES / name).read_text()
-        expected_css = 'v=release2-2' if name == 'checkout.html' else 'v=9'
-        assert f'href="/static/truemerit-theme.css?{expected_css}"' in page
+        # Cache-busting versions change as designs are approved; every page must still load the TrueMerit theme.
+        link = re.search(r'href="/static/truemerit-theme\.css\?v=[^" ]+"', page)
+        assert link, f'Missing branded stylesheet in {name}'
+        if name == 'checkout.html':
+            assert 'truemerit-theme.css?v=release2-2' in page
         assert "TrueMerit" in page
         assert "/static/images/truemerit-logo.svg" in page
     home = (TEMPLATES / "index.html").read_text()
