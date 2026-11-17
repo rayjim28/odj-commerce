@@ -41,11 +41,17 @@ def test_compatibility_identifiers_remain_unchanged():
     assert "salt='odj-'+purpose+'-v6'" in read("backend/app.py")
 
 
-def test_rename_runbook_is_safe_not_a_data_migration():
+def test_rename_runbook_is_current_and_preserves_existing_resources():
     guide = read("docs/TRUEMERIT_RENAME_RUNBOOK.md")
-    assert "truemerit-cleaning-supplies" in guide
-    assert "truemerit-store" in guide
+    readme = read("README.md")
+    assert "rayjim28/truemerit" in guide
+    assert "Already renamed; no further rename needed" in guide
+    assert "odj-commerce" in guide  # Current Render service name, not active storefront brand
+    assert "truemerit-store" in guide  # Optional Render display name
     assert "truemerit-email-sender" in guide
-    assert "do not create another DB" in guide
-    assert "Do not delete" in guide
-    assert "ODJ Group LLC" in guide
+    assert "Do not create replacement services." in guide
+    assert "Keep `main`" in guide
+    assert "ODJ Group LLC" in guide  # Actual legal operator
+    assert "git clone https://github.com/rayjim28/truemerit.git" in readme
+    assert "git clone https://github.com/rayjim28/odj-commerce.git" not in readme
+    assert "truemerit-cleaning-supplies" not in guide
