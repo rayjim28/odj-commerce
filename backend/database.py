@@ -34,6 +34,7 @@ class Product(Base):
     sku: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     badge: Mapped[str] = mapped_column(String(50), default='')
     featured: Mapped[bool] = mapped_column(Boolean, default=False)
+    wholesale_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
@@ -193,6 +194,8 @@ def create_tables():
             connection.execute(text('ALTER TABLE products ADD COLUMN additional_images JSON'))
         if 'sku' not in product_columns:
             connection.execute(text('ALTER TABLE products ADD COLUMN sku VARCHAR(64)'))
+        if 'wholesale_available' not in product_columns:
+            connection.execute(text('ALTER TABLE products ADD COLUMN wholesale_available BOOLEAN NOT NULL DEFAULT FALSE'))
 
     # Non-destructive migration for stores created by the original starter.
     # Older orders are left unclaimed; new orders belong to the signed-in customer.

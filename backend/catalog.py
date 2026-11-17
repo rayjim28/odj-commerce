@@ -8,7 +8,8 @@ def serialize_product(p: Product):
     return {'id':p.id,'name':p.name,'slug':p.slug,'category':p.category,
       'description':p.description,'price_cents':p.price_cents,'stock':p.stock,
       'image_url':p.image_url,'additional_images':p.additional_images or [],
-      'sku':p.sku or '', 'badge':p.badge,'featured':p.featured,'active':p.active}
+      'sku':p.sku or '', 'badge':p.badge,'featured':p.featured,'active':p.active,
+      'wholesale_available':bool(p.wholesale_available)}
 
 
 def bundle_data(db: Session, b: Bundle):

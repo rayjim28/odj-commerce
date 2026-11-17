@@ -1,0 +1,182 @@
+
+/* Scoped only to Find your routine. */
+.v71-collections.tm-routine-modern {
+  padding:56px 0 64px!important;
+}
+.v71-collections.tm-routine-modern .v71-section-head {
+  margin-bottom:12px!important;
+}
+.v71-collections.tm-routine-modern .tm-routine-nav {
+  display:flex;justify-content:flex-end;gap:9px;
+  width:min(100%,950px);margin:0 auto 10px;
+}
+.v71-collections.tm-routine-modern .tm-routine-nav button {
+  width:38px;height:38px;
+  border:1px solid #ffa455;border-radius:10px;
+  background:#ff861b;color:#082956;font-size:22px;
+  cursor:pointer;box-shadow:0 3px 0 #c86012;
+  transition:transform .15s;
+}
+.v71-collections.tm-routine-modern .tm-routine-nav button:hover:not(:disabled) {
+  transform:translateY(-2px);
+}
+.v71-collections.tm-routine-modern .tm-routine-nav button:disabled {
+  opacity:.33;cursor:default;box-shadow:none;
+}
+.v71-collections.tm-routine-modern .tm-routine-nav button:focus-visible {
+  outline:3px solid #fff;outline-offset:3px;
+}
+.v71-collections.tm-routine-modern .v71-collections-grid {
+  display:flex!important;flex-wrap:nowrap!important;
+  grid-template-columns:none!important;
+  width:min(100%,950px)!important;
+  max-width:100%!important;
+  margin:0 auto!important;gap:15px!important;
+  padding:3px 2px 12px!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;overscroll-behavior-x:contain;
+}
+.v71-collections.tm-routine-modern .v71-collections-grid::-webkit-scrollbar {
+  display:none;
+}
+.v71-collections.tm-routine-modern .v71-collection-card {
+  display:block!important;
+  flex:0 0 clamp(255px,28vw,345px)!important;
+  width:clamp(255px,28vw,345px)!important;
+  min-height:0!important;height:264px!important;
+  max-height:264px!important;
+  border-radius:16px!important;
+  box-sizing:border-box!important;
+  background:linear-gradient(145deg,#184879,#092849)!important;
+  border:1px solid #4075a0!important;
+  box-shadow:0 9px 23px #00172d26;
+  scroll-snap-align:start;
+  overflow:hidden!important;transform:none!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-card:hover {
+  border-color:#ff9c46!important;
+  box-shadow:0 12px 26px #00152b54;
+  transform:none!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-card:before,
+.v71-collections.tm-routine-modern .v71-collection-card:after {
+  display:none!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-copy {
+  display:flex!important;flex-direction:column!important;
+  gap:0!important;position:relative!important;
+  width:100%!important;height:100%!important;
+  min-height:0!important;
+  padding:17px 16px 13px!important;
+  box-sizing:border-box!important;z-index:1!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-copy>small {
+  font-size:9px!important;color:#ffb579!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-copy h3 {
+  font-size:22px!important;line-height:1.12!important;
+  margin:9px 0 4px!important;
+  max-width:none!important;color:white!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-copy p {
+  font-size:10px!important;line-height:1.4!important;
+  max-width:none!important;margin:0 0 8px!important;
+  color:#cee2f2!important;display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;overflow:hidden!important;
+}
+.v71-collections.tm-routine-modern .tm-routine-photo {
+  display:flex!important;align-items:center!important;
+  justify-content:center!important;flex:1!important;
+  min-height:0!important;width:100%!important;
+  background:#eaf4fc!important;border-radius:10px!important;
+  padding:7px!important;margin:0 0 9px!important;
+  box-sizing:border-box!important;overflow:hidden!important;
+}
+.v71-collections.tm-routine-modern .tm-routine-photo img {
+  display:block!important;position:static!important;
+  inset:auto!important;width:100%!important;
+  height:100%!important;max-width:100%!important;
+  object-fit:contain!important;object-position:center!important;
+  filter:none!important;transform:none!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-more {
+  margin-top:auto!important;flex:0 0 auto!important;
+  font-size:10px!important;color:#ffb579!important;
+}
+.v71-collections.tm-routine-modern .v71-collection-more b {
+  width:28px!important;height:28px!important;
+  border-radius:7px!important;
+}
+@media(max-width:600px) {
+  .v71-collections.tm-routine-modern {padding:42px 0!important}
+  .v71-collections.tm-routine-modern .v71-collection-card {
+    flex-basis:min(78vw,285px)!important;
+    width:min(78vw,285px)!important;
+    height:253px!important;max-height:253px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .v71-collections.tm-routine-modern .tm-routine-nav button {
+    transition:none;
+  }
+}
+
+
+/* ROUTINE FULL WIDTH FIX START */
+
+/* Use the full section width */
+.v71-collections.tm-routine-modern .v71-collections-grid {
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+    justify-content:flex-start !important;
+    gap:15px !important;
+    overflow-x:auto !important;
+    scroll-snap-type:x mandatory !important;
+    scrollbar-width:none !important;
+}
+
+/* Align arrows with the right edge */
+.v71-collections.tm-routine-modern .tm-routine-nav {
+    width:100% !important;
+    max-width:none !important;
+    margin:0 0 12px !important;
+}
+
+/* Four complete cards on large screens */
+.v71-collections.tm-routine-modern .v71-collection-card {
+    flex:0 0 calc((100% - 45px) / 4) !important;
+    width:calc((100% - 45px) / 4) !important;
+    min-width:0 !important;
+    max-width:none !important;
+    box-sizing:border-box !important;
+}
+
+/* Three cards on medium screens */
+@media(max-width:1150px) {
+    .v71-collections.tm-routine-modern .v71-collection-card {
+        flex-basis:calc((100% - 30px) / 3) !important;
+        width:calc((100% - 30px) / 3) !important;
+    }
+}
+
+/* Two cards on tablets */
+@media(max-width:850px) {
+    .v71-collections.tm-routine-modern .v71-collection-card {
+        flex-basis:calc((100% - 15px) / 2) !important;
+        width:calc((100% - 15px) / 2) !important;
+    }
+}
+
+/* One complete card on phones */
+@media(max-width:570px) {
+    .v71-collections.tm-routine-modern .v71-collection-card {
+        flex-basis:100% !important;
+        width:100% !important;
+    }
+}
+
+/* ROUTINE FULL WIDTH FIX END */

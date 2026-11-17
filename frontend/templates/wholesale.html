@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Request Bulk Pricing | TrueMerit Cleaning Supplies</title>
+<link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css?v=7-4">
+<link rel="stylesheet" href="/static/truemerit-theme.css?v=9">
+<link rel="stylesheet" href="/static/tm-wholesale-page.css?v=button-centered-2">
+</head>
+<body class="tm-bulk-page">
+
+<div class="announcement">
+<span class="announcement-dot"></span>
+CLEAN SPACES. BETTER DAYS.
+<span class="announcement-divider">/</span>
+EVERYDAY ESSENTIALS, ELEVATED
+<span class="announcement-dot"></span>
+</div>
+
+<header class="site-header">
+<div class="container nav-wrap">
+<a class="brand" href="/" aria-label="TrueMerit home">
+<img class="tm-brand-logo"
+src="/static/images/truemerit-logo.svg"
+alt="TrueMerit Cleaning Supplies" width="218" height="74">
+</a>
+<nav class="main-nav" aria-label="Main navigation">
+<a href="/">Home</a>
+<a href="/#shop">Shop all</a>
+<a href="/wholesale" aria-current="page"
+class="nav-active">Bulk pricing</a>
+</nav>
+<div class="nav-actions">
+<a href="/#shop" class="tm-wp-return">Return to shop ↗</a>
+</div>
+</div>
+</header>
+
+<main class="tm-wp-main">
+<div class="container">
+<nav class="product-crumbs" aria-label="Breadcrumb">
+<a href="/">Home</a><span>/</span>
+<span aria-current="page">Bulk pricing</span>
+</nav>
+
+<div class="tm-wp-intro">
+<span class="tm-wp-kicker">TRUEMERIT / WHOLESALE INQUIRIES</span>
+<h1>Bulk orders, <em>made simple.</em></h1>
+<p>Tell us what your business needs. We'll review the quantity and
+availability, then follow up with pricing. Submitting a request
+doesn't place an order or charge you.</p>
+</div>
+
+<div class="tm-wp-layout">
+
+<section class="tm-wp-product" aria-label="Selected wholesale product">
+<span class="tm-wp-kicker">YOUR PRODUCT</span>
+{% if products %}
+<div class="tm-wp-image">
+<img id="tm-wp-photo" src="{{products[0].image_url}}"
+alt="{{products[0].name}}">
+</div>
+<p class="tm-wp-product-name" id="tm-wp-product-name">
+{{products[0].name}}
+</p>
+<p class="tm-wp-hint">Wholesale pricing is confirmed by TrueMerit
+after reviewing your inquiry.</p>
+{% else %}
+<div class="tm-wp-empty">
+<h2>No products are currently enabled for bulk inquiries.</h2>
+<p>Please contact TrueMerit about business orders or check again later.</p>
+<a href="/information/contact">Contact TrueMerit ↗</a>
+</div>
+{% endif %}
+</section>
+
+<section class="tm-wp-form-card" aria-labelledby="tm-wp-form-heading">
+{% if products %}
+<span class="tm-wp-kicker">REQUEST A QUOTE</span>
+<h2 id="tm-wp-form-heading">Tell us what you need.</h2>
+
+<form id="tm-wp-form">
+<label for="tm-wp-product">Product</label>
+<select id="tm-wp-product" name="product_id" required>
+{% for product in products %}
+<option value="{{product.id}}" data-image="{{product.image_url}}">
+{{product.name}}
+</option>
+{% endfor %}
+</select>
+
+<div class="tm-wp-fields">
+<div>
+<label for="tm-wp-business">Business name</label>
+<input id="tm-wp-business" name="business_name"
+autocomplete="organization" required minlength="2" maxlength="120"
+placeholder="Business or organization">
+</div>
+<div>
+<label for="tm-wp-email">Email address</label>
+<input id="tm-wp-email" name="email" type="email"
+autocomplete="email" required maxlength="254"
+placeholder="you@business.com">
+</div>
+</div>
+
+<label for="tm-wp-quantity">Requested quantity</label>
+<input id="tm-wp-quantity" name="quantity"
+type="number" required min="1" max="1000000" step="1"
+placeholder="e.g. 50">
+
+<label for="tm-wp-notes">Additional details (optional)</label>
+<textarea id="tm-wp-notes" name="notes" maxlength="500" rows="3"
+placeholder="Delivery timeframe, special requirements, or questions"></textarea>
+
+<div class="tm-wp-honeypot" aria-hidden="true">
+<label>Website<input name="website" tabindex="-1"
+autocomplete="off"></label>
+</div>
+
+<p class="tm-wp-feedback" id="tm-wp-feedback"
+role="status" aria-live="polite"></p>
+
+<button type="submit" class="tm-wp-send">
+Send pricing request <span aria-hidden="true">↗</span>
+</button>
+
+<p class="tm-wp-disclaimer">Inquiries are reviewed individually.
+No automatic discounts, purchases, or payment collection.</p>
+</form>
+
+<div id="tm-wp-success" class="tm-wp-success"
+role="status" aria-live="polite" hidden></div>
+
+{% else %}
+<span class="tm-wp-kicker">GET IN TOUCH</span>
+<h2 id="tm-wp-form-heading">Looking for larger quantities?</h2>
+<p>Bulk inquiries can be enabled for specific products by the store owner.</p>
+<a class="tm-wp-send" href="/information/contact">Contact TrueMerit ↗</a>
+{% endif %}
+</section>
+
+</div>
+</div>
+</main>
+<script src="/static/js/tm-wholesale-page.js?v=1" defer></script>
+</body>
+</html>

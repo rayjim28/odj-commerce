@@ -1,4 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TrueMerit / Store Management</title><link rel="stylesheet" href="/static/style.css?v=launch-11"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml"></head><body class="admin-body">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TrueMerit / Store Management</title><link rel="stylesheet" href="/static/style.css?v=launch-11"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/static/tm-bulk-form.css?v=1">
+</head><body class="admin-body">
 {% if not authenticated %}
 <div class="login-shell"><div class="login-panel"><a href="/" class="brand"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><div class="login-kicker">ADMIN ACCESS / AUTHORIZED ONLY</div><h1>Welcome<br><em>back.</em></h1><p>Manage products, track your orders, and keep your storefront running smoothly.</p><form id="login-form"><label for="admin-password">ADMIN PASSWORD</label><input id="admin-password" type="password" required placeholder="Enter your password" autocomplete="current-password"><button class="btn btn-gold" type="submit">Sign in to dashboard <span>↗</span></button><div class="form-status" id="login-status" role="status"></div></form><p class="admin-login-help">This area is for authorized store owners only. Need access restored? Contact the store administrator.</p><a class="return-store" href="/">← Return to storefront</a></div><div class="login-visual"><img src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies logo"><span>OPERATIONS, MADE SIMPLE.</span></div></div>
 {% else %}
@@ -79,7 +80,7 @@
     <p class="catalog-help">The first photo becomes the main product image. Use the arrows to choose its order; remove anything you don't want. Uploaded photos appear after you save.</p>
    </div>
    <div class="catalog-section-title">03 &nbsp; Visibility</div>
-   <div class="checks catalog-checks"><label><input type="checkbox" name="active"> Publish in storefront</label><label><input type="checkbox" name="featured"> Feature this product</label></div>
+   <div class="checks catalog-checks"><label><input type="checkbox" name="active"> Publish in storefront</label><label><input type="checkbox" name="featured"> Feature this product</label><label><input type="checkbox" name="wholesale_available"> Allow wholesale inquiries for this product</label></div>
    <p class="catalog-help">Leave Publish unchecked to save a private draft. A price is required before a product can go live. The hero automatically shows up to five published, in-stock products with photos, in storefront order. No Featured checkbox is needed for the hero.</p>
    <div class="form-status" id="product-status" role="status"></div>
    <div class="form-actions"><button type="button" class="btn btn-outline" id="cancel-product">Cancel</button><button type="submit" class="btn btn-gold" id="save-product">Save product <span>↗</span></button></div>
@@ -87,4 +88,5 @@
  </div>
 </div>
 {% endif %}
-<script src="/static/js/admin.js?v=launch-11" defer></script></body></html>
+<script src="/static/js/admin.js?v=wholesale-1" defer></script><script src="/static/js/tm-bulk-admin.js?v=1" defer></script>
+</body></html>
