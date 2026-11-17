@@ -75,16 +75,42 @@ def test_real_images_names_links_no_prices_and_abstract_fallback():
     assert "$" not in hero
 
 
-def test_layered_fan_matches_reference_and_uses_real_catalog():
-    css = (ROOT / "frontend" / "static" / "truemerit-theme.css").read_text()
+def test_compact_hero_rail_uses_real_catalog_and_direct_links():
+    css = (ROOT / "frontend" / "static" / "truemerit-merchandising.css").read_text()
     js = (ROOT / "frontend" / "static" / "js" / "hero-stack.js").read_text()
     html = (ROOT / "frontend" / "templates" / "index.html").read_text()
-    for n in range(5):
-        assert f'.hero-stack-card[data-slot="{n}"]' in css
-    assert '--fan-angle:-24deg' in css
-    assert '--fan-angle:20deg' in css
     assert 'hero-stack-dots' in html
-    assert 'src="/static/js/hero-stack.js?v=1"' in html
-    assert 'event.preventDefault()' in js
-    assert 'event.key === "ArrowRight"' in js
+    assert 'data-hero-track' in html
+    assert 'src="/static/js/hero-stack.js?v=2"' in html
+    assert 'scrollTo(' in js
+    assert 'card.addEventListener("click"' not in js
+    assert 'opacity:1!important' in css
+    assert '.hero .hero-stack-card:not([data-slot="0"]) .hero-stack-photo' in css
     assert 'hero-featured-price' not in html
+
+
+def test_all_published_featured_items_appear_in_featured_carousel():
+    catalog = [make_product(i, featured=True) for i in range(1, 5)]
+    result = build_home_merchandising(catalog)
+    assert [p["id"] for p in result["featured_products"]] == [1, 2, 3, 4]
+    assert [p["id"] for p in result["hero_products"]] == [1, 2, 3, 4]
+    html = (ROOT / "frontend" / "templates" / "index.html").read_text()
+    assert "{% for product in merch.featured_products %}" in html
+    assert 'data-featured-track' in html and 'data-featured-slide' in html
+    assert 'data-featured-prev' in html and 'data-featured-next' in html
+    assert 'src="/static/js/merchandising-carousel.js?v=1"' in html
+
+
+def test_featured_respects_owner_checkbox_and_publication_and_stock():
+    items = [
+        make_product(1, featured=False),
+        make_product(2, featured=True),
+        make_product(3, featured=True, active=False),
+        make_product(4, featured=True, stock=0),
+        make_product(5, featured=True, price=0),
+        make_product(6, featured=True, is_bundle=True),
+        make_product(7, featured=True)
+    ]
+    featured = build_home_merchandising(items)["featured_products"]
+    assert [p["id"] for p in featured] == [2, 7]
+    assert build_home_merchandising([make_product(9)])["featured_products"] == []
