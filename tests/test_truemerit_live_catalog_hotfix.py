@@ -55,9 +55,10 @@ def test_hero_front_card_shows_real_catalog_photo_and_label():
     assert 'data-hero-stack' in home and 'data-hero-card' in home
     assert '<img src="{{ product.image_url }}"' in home
     assert 'href="/products/{{ product.id }}"' in home
-    assert ".hero-stack-card[data-slot=\"0\"] .hero-stack-photo" in css
-    assert ".hero-stack-card[data-slot=\"0\"] .hero-stack-card-caption" in css
+    assert '.hero .hero-stack-card .hero-stack-photo' in css
+    assert '.hero .hero-stack-card .hero-stack-card-caption' in css
     assert "opacity:1!important" in css
+    assert "scroll-snap-type:x mandatory" in css
     assert 'guest_checkout_enabled' in (TEMPLATES / "product.html").read_text()
 
 
