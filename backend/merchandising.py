@@ -6,6 +6,16 @@ def build_home_merchandising(products):
     available = [p for p in products if p['stock'] > 0]
     highlighted = sorted(available, key=lambda p: (not p['featured'], p['id']))
     spotlight = highlighted[0] if highlighted else None
+    # Featured carousel is explicitly controlled by the Admin Featured checkbox.
+    # Never limit this to the single spotlight product or include draft/empty stock.
+    featured_products = [
+        p for p in highlighted
+        if p.get('featured', False)
+        and p.get('active', True)
+        and p['stock'] > 0
+        and p.get('price_cents', 0) > 0
+        and not p.get('is_bundle', False)
+    ]
 
     # Show the first five eligible products already in storefront order.
     # Uploaded products appear automatically after the owner publishes them;
@@ -44,5 +54,6 @@ def build_home_merchandising(products):
     # Cross-sell adjacent catalog products as suggestions, not a promised compatible kit
     # or a discount. Restrict to listed, currently in-stock items.
     companion = [p for p in highlighted if spotlight and p['id'] != spotlight['id']]
-    return {'spotlight': spotlight, 'guides': guides, 'companions': companion[:3],
+    return {'spotlight': spotlight, 'featured_products': featured_products,
+            'guides': guides, 'companions': companion[:3],
             'hero_products': hero_products}
