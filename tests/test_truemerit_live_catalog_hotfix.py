@@ -38,7 +38,7 @@ def test_collection_card_does_not_use_arbitrary_uploaded_product_image():
     css = (STATIC / "truemerit-merchandising.css").read_text()
     assert 'truemerit-merchandising.css?v=hotfix2' in html
     assert html.index('truemerit-theme.css?v=9') < html.index('truemerit-merchandising.css?v=hotfix2')
-    section = html.split('<div class="v71-collections-grid">', 1)[1].split('</section>', 1)[0]
+    section = html.split('<div class="v71-collections-grid" data-collection-track', 1)[1].split('</section>', 1)[0]
     assert 'guide.image_url' not in section
     assert 'data-merch-ids="{{ guide.ids|join(\',\') }}"' in section
     assert 'href="#shop"' in section
