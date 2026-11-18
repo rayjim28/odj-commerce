@@ -9,8 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from database import Base, SessionLocal, Product, StoreSettings, now
-from security import is_admin
+from database import Base, SessionLocal, Product, StoreSettings, EmailOutbox, now
+from security import is_admin, origin_allowed
 from notifications import queue_message, email_layout
 
 class WholesaleInquiry(Base):
@@ -167,8 +167,16 @@ def admin_wholesale(request: Request):
             .limit(100)
         ).all()
 
+        keys = ['wholesale_reply:' + str(x.id) for x in items]
+        statuses = {
+            m.event_key: m.status for m in db.scalars(
+                select(EmailOutbox).where(EmailOutbox.event_key.in_(keys))
+            ).all()
+        } if keys else {}
+
         return [
             {
+                'reply_status': statuses.get('wholesale_reply:' + str(x.id)),
                 'id': x.id,
                 'product_name': x.product_name,
                 'business_name': x.business_name,
@@ -179,6 +187,54 @@ def admin_wholesale(request: Request):
             }
             for x in items
         ]
+
+
+class WholesaleReplyInput(BaseModel):
+    message: str = Field(min_length=20, max_length=4000)
+
+
+@router.post('/api/admin/wholesale-inquiries/{inquiry_id}/reply', status_code=202)
+def reply_to_wholesale_inquiry(inquiry_id: int, payload: WholesaleReplyInput, request: Request):
+    """Owner-approved replies go through the existing branded SMTP queue."""
+    if not is_admin(request):
+        raise HTTPException(401, 'Admin access required.')
+    if not origin_allowed(request):
+        raise HTTPException(403, 'Cross-origin request blocked.')
+
+    message = payload.message.strip()
+    if len(message) < 20:
+        raise HTTPException(422, 'Please write a reply before sending.')
+
+    with SessionLocal() as db:
+        inquiry = db.get(WholesaleInquiry, inquiry_id)
+        if not inquiry:
+            raise HTTPException(404, 'Inquiry not found.')
+
+        event_key = 'wholesale_reply:' + str(inquiry.id)
+        existing = db.scalar(
+            select(EmailOutbox).where(EmailOutbox.event_key == event_key)
+        )
+        if existing:
+            raise HTTPException(409, 'A reply has already been queued or sent for this inquiry.')
+
+        subject = 'Re: TrueMerit bulk pricing request #' + str(inquiry.id)
+        reference = f'TM-W-{inquiry.id:06d}'
+        body_html = (
+            '<p style="white-space:pre-line;line-height:1.65">'
+            + escape(message) + '</p>'
+            + '<p>Inquiry reference: ' + reference + '</p>'
+        )
+        queue_message(
+            db, event_key, 'wholesale_reply', inquiry.email,
+            subject, email_layout('Your wholesale inquiry', body_html),
+            message + '\n\nInquiry reference: ' + reference
+        )
+        db.commit()
+
+    return JSONResponse(
+        {'ok': True, 'status': 'pending', 'reference': reference},
+        status_code=202, headers={'Cache-Control': 'no-store'}
+    )
 
 # Customer wholesale request page.
 from pathlib import Path as _WholesalePath
