@@ -6,7 +6,7 @@ Usage:
  Run --send periodically with a trusted task scheduler once configured.
 """
 from pathlib import Path
-import sys, os, smtplib, ssl, argparse, re
+import sys, os, smtplib, ssl, argparse
 from email.message import EmailMessage
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from dotenv import load_dotenv
@@ -36,7 +36,8 @@ def main():
                 if message.kind == 'wholesale_reply':
                     settings = db.get(StoreSettings, 1)
                     contact = (settings.contact_email or '').strip() if settings else ''
-                    if not re.fullmatch(r'[^\\s@]+@[^\\s@]+\\.[^\\s@]+', contact):
+                    if (contact.count('@') != 1 or any(c.isspace() for c in contact)
+                            or '.' not in contact.rsplit('@', 1)[-1]):
                         contact = 'truemeritsupplies@gmail.com'
                     mail['Reply-To'] = contact
                 mail.set_content(message.text_body);mail.add_alternative(message.html_body,subtype='html')
