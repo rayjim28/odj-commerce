@@ -12,7 +12,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[1]/'.env')
 from sqlalchemy import select
-from database import create_tables, SessionLocal, EmailOutbox, now
+from database import create_tables, SessionLocal, EmailOutbox, StoreSettings, now
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--send',action='store_true',help='Actually deliver queued messages')
@@ -32,6 +32,14 @@ def main():
             server.ehlo();server.starttls(context=ssl.create_default_context());server.ehlo();server.login(username,password)
             for message in pending:
                 mail=EmailMessage();mail['From']=sender;mail['To']=message.recipient;mail['Subject']=message.subject
+                # Branded outgoing wholesale replies must receive customer responses in the store inbox.
+                if message.kind == 'wholesale_reply':
+                    settings = db.get(StoreSettings, 1)
+                    contact = (settings.contact_email or '').strip() if settings else ''
+                    if (contact.count('@') != 1 or any(c.isspace() for c in contact)
+                            or '.' not in contact.rsplit('@', 1)[-1]):
+                        contact = 'truemeritsupplies@gmail.com'
+                    mail['Reply-To'] = contact
                 mail.set_content(message.text_body);mail.add_alternative(message.html_body,subtype='html')
                 server.send_message(mail)
                 message.status='sent';message.sent_at=now();db.commit()
