@@ -164,7 +164,9 @@
     border-radius:10px;
     background:#ecf6ff;
     color:#155e99;
-    font:800 12px inherit;
+    font-family:inherit;
+    font-weight:800;
+    font-size:12px;
     cursor:pointer;
 }
 .tm-wholesale-reply-open:hover {background:#dcefff}
@@ -207,7 +209,10 @@
     border-radius:11px;
     background:#fff;
     color:#12395d;
-    font:500 13px/1.6 inherit;
+    font-family:inherit;
+    font-weight:500;
+    font-size:13px;
+    line-height:1.6;
     resize:vertical;
 }
 .tm-wholesale-reply-form textarea:focus-visible {
@@ -228,7 +233,9 @@
     min-height:44px;
     padding:12px 18px;
     border-radius:11px;
-    font:800 12px inherit;
+    font-family:inherit;
+    font-weight:800;
+    font-size:12px;
     cursor:pointer;
 }
 .tm-wholesale-reply-send {
