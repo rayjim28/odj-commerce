@@ -37,7 +37,7 @@ from security import (COOKIE_NAME, MAX_AGE, is_admin, create_token, verify_passw
 from payment import create_checkout, verify_webhook, read_stripe_checkout_refunds, StripeError
 from notifications import store_settings, queue_order_notice, queue_token_message, queue_message, newsletter_email, order_email, email_layout
 from launch_readiness import launch_readiness, sales_prerequisite_failures, OWNER_REVIEW_TASKS
-from backend.catalog import serialize_product, bundle_data, public_catalog
+from backend.catalog import serialize_product, bundle_data, public_catalog, suggested_catalog_products
 from backend.serializers import serialize_order
 from backend.merchandising import build_home_merchandising
 from backend.guest_orders import (guest_checkout_enabled, guest_order_token, guest_token_matches,
@@ -267,7 +267,7 @@ def product_detail(product_id: int, request: Request):
             data = bundle_data(db,bundle)
             if not data['components_valid']:
                 raise HTTPException(404, 'This bundle is unavailable.')
-            related = [p for p in public_catalog(db) if p['id'] != product_id][:3]
+            related = suggested_catalog_products(data, public_catalog(db))
             customer = signed_in_customer(request)
             return templates.TemplateResponse(request, 'product.html', {
                 'product':data, 'related':related, 'customer':customer, 'guest_checkout_enabled':guest_checkout_enabled(), 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'now_year':datetime.now().year, 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request)})
@@ -275,15 +275,8 @@ def product_detail(product_id: int, request: Request):
         if not product or not product.active or product.price_cents <= 0:
             raise HTTPException(status_code=404, detail='This product is unavailable.')
         data = serialize_product(product)
-        # Related products are visible, active store listings, not admin-only inventory.
-        related = [serialize_product(p) for p in db.scalars(select(Product).where(
-            Product.active.is_(True), Product.price_cents > 0, Product.id != product_id,
-            Product.category == product.category).order_by(Product.featured.desc(), Product.id).limit(3)).all()]
-        if len(related) < 3:
-            exclude = [product_id] + [x['id'] for x in related]
-            related += [serialize_product(p) for p in db.scalars(select(Product).where(
-                Product.active.is_(True), Product.price_cents > 0, Product.id.not_in(exclude)
-            ).order_by(Product.featured.desc(), Product.id).limit(3 - len(related))).all()]
+        # Only active, publicly visible catalog items are recommended.
+        related = suggested_catalog_products(data, public_catalog(db))
     customer = signed_in_customer(request)
     return templates.TemplateResponse(request, 'product.html', {
         'product': data, 'related': related, 'customer': customer, 'guest_checkout_enabled':guest_checkout_enabled(), 'public_preview':public_storefront_preview(), 'account_testing':account_testing_preview(), 'canonical_url':public_origin(request) + f'/products/{product_id}' if public_origin(request) else '', 'seo_images':seo_images(data,request),
