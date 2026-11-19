@@ -65,7 +65,7 @@ function renderReply(item, article) {
     const open = document.createElement('button');
     open.type = 'button';
     open.className = 'tm-wholesale-reply-open';
-    open.textContent = 'Reply to inquiry ↗';
+    open.innerHTML = 'Reply to inquiry <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg>';
     open.setAttribute('aria-expanded', 'false');
 
     const form = document.createElement('form');

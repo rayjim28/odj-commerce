@@ -79,7 +79,7 @@
     try{
       const r=await fetch('/api/account/favorites');if(!r.ok)throw Error('Unable to load favorites.');
       const d=await r.json();
-      favorites.innerHTML=d.items.length?d.items.map(p=>`<article class="v73-fav-item"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt=""><div><a href="/products/${p.id}">${esc(p.name)}</a><small>${money(p.price_cents)}</small></div><button type="button" data-unsave="${p.id}">Remove</button></article>`).join(''):'<p>No saved products yet. <a href="/#shop">Explore cleaning essentials ↗</a></p>';
+      favorites.innerHTML=d.items.length?d.items.map(p=>`<article class="v73-fav-item"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt=""><div><a href="/products/${p.id}">${esc(p.name)}</a><small>${money(p.price_cents)}</small></div><button type="button" data-unsave="${p.id}">Remove</button></article>`).join(''):'<p>No saved products yet. <a href="/#shop">Explore cleaning essentials <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a></p>';
     }catch(err){favorites.textContent=err.message;}
   }
   if(favorites){

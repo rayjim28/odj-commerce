@@ -46,7 +46,7 @@
     const lines = cartLines();
     $('checkout-count').textContent = `${lines.reduce((n, l) => n + l.qty, 0)} item${lines.reduce((n, l) => n + l.qty, 0) === 1 ? '' : 's'}`;
     if (!lines.length) {
-      $('checkout-items').innerHTML = '<div class="checkout-empty"><span aria-hidden="true">✧</span><strong>Your bag is feeling empty.</strong><p>Find cleaning essentials at TrueMerit.</p><a href="/#shop">Browse products ↗</a></div>';
+      $('checkout-items').innerHTML = '<div class="checkout-empty"><span aria-hidden="true">✧</span><strong>Your bag is feeling empty.</strong><p>Find cleaning essentials at TrueMerit.</p><a href="/#shop">Browse products <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a></div>';
       return false;
     }
     if (!catalog) {

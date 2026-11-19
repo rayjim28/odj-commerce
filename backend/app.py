@@ -866,13 +866,13 @@ def confirm_newsletter(request: Request,token: str=Form(...)):
             queue_message(db,'newsletter:welcome:'+email+':'+sub.confirmed_at.isoformat(),
                 'welcome_newsletter',email,built['subject'],built['html'],built['text'])
             db.commit()
-    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Welcome to TrueMerit.</h1><p>Your email subscription is confirmed.</p><a style="color:#ffad60" href="/">Return to the shop ↗</a></main>')
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Welcome to TrueMerit.</h1><p>Your email subscription is confirmed.</p><a style="color:#ffad60" href="/">Return to the shop <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a></main>')
 
 @app.get('/newsletter/unsubscribe',response_class=HTMLResponse)
 def unsubscribe_newsletter_confirmation(token: str=''):
     from html import escape
     newsletter_claims(token,'unsubscribe',365*86400*2)
-    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribe from TrueMerit updates?</h1><form method="post" action="/newsletter/unsubscribe"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Unsubscribe</button></form><p><a style="color:#ffad60" href="/">Keep my subscription ↗</a></p></main>')
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribe from TrueMerit updates?</h1><form method="post" action="/newsletter/unsubscribe"><input type="hidden" name="token" value="'+escape(token,quote=True)+'"><button style="background:#dcb274;color:#1a160e;padding:14px 24px;border:0;cursor:pointer" type="submit">Unsubscribe</button></form><p><a style="color:#ffad60" href="/">Keep my subscription <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a></p></main>')
 
 @app.post('/newsletter/unsubscribe',response_class=HTMLResponse)
 def unsubscribe_newsletter(token: str=Form(...)):
@@ -886,7 +886,7 @@ def unsubscribe_newsletter(token: str=Form(...)):
                 EmailOutbox.kind.in_(['welcome_newsletter','confirm_newsletter']),EmailOutbox.status=='pending')).all():
                 mail.status='cancelled'
             db.commit()
-    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribed.</h1><p>You will no longer receive TrueMerit marketing messages.</p><a style="color:#ffad60" href="/">Return to shop ↗</a></main>')
+    return HTMLResponse('<!doctype html><meta name="viewport" content="width=device-width"><title>TrueMerit updates</title><main style="background:#14110f;color:#ecd6b6;padding:12vh 8%;font-family:Arial;min-height:100vh"><h1>Unsubscribed.</h1><p>You will no longer receive TrueMerit marketing messages.</p><a style="color:#ffad60" href="/">Return to shop <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a></main>')
 
 @app.get('/api/account/marketing')
 def account_marketing_status(request: Request):

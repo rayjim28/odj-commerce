@@ -489,3 +489,14 @@
 .launch-check-explainer strong{font-size:15px;color:#2a251e}
 .launch-check-explainer p{margin:7px 0;line-height:1.6}
 @media(max-width:750px){.owner-review-list{grid-template-columns:1fr}.owner-review-heading{flex-wrap:wrap}.owner-review-panel{padding:16px}}
+
+/* Stable, text-sized inline SVG arrows across the storefront and admin.
+   Unicode diagonal arrows can render as oversized emojis in iOS Safari. */
+svg.tm-arrow-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  min-width: 1em;
+  vertical-align: -0.12em;
+  flex: 0 0 auto;
+}
