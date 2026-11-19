@@ -20,7 +20,7 @@
     {% if settings.contact_phone %}<div><span>CALL TRUE MERIT</span><a href="tel:{{settings.contact_phone | replace('(','') | replace(')','') | replace(' ','') | replace('-','')}}">{{settings.contact_phone}}</a></div>{% endif %}
   </div>
   <div class="tm-wholesale-info"><span>BUSINESS &amp; BULK ORDERS</span><h2>Need supplies in bulk?</h2><p>Choose an eligible product and tell us how much you need. TrueMerit will review availability and follow up with pricing. No purchase required.</p>
-    <a href="/wholesale" class="tm-info-primary-action">Request Bulk Pricing <span aria-hidden="true">↗</span></a>
+    <a href="/wholesale" class="tm-info-primary-action">Request Bulk Pricing <span aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></a>
   </div>
   {% else %}
   {% if body %}
