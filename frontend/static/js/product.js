@@ -47,18 +47,88 @@
   window.odjTrack?.('product_view',product.id);
 })();
 
-// V7.3: favorites belong to the signed-in account, not browser-only storage.
+// Favorites are stored on the customer account, shared with Shop the Essentials.
 (() => {
-  const button=document.getElementById('detail-favorite');
-  if(!button)return;
-  button.addEventListener('click',async()=>{
-    button.disabled=true;
+  'use strict';
+  const button = document.getElementById('detail-favorite');
+  const product = window.ODJ_DETAIL_PRODUCT;
+  if (!button || !product) return;
+
+  const feedback = document.getElementById('detail-feedback');
+  const endpoint = '/api/account/favorites/' + encodeURIComponent(product.id);
+  let saved = false;
+  let loaded = false;
+  let signedIn = false;
+
+  function paint() {
+    button.classList.toggle('is-saved', saved);
+    button.setAttribute('aria-pressed', String(saved));
+    button.setAttribute(
+      'aria-label',
+      (saved ? 'Remove ' : 'Save ') + product.name +
+      (saved ? ' from favorites' : ' to favorites')
+    );
+  }
+
+  async function loadSavedState() {
+    const response = await fetch('/api/account/favorites', {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    if (response.status === 401) {
+      signedIn = false;
+      loaded = true;
+      saved = false;
+      paint();
+      return;
+    }
+    if (!response.ok) throw new Error('Unable to load your saved favorites.');
+
+    const data = await response.json();
+    signedIn = true;
+    loaded = true;
+    saved = (data.items || []).some(item => Number(item.id) === Number(product.id));
+    paint();
+  }
+
+  button.disabled = true;
+  paint();
+  loadSavedState()
+    .catch(error => { feedback.textContent = error.message; })
+    .finally(() => {
+      button.disabled = false;
+      button.setAttribute('aria-busy', 'false');
+    });
+
+  button.addEventListener('click', async () => {
+    button.disabled = true;
     try {
-      const response=await fetch('/api/account/favorites/'+encodeURIComponent(window.ODJ_DETAIL_PRODUCT.id),{method:'POST',credentials:'same-origin'});
-      if(response.status===401){window.location.assign('/account');return;}
-      if(!response.ok)throw new Error('Could not save this product.');
-      button.textContent='♥ Saved to your favorites';
-    }catch(err){document.getElementById('detail-feedback').textContent=err.message;}
-    finally{button.disabled=false;}
+      // A failed initial request must not cause a blind POST or DELETE.
+      if (!loaded) await loadSavedState();
+      if (!signedIn) {
+        window.location.assign('/account');
+        return;
+      }
+
+      const response = await fetch(endpoint, {
+        method: saved ? 'DELETE' : 'POST',
+        credentials: 'same-origin'
+      });
+      if (response.status === 401) {
+        window.location.assign('/account');
+        return;
+      }
+      if (!response.ok) throw new Error('Could not update your favorites.');
+
+      saved = !saved;
+      paint();
+      feedback.textContent = saved
+        ? 'Added to your favorites.'
+        : 'Removed from your favorites.';
+    } catch (error) {
+      feedback.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
   });
 })();
