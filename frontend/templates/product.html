@@ -12,7 +12,7 @@
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Product','name':product.name,'description':product.description or product.name,'image':seo_images,'sku':product.sku or '', 'offers':{'@type':'Offer','url':canonical_url,'priceCurrency':'USD','price':'%.2f'|format(product.price_cents / 100),'availability':'https://schema.org/InStock' if product.stock > 0 else 'https://schema.org/OutOfStock'}}|tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="stylesheet" href="/static/truemerit-sticky-nav.css?v=1">
-<link rel="stylesheet" href="/static/truemerit-product-polish.css?v=detail-final-2">
+<link rel="stylesheet" href="/static/truemerit-product-polish.css?v=detail-heart-3">
 <link rel="stylesheet" href="/static/tm-detail-wholesale.css?v=1">
 <link rel="stylesheet" href="/static/tm-bulk-form.css?v=1">
 </head>
@@ -41,7 +41,7 @@
   <div class="product-detail-quantity-title"><span>QUANTITY</span><span>SELECT YOUR AMOUNT</span></div>
   <div class="product-detail-purchase"><div class="detail-quantity" aria-label="Quantity selector"><button id="detail-minus" type="button" aria-label="Decrease quantity" {% if product.stock == 0 %}disabled{% endif %}>−</button><output id="detail-qty" aria-live="polite">1</output><button id="detail-plus" type="button" aria-label="Increase quantity" {% if product.stock == 0 %}disabled{% endif %}>+</button></div><button class="btn btn-gold detail-add" id="detail-add" type="button" {% if product.stock == 0 %}disabled{% endif %}>{% if product.stock == 0 %}Sold out{% else %}Add to bag <span>↗</span>{% endif %}</button></div>
   <div class="tm-detail-secondary-actions">
-<button type="button" class="v73-detail-favorite" id="detail-favorite">♡ Save to favorites</button>
+<button type="button" class="v73-detail-favorite tm-detail-heart" id="detail-favorite" aria-label="Save {{product.name}} to favorites" aria-pressed="false" aria-busy="true" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z"/></svg></button>
 {% if product.get('wholesale_available', False) %}
 <a class="tm-wholesale-request" href="mailto:truemeritsupplies@gmail.com?subject={{ ('Wholesale quote: ' ~ product.name ~ ' (SKU: ' ~ (product.sku or 'N/A') ~ ')') | urlencode }}">Request wholesale quote <span aria-hidden="true">↗</span></a>
 {% endif %}
@@ -55,6 +55,6 @@
 </main>
 <footer class="product-detail-footer"><div class="container"><a href="/" class="footer-brand">TrueMerit<span>.</span></a><p>PRODUCTS YOU CAN TRUST. EVERY SINGLE DAY.</p><span>© TRUEMERIT CLEANING SUPPLIES · {{ now_year or '2026' }}</span></div></footer>
 <script>window.ODJ_DETAIL_PRODUCT = {{ product | tojson }};</script>
-<script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/product.js?v=7-4" defer></script>
+<script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/product.js?v=detail-heart-3" defer></script>
 <script src="/static/js/tm-bulk-form.js?v=1" defer></script>
 </body></html>
