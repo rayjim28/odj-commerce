@@ -9,11 +9,11 @@ STORE_JS = (ROOT / "frontend/static/js/store.js").read_text()
 
 
 def test_cart_theme_loads_after_legacy_css_and_uses_truemerit_palette():
-    assert 'href="/static/truemerit-cart.css?v=release2-1"' in HOME
+    assert 'href="/static/truemerit-cart.css?v=green-arrow-1"' in HOME
     theme = re.search(r'truemerit-theme\.css\?v=[^" ]+', HOME)
     assert theme, 'Homepage must load the TrueMerit stylesheet'
     assert HOME.index('style.css?v=7-4') < theme.start()
-    assert theme.start() < HOME.index('truemerit-cart.css?v=release2-1')
+    assert theme.start() < HOME.index('truemerit-cart.css?v=green-arrow-1')
     assert 'TRUEMERIT / YOUR BAG' in HOME
     assert re.search(r'src="/static/js/store\.js\?v=[^"]+"', HOME)
     for selector in (
@@ -70,3 +70,12 @@ def test_cart_styles_are_scoped_and_css_is_balanced():
             continue
         assert (selector.startswith(".cart-drawer")
                 or selector.startswith(".drawer-backdrop")), selector
+
+
+def test_checkout_arrow_circle_is_green_without_affecting_checkout_flow():
+    base = CART.split('.cart-drawer .checkout-button .checkout-arrow{', 1)[1].split('}', 1)[0]
+    hover = CART.split('.cart-drawer .checkout-button:hover:not(:disabled) .checkout-arrow{', 1)[1].split('}', 1)[0]
+    assert 'background:#178447;' in base
+    assert 'background:#116b38;' in hover
+    assert 'color:#fff;' in base
+    assert 'Review checkout <span class="checkout-arrow"' in STORE_JS
