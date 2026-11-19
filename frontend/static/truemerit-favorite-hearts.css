@@ -33,15 +33,15 @@
   transform: translateY(-2px);
 }
 #shop #product-grid .product-quick-add.tm-favorite-heart.is-saved {
-  background: #fff2e7 !important;
-  color: #ef741a !important;
-  border-color: #ffbb8c !important;
+  background: #fff0f0 !important;
+  color: #d62828 !important;
+  border-color: #f2a6a6 !important;
 }
 #shop #product-grid .product-quick-add.tm-favorite-heart.is-saved svg {
   fill: currentColor;
 }
 #shop #product-grid .product-quick-add.tm-favorite-heart.is-saved:hover {
-  background: #ffe8d3 !important;
+  background: #ffe1e1 !important;
 }
 #shop #product-grid .product-quick-add.tm-favorite-heart:focus-visible {
   outline: 2px solid #1b72b1 !important;

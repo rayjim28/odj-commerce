@@ -44,7 +44,12 @@ def test_favorite_styles_are_scoped_and_loaded_after_theme():
     assert "#shop #product-grid .product-quick-add.tm-favorite-heart" in CSS
     assert ".is-saved" in CSS
     assert "fill: currentColor" in CSS
-    assert 'truemerit-favorite-hearts.css?v=1' in TEMPLATE
+    assert 'truemerit-favorite-hearts.css?v=red-saved-2' in TEMPLATE
+    # The outline stays blue until saved. Saved/hover states turn red.
+    base = CSS.split('.product-quick-add.tm-favorite-heart {', 1)[1].split('}', 1)[0]
+    saved = CSS.split('.product-quick-add.tm-favorite-heart.is-saved {', 1)[1].split('}', 1)[0]
+    assert 'color: #185b95 !important' in base
+    assert 'color: #d62828 !important' in saved
     assert "truemerit-theme.css" in TEMPLATE
     assert TEMPLATE.index("truemerit-theme.css") < TEMPLATE.index("truemerit-favorite-hearts.css")
 
