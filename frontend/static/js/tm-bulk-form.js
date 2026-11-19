@@ -13,7 +13,7 @@ const trigger = document.createElement('button');
 trigger.type = 'button';
 trigger.className = 'tm-wholesale-request';
 trigger.id = 'tm-bulk-open';
-trigger.textContent = 'Request Bulk Pricing ↗';
+trigger.innerHTML = 'Request Bulk Pricing <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg>';
 link.replaceWith(trigger);
 
 const dialog = document.createElement('dialog');
@@ -56,7 +56,7 @@ max="1000000" step="1" required>
 
 <p class="tm-bulk-feedback" role="status" aria-live="polite"></p>
 <button class="tm-bulk-submit" type="submit">
-Send pricing request ↗
+Send pricing request <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg>
 </button>
 </form>
 
