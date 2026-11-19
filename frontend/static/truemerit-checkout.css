@@ -242,12 +242,12 @@
   opacity:1;
   cursor:not-allowed;
 }
-.checkout-body #checkout-submit .checkout-arrow{
-  background:#13578f;
+ .checkout-body #checkout-submit .checkout-arrow{
+  background:#178447;
   color:#fff;
   box-shadow:none;
 }
-.checkout-body #checkout-submit:hover:not(:disabled) .checkout-arrow{background:#0d406e}
+.checkout-body #checkout-submit:hover:not(:disabled) .checkout-arrow{background:#116b38}
 .checkout-body a:focus-visible,
 .checkout-body button:focus-visible,
 .checkout-body input:focus-visible{
@@ -266,4 +266,25 @@
   .checkout-body .v74-checkout-progress{gap:5px}
   .checkout-body .v74-progress-step{padding:9px 3px}
   .checkout-body .checkout-step{gap:14px}
+}
+/* When an account needs verification, explain why Stripe cannot open yet. */
+.checkout-body .checkout-verification-notice {
+  margin: 13px 0 0;
+  padding: 14px 16px;
+  border: 1px solid #f1c99f;
+  border-radius: 10px;
+  background: #fff7ec;
+  color: #68451e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.checkout-body .checkout-verification-notice a {
+  color: #0f5790;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.checkout-body #checkout-submit:disabled .checkout-arrow {
+  background: #82a892;
+  color: #fff;
 }
