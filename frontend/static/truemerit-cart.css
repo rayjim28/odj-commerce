@@ -240,15 +240,15 @@
   flex:0 0 31px;
   width:31px;height:31px;
   border-radius:50%;
-  background:#14588e;
+  background:#178447;
   color:#fff;
   box-shadow:none;
 }
 .cart-drawer .checkout-button:hover:not(:disabled) .checkout-arrow{
-  background:#0c416f;
+  background:#116b38;
 }
 .cart-drawer .checkout-button:disabled .checkout-arrow{
-  background:#b67e56;
+  background:#82a892;
 }
 .cart-drawer .payments-caption{
   color:#587992;
