@@ -15,7 +15,7 @@ def test_cart_theme_loads_after_legacy_css_and_uses_truemerit_palette():
     assert HOME.index('style.css?v=7-4') < theme.start()
     assert theme.start() < HOME.index('truemerit-cart.css?v=release2-1')
     assert 'TRUEMERIT / YOUR BAG' in HOME
-    assert re.search(r'src="/static/js/store\\.js\\?v=[^"]+"', HOME)
+    assert re.search(r'src="/static/js/store\.js\?v=[^"]+"', HOME)
     for selector in (
         ".cart-drawer",
         ".cart-drawer .drawer-head",
