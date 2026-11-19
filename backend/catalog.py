@@ -48,3 +48,65 @@ def public_catalog(db: Session):
         if data['components_valid']:
             result.append(data)
     return result
+
+
+def suggested_catalog_products(current, catalog, limit=10):
+    """Suggest real, published catalog items with deterministic merchandising.
+
+    A shared category, bundle components, or complementary cleaning tools come
+    first. Remaining available items fill the carousel. This is not a claim
+    that customers actually purchased these products together.
+    """
+    if limit <= 0:
+        return []
+
+    import re
+
+    def words(item):
+        phrase = str(item.get('name') or '').lower() + ' ' + str(item.get('category') or '').lower()
+        return set(re.findall(r'[a-z0-9]+', phrase))
+
+    generic = {
+        'cleaning', 'essentials', 'supply', 'supplies', 'for', 'with',
+        'the', 'and', 'set', 'pack', 'product', 'products', 'new',
+    }
+    current_words = words(current)
+    current_category = str(current.get('category') or '').strip().casefold()
+    components = {int(x['id']) for x in current.get('components', []) if 'id' in x}
+
+    complement_groups = (
+        {'mop', 'bucket', 'refill', 'pad', 'head'},
+        {'broom', 'dustpan', 'brush'},
+        {'cloth', 'microfiber', 'towel', 'wipe', 'cleaner', 'spray'},
+        {'scrub', 'brush', 'cleaner', 'soap', 'detergent'},
+    )
+
+    ranked = []
+    seen = {current.get('id')}
+    for position, item in enumerate(catalog):
+        item_id = item.get('id')
+        if item_id in seen or not item.get('active', True) or item.get('price_cents', 0) <= 0:
+            continue
+        seen.add(item_id)
+        item_words = words(item)
+        category = str(item.get('category') or '').strip().casefold()
+        bundle_parts = {int(part['id']) for part in item.get('components', []) if 'id' in part}
+
+        score = 0
+        if item_id in components or current.get('id') in bundle_parts:
+            score += 150
+        if current_category and category == current_category:
+            score += 100
+        if any(current_words.intersection(group) and item_words.intersection(group)
+               and (current_words.intersection(group) != item_words.intersection(group))
+               for group in complement_groups):
+            score += 55
+        score += 12 * len((current_words & item_words) - generic)
+        if int(item.get('stock') or 0) > 0:
+            score += 15
+        if item.get('featured'):
+            score += 4
+        ranked.append((-score, position, item))
+
+    ranked.sort(key=lambda entry: (entry[0], entry[1]))
+    return [item for _, _, item in ranked[:limit]]
