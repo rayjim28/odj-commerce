@@ -180,3 +180,24 @@
 }
 
 /* ROUTINE FULL WIDTH FIX END */
+
+
+/* Use SVG instead of Unicode ↗, which Mobile Safari may show as an emoji.
+   Keep both diagonal arrows crisp and consistent with the existing layout. */
+.v71-collections .v71-view-all > span {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+.v71-collections .v71-view-all .tm-routine-diagonal-arrow {
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+}
+.v71-collections .v71-collection-more b .tm-routine-diagonal-arrow {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
