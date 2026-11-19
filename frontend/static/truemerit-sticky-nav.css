@@ -1,0 +1,28 @@
+/* Keep the storefront navigation accessible as shoppers move through a page.
+   The announcement strip intentionally scrolls away; the nav itself stays visible.
+   Below the bag drawer (z-index: 30) and admin/modal overlays. */
+body > .site-header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(8, 41, 86, .10);
+}
+
+/* Preserve section titles when navigation jumps to an anchor. */
+#shop,
+#collections,
+#faq,
+#about {
+  scroll-margin-top: 106px;
+}
+
+@media (max-width: 750px) {
+  #shop,
+  #collections,
+  #faq,
+  #about {
+    scroll-margin-top: 85px;
+  }
+}
