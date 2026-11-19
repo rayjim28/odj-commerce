@@ -61,7 +61,7 @@
   function closeCart(){byId('cart-drawer').classList.remove('open');byId('cart-drawer').setAttribute('aria-hidden','true');byId('drawer-backdrop').hidden=true;document.body.style.overflow='';}
   function productCard(p){
     const sold=p.stock===0;
-    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy" decoding="async"><span class="product-badge">${esc(p.badge||(p.featured?'FEATURED ITEM':'EVERYDAY ESSENTIAL'))}</span></a><button class="product-quick-add" data-add="${p.id}" aria-label="Quick add ${esc(p.name)} to cart" ${sold?'disabled':''}>+</button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><button type="button" class="v73-favorite-action" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites">♡ Save</button><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
+    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy" decoding="async"><span class="product-badge">${esc(p.badge||(p.featured?'FEATURED ITEM':'EVERYDAY ESSENTIAL'))}</span></a><button type="button" class="product-quick-add tm-favorite-heart" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites" aria-pressed="false" title="Save to favorites"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z"/></svg></button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true">↗</span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
   }
   function renderProducts(){
     let list=products.filter(p=>(!curatedIds || curatedIds.has(p.id)) && (category==='all'||p.category===category)&&searchTerm.split(/\s+/).every(word=>(p.name+' '+p.description+' '+p.category).toLocaleLowerCase().includes(word)));
@@ -72,17 +72,59 @@
     if(sort==='featured')list.sort((a,b)=>Number(b.featured)-Number(a.featured));
     byId('product-results').textContent=`${list.length} product${list.length===1?'':'s'}`;
     byId('product-grid').innerHTML=list.map(productCard).join('');
+    paintFavoriteButtons();
     byId('no-results').hidden=!!list.length;
+  }
+  // Favorites are attached to the customer's account, not to this browser.
+  const savedFavorites = new Set();
+  let favoriteLoad = null;
+  function paintFavoriteButtons(){
+    document.querySelectorAll('#product-grid [data-favorite]').forEach(button=>{
+      const id=Number(button.dataset.favorite);
+      const product=productById(id);
+      const saved=savedFavorites.has(id);
+      button.classList.toggle('is-saved',saved);
+      button.setAttribute('aria-pressed',String(saved));
+      button.setAttribute('aria-label',(saved?'Remove ':'Save ')+(product?.name||'product')+(saved?' from favorites':' to favorites'));
+      button.title=saved?'Remove from favorites':'Save to favorites';
+    });
+  }
+  function loadFavorites(){
+    if(!window.ODJ_CUSTOMER?.signedIn)return Promise.resolve();
+    if(!favoriteLoad){
+      favoriteLoad=fetch('/api/account/favorites',{credentials:'same-origin'}).then(async response=>{
+        if(response.status===401){location.assign('/account');throw Error('Please sign in to save favorites.');}
+        if(!response.ok)throw Error('Could not load your favorites.');
+        const data=await response.json();
+        savedFavorites.clear();
+        (data.items||[]).forEach(item=>savedFavorites.add(Number(item.id)));
+        paintFavoriteButtons();
+      }).catch(error=>{favoriteLoad=null;throw error;});
+    }
+    return favoriteLoad;
   }
   async function saveFavorite(button){
     if(!window.ODJ_CUSTOMER?.signedIn){location.assign('/account');return;}
     button.disabled=true;
     try{
-      const res=await fetch('/api/account/favorites/'+encodeURIComponent(button.dataset.favorite),{method:'POST',credentials:'same-origin'});
-      if(!res.ok)throw Error('Could not save favorite.');
-      button.textContent='♥ Saved';toast('Saved to your favorites.');
-    }catch(err){toast(err.message);}finally{button.disabled=false;}
+      await loadFavorites();
+      const id=Number(button.dataset.favorite);
+      const saved=savedFavorites.has(id);
+      const res=await fetch('/api/account/favorites/'+encodeURIComponent(id),{
+        method:saved?'DELETE':'POST',
+        credentials:'same-origin'
+      });
+      if(res.status===401){location.assign('/account');return;}
+      if(!res.ok)throw Error('Could not update favorites.');
+      if(saved)savedFavorites.delete(id);
+      else savedFavorites.add(id);
+      paintFavoriteButtons();
+      toast(saved?'Removed from your favorites.':'Saved to your favorites.');
+    }catch(err){toast(err.message);}
+    finally{button.disabled=false;}
   }
+  // Populate saved states on load and after any catalog filter or sort.
+  loadFavorites().catch(()=>{});
   byId('product-grid').addEventListener('click',e=>{
     const favoriteButton=e.target.closest('[data-favorite]');
     if(favoriteButton){saveFavorite(favoriteButton);return;}

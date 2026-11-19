@@ -1,0 +1,61 @@
+/* TrueMerit storefront: a heart saves to the signed-in customer's Favorites.
+   Only the image action is restyled; the separate Add to bag button is unchanged. */
+#shop #product-grid .product-quick-add.tm-favorite-heart {
+  display: grid !important;
+  place-items: center !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 7px !important;
+  border: 1px solid #c9dff1 !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: #185b95 !important;
+  box-shadow: 0 4px 14px rgba(8,41,86,.13) !important;
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s, transform .18s;
+}
+#shop #product-grid .product-quick-add.tm-favorite-heart svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+#shop #product-grid .product-quick-add.tm-favorite-heart:hover {
+  background: #ecf6ff !important;
+  border-color: #8fb9da !important;
+  transform: translateY(-2px);
+}
+#shop #product-grid .product-quick-add.tm-favorite-heart.is-saved {
+  background: #fff2e7 !important;
+  color: #ef741a !important;
+  border-color: #ffbb8c !important;
+}
+#shop #product-grid .product-quick-add.tm-favorite-heart.is-saved svg {
+  fill: currentColor;
+}
+#shop #product-grid .product-quick-add.tm-favorite-heart.is-saved:hover {
+  background: #ffe8d3 !important;
+}
+#shop #product-grid .product-quick-add.tm-favorite-heart:focus-visible {
+  outline: 2px solid #1b72b1 !important;
+  outline-offset: 3px !important;
+}
+#shop #product-grid .product-quick-add.tm-favorite-heart:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+@media (max-width: 460px) {
+  #shop #product-grid .product-quick-add.tm-favorite-heart {
+    width: 34px !important;
+    height: 34px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+  }
+}
