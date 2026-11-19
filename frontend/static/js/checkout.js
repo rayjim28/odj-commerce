@@ -13,6 +13,7 @@
   let busy = false;
   let revision = 0;
   const mode = window.ODJ_CHECKOUT_MODE;
+  const needsEmailVerification = mode === 'stripe' && window.ODJ_CHECKOUT_EMAIL_VERIFIED === false;
   function updateProgress() {
     const shipping = $('v74-step-shipping');
     const payment = $('v74-step-payment');
@@ -192,6 +193,11 @@
   });
   $('checkout-submit').addEventListener('click', async () => {
     if (busy || !quote || !cartLines().length) return;
+    if (needsEmailVerification) {
+      setFeedback('Verify your account email before continuing to Stripe. Use the verification link in My Account.');
+      location.assign('/account');
+      return;
+    }
     let address = null;
     if (mode === 'demo') {
       const form = $('shipping-address');
@@ -217,8 +223,11 @@
       }
     } catch (err) {
       busy = false;
-      setFeedback(err.message);
+      // Refreshing a quote clears checkout-feedback. Restore the actual
+      // payment error afterward instead of silently hiding a 403 or Stripe issue.
+      const message = err instanceof Error ? err.message : 'Unable to start checkout. Please try again.';
       await refreshQuote();
+      setFeedback(message);
     }
   });
 
