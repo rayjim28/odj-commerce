@@ -12,7 +12,7 @@
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=explore-polish-2"><link rel="stylesheet" href="/static/truemerit-sticky-nav.css?v=1"><link rel="stylesheet" href="/static/truemerit-cart.css?v=green-arrow-1">
 <link rel="stylesheet" href="/static/truemerit-dual-picks.css?v=minor-polish-1">
-<link rel="stylesheet" href="/static/truemerit-routine-modern.css?v=full-width-2">
+<link rel="stylesheet" href="/static/truemerit-routine-modern.css?v=mobile-svg-arrows-1">
 <link rel="stylesheet" href="/static/tm-wholesale-page.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-favorite-hearts.css?v=red-saved-2">
 </head><body>
@@ -151,10 +151,10 @@ id="tm-dual-picks" aria-label="Featured shopping selections">
 {% endif %}
 {% if merch.guides %}
 <section class="v71-collections" id="collections" aria-labelledby="v71-collections-title"><div class="container">
- <div class="v71-section-head"><div><span class="section-kicker">SHOP BY WHAT YOU NEED</span><h2 id="v71-collections-title">Find your <em>routine.</em></h2><p>Start with a system, find replacement parts, or discover small essentials for the finishing touches.</p></div><a href="#shop" class="v71-view-all">Browse everything <span aria-hidden="true">↗</span></a></div>
+ <div class="v71-section-head"><div><span class="section-kicker">SHOP BY WHAT YOU NEED</span><h2 id="v71-collections-title">Find your <em>routine.</em></h2><p>Start with a system, find replacement parts, or discover small essentials for the finishing touches.</p></div><a href="#shop" class="v71-view-all">Browse everything <span aria-hidden="true"><svg class="tm-routine-diagonal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M5 19L19 5M9 5h10v10"/></svg></span></a></div>
  <div class="v71-collections-grid">
  {% for guide in merch.guides %}<a href="#shop" class="v71-collection-card" data-merch-ids="{{ guide.ids|join(',') }}" data-merch-title="{{ guide.title }}" aria-label="Browse {{ guide.title }}: {{ guide.count }} products">
-  <div class="v71-collection-copy"><small>COLLECTION / 0{{ loop.index }}</small><h3>{{ guide.title }}</h3><p>{{ guide.subtitle }}</p><span class="v71-collection-more">{{ guide.count }} {{ 'product' if guide.count == 1 else 'products' }} <b aria-hidden="true">↗</b></span></div>
+  <div class="v71-collection-copy"><small>COLLECTION / 0{{ loop.index }}</small><h3>{{ guide.title }}</h3><p>{{ guide.subtitle }}</p><span class="v71-collection-more">{{ guide.count }} {{ 'product' if guide.count == 1 else 'products' }} <b aria-hidden="true"><svg class="tm-routine-diagonal-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M5 19L19 5M9 5h10v10"/></svg></b></span></div>
   <img src="{{ guide.image_url }}" alt="" loading="lazy" decoding="async">
  </a>{% endfor %}
  </div>
