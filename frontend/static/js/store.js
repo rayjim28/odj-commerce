@@ -61,7 +61,7 @@
   function closeCart(){byId('cart-drawer').classList.remove('open');byId('cart-drawer').setAttribute('aria-hidden','true');byId('drawer-backdrop').hidden=true;document.body.style.overflow='';}
   function productCard(p){
     const sold=p.stock===0;
-    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy" decoding="async"><span class="product-badge">${esc(p.badge||(p.featured?'FEATURED ITEM':'EVERYDAY ESSENTIAL'))}</span></a><button type="button" class="product-quick-add tm-favorite-heart" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites" aria-pressed="false" title="Save to favorites"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z"/></svg></button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><a class="product-view-link" href="/products/${p.id}">View details <span aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''}>${sold?'Sold out':'Add to bag'} <span>+</span></button></div></div></article>`;
+    return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy" decoding="async"><span class="product-badge">${esc(p.badge||(p.featured?'FEATURED ITEM':'EVERYDAY ESSENTIAL'))}</span></a><button type="button" class="product-quick-add tm-favorite-heart" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites" aria-pressed="false" title="Save to favorites"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z"/></svg></button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><a class="product-view-link" href="/products/${p.id}">View details</a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''} aria-label="${sold?'Sold out: ':'Add to bag: '}${esc(p.name)}">${sold?'Sold out':'Add to bag'}</button></div></div></article>`;
   }
   function renderProducts(){
     let list=products.filter(p=>(!curatedIds || curatedIds.has(p.id)) && (category==='all'||p.category===category)&&searchTerm.split(/\s+/).every(word=>(p.name+' '+p.description+' '+p.category).toLocaleLowerCase().includes(word)));
@@ -149,21 +149,28 @@
     if(btn.dataset.qty)changeQty(btn.dataset.qty,Number(btn.dataset.step));
     if(btn.dataset.remove){delete cart[btn.dataset.remove];save();renderDrawer();}
   });
+  function markCategoryButtons(){
+    document.querySelectorAll('.filter').forEach(button=>{
+      const selected=button.dataset.category===category;
+      button.classList.toggle('active',selected);
+      button.setAttribute('aria-pressed',String(selected));
+    });
+  }
   function resetCurated(){curatedIds=null;byId('merch-filter-status').hidden=true;}
   document.querySelectorAll('[data-merch-ids]').forEach(link=>link.addEventListener('click',()=>{
     curatedIds=new Set((link.dataset.merchIds||'').split(',').map(Number).filter(Number.isInteger));
     category='all';searchTerm='';byId('quick-search').value='';
-    document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));
+    markCategoryButtons();
     byId('merch-filter-label').textContent=`Showing ${link.dataset.merchTitle || 'collection'} products`;
     byId('merch-filter-status').hidden=false;
     hideSuggestions();renderProducts();
   }));
   byId('clear-merch-filter').addEventListener('click',()=>{resetCurated();renderProducts();});
-  byId('filters').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;resetCurated();category=b.dataset.category;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));renderProducts();});
+  byId('filters').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;resetCurated();category=b.dataset.category;markCategoryButtons();renderProducts();});
   byId('sort-select').addEventListener('change',renderProducts);
   function showAllProducts(){
     resetCurated();category='all';searchTerm='';byId('quick-search').value='';
-    document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));
+    markCategoryButtons();
     hideSuggestions();renderProducts();
   }
   byId('reset-filter').addEventListener('click',showAllProducts);
@@ -224,7 +231,7 @@
     resetCurated();
     searchTerm=searchInput.value.trim().toLocaleLowerCase();
     category='all';
-    document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));
+    markCategoryButtons();
     renderProducts();
     hideSuggestions();
     if(window.matchMedia('(max-width:750px)').matches){
@@ -238,7 +245,7 @@
     resetCurated();
     searchTerm=searchInput.value.trim().toLocaleLowerCase();
     category='all';
-    document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));
+    markCategoryButtons();
     renderProducts();
     renderSuggestions();
   });

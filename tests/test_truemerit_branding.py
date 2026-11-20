@@ -55,7 +55,7 @@ def test_homepage_has_clean_compact_abstract_hero_and_centered_about():
                     'THE TRUEMERIT COLLECTION'):
         assert removed not in hero
     assert 'hero-abstract-layer-front' in hero
-    assert 'CLEANING SUPPLIES FROM INDEPENDENT BRANDS' in home
+    assert 'EVERYDAY CLEANING SUPPLIES' in home
     assert 'flex-direction:column' in css
     assert 'text-align:center' in css
     assert '.hero-inner' in css and 'min-height:460px' in css
