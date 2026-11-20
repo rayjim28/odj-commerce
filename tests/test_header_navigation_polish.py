@@ -17,7 +17,7 @@ def test_only_existing_navigation_templates_load_header_polish():
         assert template.count('/static/truemerit-header-polish.css?v=1') == 1
         assert template.index('truemerit-theme.css') < template.index('truemerit-header-polish.css')
         assert template.index('truemerit-sticky-nav.css') < template.index('truemerit-header-polish.css')
-        assert 'class="site-header"' in template
+        assert '<header class="site-header"' in template
 
 
 def test_sticky_navigation_and_logo_remain_in_place():
