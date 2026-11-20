@@ -355,3 +355,24 @@
   opacity: .65;
   cursor: wait;
 }
+
+/* Brand correction: product detail footer should match TrueMerit navy, not legacy black. */
+.product-page-body .product-detail-footer {
+  background: #082956;
+  color: #ffffff;
+  border-top: 1px solid #294e7c;
+}
+.product-page-body .product-detail-footer .footer-brand {
+  color: #ffffff;
+}
+.product-page-body .product-detail-footer .footer-brand span {
+  color: #ff821c;
+}
+.product-page-body .product-detail-footer p,
+.product-page-body .product-detail-footer .container > span {
+  color: #b1c9e4;
+}
+.product-page-body .product-detail-footer .footer-brand:focus-visible {
+  outline: 2px solid #ff821c;
+  outline-offset: 5px;
+}
