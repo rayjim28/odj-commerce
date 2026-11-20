@@ -18,13 +18,25 @@ work is finished and reviewed; do not merge individual sections as they land.
 | Preview | https://truemerit-pr19-stage-26.onrender.com |
 | Preview service | `truemerit-pr19-stage-26` in the existing ODJ workspace |
 
-The preview service must deploy `feature/truemerit-storefront-polish` and update
-from that branch. Keep production on `main`. The preview setup is pending a
-Render dashboard sign-in to change the existing preview branch and deploy it.
+The preview service deploys `feature/truemerit-storefront-polish` with automatic
+deployments on commits. Keep production on `main` and keep the release pull
+request in draft while sections are being reviewed.
 
-Keep the preview database, media and configuration separate from production.
-Use the preview's existing staging/demo configuration for visual reviews.
-Do not copy live payment credentials, customer records or orders to it.
+The preview uses a disposable SQLite database at
+`sqlite:////tmp/truemerit-preview.sqlite3`, its own media directory and generated
+staging credentials. Checkout and marketing submissions are disabled. No live
+payment credentials, customer records or orders belong in this environment.
+
+Start the preview with:
+
+```sh
+python scripts/seed_storefront_preview.py && uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+The seed command copies only published product listings from the store's public
+catalog API, including public image URLs. It refuses every database except the
+dedicated staging database. Preview records reset on a fresh deployment; they
+do not modify production.
 
 ## Section reviews
 
