@@ -51,4 +51,4 @@ def test_red_saved_heart_uses_original_blue_outline_when_not_saved():
     assert selector + ".is-saved svg" in CSS
     assert "fill: currentColor;" in CSS
     assert "/static/js/product.js?v=detail-heart-3" in HTML
-    assert "/static/truemerit-product-polish.css?v=detail-heart-3" in HTML
+    assert "/static/truemerit-product-polish.css?v=detail-footer-navy-4" in HTML
