@@ -66,3 +66,68 @@
         width:100%;
     }
 }
+/* Keep the favorite heart and bulk action visually paired.
+   The label remains truly centered; the decorative arrow doesn't shift it. */
+.product-page-body .tm-detail-secondary-actions .tm-wholesale-request {
+    position: relative;
+    justify-content: center;
+    text-align: center;
+    padding: 12px 42px;
+    min-height: 48px;
+    border-radius: 13px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.25;
+    box-shadow: 0 4px 12px rgba(8, 41, 86, .06);
+}
+.product-page-body .tm-detail-secondary-actions .tm-wholesale-request > svg,
+.product-page-body .tm-detail-secondary-actions .tm-wholesale-request > span {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    flex: 0 0 auto;
+    pointer-events: none;
+}
+.product-page-body .tm-detail-secondary-actions .tm-wholesale-request > svg,
+.product-page-body .tm-detail-secondary-actions .tm-wholesale-request > span svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+@media (max-width: 600px) {
+    .product-page-body .tm-detail-secondary-actions {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        align-items: stretch;
+        gap: 12px;
+        width: 100%;
+        margin-top: 12px;
+    }
+    .product-page-body .tm-detail-secondary-actions .v73-detail-favorite.tm-detail-heart {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        min-height: 52px;
+        border-radius: 13px;
+    }
+    .product-page-body .tm-detail-secondary-actions .tm-wholesale-request {
+        min-width: 0;
+        width: 100%;
+        min-height: 52px;
+        margin: 0;
+        padding: 12px 38px;
+        white-space: normal;
+    }
+}
+@media (max-width: 355px) {
+    .product-page-body .tm-detail-secondary-actions .tm-wholesale-request {
+        font-size: 11px;
+        padding-inline: 32px;
+    }
+    .product-page-body .tm-detail-secondary-actions .tm-wholesale-request > svg,
+    .product-page-body .tm-detail-secondary-actions .tm-wholesale-request > span {
+        right: 11px;
+    }
+}
