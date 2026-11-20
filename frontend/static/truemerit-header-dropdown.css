@@ -1,4 +1,12 @@
 /* TrueMerit Section 1 — compact click/tap dropdown, no catalog/layout changes. */
+.site-header .main-nav {
+  align-items: center;
+}
+.site-header .main-nav > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
 .site-header .main-nav .tm-shop-dropdown-trigger {
   appearance: none;
   display: inline-flex;
@@ -11,6 +19,7 @@
   color: #3a526e;
   font: inherit;
   font-size: 12px;
+  line-height: 1.3;
   font-weight: 700;
   letter-spacing: .055em;
   cursor: pointer;
