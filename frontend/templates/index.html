@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="/static/truemerit-faq-polish.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-companions-polish.css?v=2">
 <link rel="stylesheet" href="/static/truemerit-about-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-newsletter-polish.css?v=1">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -227,7 +228,19 @@
   </div>
  </div>
 </section>
-{% if not public_preview %}<section class="v73-newsletter" id="truemerit-updates"><div class="container v73-newsletter-grid"><div><div class="section-kicker gold">STAY IN THE KNOW</div><h2>Good things in <em>your inbox.</em></h2><p>Get occasional updates about new arrivals, helpful cleaning essentials, and special offers. No daily clutter.</p></div><form id="newsletter-form"><label for="newsletter-email">EMAIL ADDRESS</label><div class="v73-newsletter-fields"><input type="email" id="newsletter-email" autocomplete="email" maxlength="255" placeholder="you@example.com" required><button class="btn btn-gold" type="submit">Join TrueMerit updates <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></button></div><label class="v73-consent"><input id="newsletter-consent" type="checkbox" required> I agree to receive marketing emails from TrueMerit Cleaning Supplies. I can unsubscribe at any time.</label><p id="newsletter-feedback" role="status" aria-live="polite"></p></form></div></section>{% endif %}
+{% if not public_preview %}
+<section class="v73-newsletter" id="truemerit-updates" aria-labelledby="tm-newsletter-heading">
+ <div class="container v73-newsletter-grid">
+  <div class="tm-newsletter-intro"><div class="section-kicker">STAY IN THE KNOW</div><h2 id="tm-newsletter-heading">Good things in <em>your inbox.</em></h2><p>Get occasional updates about new arrivals, helpful cleaning essentials, and special offers. No daily clutter.</p></div>
+  <form id="newsletter-form" aria-label="Join TrueMerit updates">
+   <label for="newsletter-email">Email address</label>
+   <div class="v73-newsletter-fields"><input type="email" id="newsletter-email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" maxlength="255" placeholder="you@example.com" required><button class="btn btn-gold" type="submit">Join TrueMerit updates</button></div>
+   <label class="v73-consent"><input id="newsletter-consent" type="checkbox" required><span>I agree to receive marketing emails from TrueMerit Cleaning Supplies. I can unsubscribe at any time.</span></label>
+   <p id="newsletter-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+  </form>
+ </div>
+</section>
+{% endif %}
 <section class="bottom-cta"><div class="container"><span>SHOP WITH CONFIDENCE</span><h2>Quality for every <em>clean.</em></h2><a class="btn btn-gold" href="#shop">Shop TrueMerit essentials <span><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></a></div></section>
 </main>
 <footer class="footer"><div class="container"><div class="footer-top"><div><a class="footer-brand" href="#top">TrueMerit<span>.</span></a><p>Quality You Can Trust. Prices You'll Appreciate.<br>Retail and wholesale cleaning supplies.<br>Operated by ODJ Group LLC</p></div><div class="footer-links"><div><strong>EXPLORE</strong><a href="#shop">Shop all</a><a href="#about">Our promise</a><a href="#wholesale">Wholesale inquiries</a><a href="#top">Back to top</a></div><div><strong>INFORMATION</strong><a href="/information/contact">Customer support</a><a href="/information/shipping">Shipping policy</a><a href="/information/returns">Returns &amp; refunds</a><a href="mailto:truemeritsupplies@gmail.com">Contact TrueMerit</a></div></div></div><div class="footer-bottom"><span>© <span id="copyright-year">2026</span> TrueMerit Cleaning Supplies. Operated by ODJ Group LLC.</span><span>SECURE CHECKOUT VIA STRIPE <span class="footer-sparkle">✦</span></span></div></div></footer>
