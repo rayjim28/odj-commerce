@@ -61,6 +61,10 @@ For each section, check phone and desktop layout, readable text, alignment,
 touch targets, links and any related menu or carousel behavior. Preserve
 previously approved sections while applying the next change.
 
+Include conditional sections such as Explore what goes next even when the
+current catalog hides them. Use clearly labeled local test catalogs to review
+one, two, and three suggestions without changing the owner's listings.
+
 ### Featured picks
 
 Best Seller and New Arrivals use published, in-stock products with a positive

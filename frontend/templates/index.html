@@ -10,7 +10,7 @@
 {% if canonical_url %}<meta property="og:url" content="{{canonical_url}}"><meta property="og:image" content="{{canonical_url}}static/images/truemerit-logo.svg">{% endif %}
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Organization','name':'TrueMerit Cleaning Supplies','url':canonical_url,'description':'Cleaning essentials and accessories'} | tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=shop-polish-3"><link rel="stylesheet" href="/static/truemerit-sticky-nav.css?v=1">
+<link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=companions-polish-4"><link rel="stylesheet" href="/static/truemerit-sticky-nav.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-header-polish.css?v=1"><link rel="stylesheet" href="/static/truemerit-header-dropdown.css?v=2"><link rel="stylesheet" href="/static/truemerit-cart.css?v=green-arrow-1">
 <link rel="stylesheet" href="/static/truemerit-dual-picks.css?v=responsive-picks-2">
 <link rel="stylesheet" href="/static/truemerit-routine-modern.css?v=responsive-routine-3">
@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="/static/truemerit-wholesale-polish.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-shop-polish.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-faq-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-companions-polish.css?v=2">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -182,11 +183,14 @@
  <div class="no-results" id="no-results" {% if products %}hidden{% endif %}><h3>No matching products.</h3><p>Try another category or search, or browse all available supplies.</p><button type="button" class="btn btn-outline" id="reset-filter">View all products</button></div>
  </div></section>
 {% if merch.companions|length >= 1 %}
-<section class="v71-companions" aria-labelledby="v71-companions-title"><div class="container">
- <div class="v71-section-head"><div><span class="section-kicker">KEEP YOUR ROUTINE MOVING</span><h2 id="v71-companions-title">Explore what <em>goes next.</em></h2><p>Looking at {{ merch.spotlight.name }}? Here are more cleaning essentials to consider. Check product details for compatibility before ordering.</p></div></div>
- <div class="v71-companion-grid">{% for product in merch.companions %}
-  <a class="v71-companion-card" href="/products/{{ product.id }}"><div class="v71-companion-image"><img src="{{ product.image_url or '/static/images/default.svg' }}" alt="{{ product.name }}" loading="lazy" decoding="async"></div><div class="v71-companion-info"><span>{{ product.category }}</span><strong>{{ product.name }}</strong><small>${{ '%.2f'|format(product.price_cents / 100) }} <span aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></small></div></a>
- {% endfor %}</div>
+<section class="v71-companions" id="explore" aria-labelledby="v71-companions-title"><div class="container">
+ <div class="v71-section-head"><span class="section-kicker">KEEP YOUR ROUTINE MOVING</span><h2 id="v71-companions-title">Explore what <em>goes next.</em></h2><p>More cleaning essentials for your routine. Check product details for compatibility.</p></div>
+ <ul class="v71-companion-grid" role="list">{% for product in merch.companions %}
+  <li><a class="v71-companion-card" href="/products/{{ product.id }}" aria-label="View details for {{ product.name }}">
+   <span class="v71-companion-image"><img src="{{ product.image_url or '/static/images/default.svg' }}" alt="" width="112" height="112" loading="lazy" decoding="async"></span>
+   <div class="v71-companion-info"><span class="tm-companion-category">{{ product.category }}</span><h3>{{ product.name }}</h3><div class="tm-companion-meta"><strong>${{ '%.2f'|format(product.price_cents / 100) }}</strong><span class="tm-companion-link">View details</span></div></div>
+  </a></li>
+ {% endfor %}</ul>
 </div></section>
 {% endif %}
 <section class="v71-faq" id="faq" aria-labelledby="v71-faq-heading">
