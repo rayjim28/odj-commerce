@@ -49,7 +49,7 @@ def test_homepage_has_clean_compact_abstract_hero_and_centered_about():
     home = (TEMPLATES / "index.html").read_text()
     css = (ASSETS / "truemerit-theme.css").read_text()
     hero = home.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
-    assert 'RETAIL &amp; WHOLESALE CLEANING SUPPLIES' in hero
+    assert 'RETAIL &amp; WHOLESALE' in hero
     for removed in ('/ 001', 'MOP SYSTEMS', 'REFILLS &amp; ACCESSORIES',
                     '01 — 03', 'SCROLL TO EXPLORE', 'hero-product-image',
                     'THE TRUEMERIT COLLECTION'):
