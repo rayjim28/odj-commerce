@@ -20,7 +20,7 @@ def test_shop_menu_is_present_on_all_storefront_headers():
         assert html.count('data-tm-menu-trigger') == 2
         assert html.count('aria-controls="tm-header-menu"') == 2
         assert html.count('aria-expanded="false"') >= 2
-        assert '/static/truemerit-header-dropdown.css?v=1' in html
+        assert '/static/truemerit-header-dropdown.css?v=2' in html
         assert '/static/js/truemerit-header-dropdown.js?v=1' in html
 
 
