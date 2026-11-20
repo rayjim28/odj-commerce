@@ -161,7 +161,13 @@
   byId('clear-merch-filter').addEventListener('click',()=>{resetCurated();renderProducts();});
   byId('filters').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;resetCurated();category=b.dataset.category;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));renderProducts();});
   byId('sort-select').addEventListener('change',renderProducts);
-  byId('reset-filter').addEventListener('click',()=>{resetCurated();category='all';searchTerm='';byId('quick-search').value='';document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));renderProducts();});
+  function showAllProducts(){
+    resetCurated();category='all';searchTerm='';byId('quick-search').value='';
+    document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x.dataset.category==='all'));
+    hideSuggestions();renderProducts();
+  }
+  byId('reset-filter').addEventListener('click',showAllProducts);
+  document.querySelectorAll('[data-merch-all]').forEach(link=>link.addEventListener('click',showAllProducts));
   // V6.1: live suggestions from the same public, published catalog as the storefront.
   // No admin, draft, or hidden products are ever passed to this search component.
   const searchInput = byId('quick-search');
