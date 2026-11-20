@@ -74,7 +74,7 @@ def test_missing_store_settings_are_left_for_admin_to_create():
 
 def test_storefront_retail_wholesale_and_promise():
     home = (TEMPLATES / "index.html").read_text()
-    assert "RETAIL &amp; WHOLESALE CLEANING SUPPLIES" in home
+    assert "RETAIL &amp; WHOLESALE" in home
     assert "Quality You Can Trust." in home
     assert "Prices You'll Appreciate." in home
     assert "Discover dependable cleaning tools and everyday essentials" in home
@@ -127,9 +127,9 @@ def test_rebranded_all_page_stylesheets_and_no_guest_checkout_claim():
         # Versions are cache-busters, not a frozen branding requirement.
         assert 'truemerit-theme.css?v=' in markup
         if page == 'checkout.html':
-            assert 'truemerit-theme.css?v=release2-2' in markup
+            assert 'truemerit-theme.css?v=orange-unified-2' in markup
     home = (TEMPLATES / "index.html").read_text()
-    assert "Yes. You can explore products and build a bag as a guest" in home
+    assert "Sign in or create an account before placing an order." in home
     app = (ROOT / "backend" / "app.py").read_text()
     assert "RedirectResponse('/account?next=checkout'" in app
 
@@ -193,7 +193,7 @@ def test_admin_overview_text_contrast_and_editorial_spacing():
     admin = (TEMPLATES / "admin.html").read_text()
     assert 'class="admin-welcome"' in admin
     assert ".admin-body .admin-welcome h2{color:#082956}" in theme
-    assert ".admin-body .admin-welcome h2 em{color:#d96c14}" in theme
+    assert ".admin-body .admin-welcome h2 em{color:var(--tm-navy);text-decoration:underline var(--tm-orange);text-underline-offset:0.12em;}" in theme
     assert ".admin-body .admin-welcome p{" in theme
     assert "color:#36536f" in theme
     assert ".admin-body .admin-header p," in theme

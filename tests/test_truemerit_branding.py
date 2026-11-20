@@ -30,7 +30,7 @@ def test_original_page_structure_has_brand_layer():
         link = re.search(r'href="/static/truemerit-theme\.css\?v=[^" ]+"', page)
         assert link, f'Missing branded stylesheet in {name}'
         if name == 'checkout.html':
-            assert 'truemerit-theme.css?v=release2-2' in page
+            assert 'truemerit-theme.css?v=orange-unified-2' in page
         assert "TrueMerit" in page
         assert "/static/images/truemerit-logo.svg" in page
     home = (TEMPLATES / "index.html").read_text()
@@ -49,13 +49,13 @@ def test_homepage_has_clean_compact_abstract_hero_and_centered_about():
     home = (TEMPLATES / "index.html").read_text()
     css = (ASSETS / "truemerit-theme.css").read_text()
     hero = home.split('<section class="hero">', 1)[1].split('</section>', 1)[0]
-    assert 'RETAIL &amp; WHOLESALE CLEANING SUPPLIES' in hero
+    assert 'RETAIL &amp; WHOLESALE' in hero
     for removed in ('/ 001', 'MOP SYSTEMS', 'REFILLS &amp; ACCESSORIES',
                     '01 — 03', 'SCROLL TO EXPLORE', 'hero-product-image',
                     'THE TRUEMERIT COLLECTION'):
         assert removed not in hero
     assert 'hero-abstract-layer-front' in hero
-    assert 'CLEANING SUPPLIES FROM INDEPENDENT BRANDS' in home
+    assert 'EVERYDAY CLEANING SUPPLIES' in home
     assert 'flex-direction:column' in css
     assert 'text-align:center' in css
     assert '.hero-inner' in css and 'min-height:460px' in css

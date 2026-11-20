@@ -22,7 +22,7 @@ def test_checkout_logo_is_in_light_high_contrast_card():
     assert 'src="/static/images/truemerit-logo.svg"' in html
     assert 'class="checkout-trust-tagline"' in html
     assert 'Better spaces.<br><strong>Better everyday.</strong>' in html
-    assert 'truemerit-theme.css?v=release2-2' in html
+    assert 'truemerit-theme.css?v=orange-unified-2' in html
     assert ".checkout-body .checkout-trust-logo{" in css
     assert "background:#fffaf3;" in css
     assert ".checkout-body .checkout-trust-logo img{" in css
@@ -40,8 +40,8 @@ def test_full_true_merit_checkout_theme():
     css_path = ROOT / "frontend/static/truemerit-checkout.css"
     assert css_path.exists()
     css = css_path.read_text()
-    assert '/static/truemerit-checkout.css?v=feedback-green-2' in template
-    assert template.index('truemerit-theme.css?v=release2-2') < template.index('truemerit-checkout.css?v=feedback-green-2')
+    assert '/static/truemerit-checkout.css?v=orange-unified-2' in template
+    assert template.index('truemerit-theme.css?v=orange-unified-2') < template.index('truemerit-checkout.css?v=orange-unified-2')
     required = (
         ".checkout-body",
         ".checkout-body .checkout-simulation",
@@ -64,7 +64,7 @@ def test_full_true_merit_checkout_theme():
     # Brand color and readable light panels, not old brown/black surfaces.
     assert "background:#f8fbff;" in css
     assert "background:#fff;" in css
-    assert "background:#ff821c;" in css
+    assert "background:var(--tm-orange);" in css
     assert "color:#102f52;" in css
     assert "color:#708a9f;" in css  # readable field placeholders
     assert "@media(max-width:550px)" in css

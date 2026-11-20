@@ -35,7 +35,7 @@ def test_bulk_text_is_centered_and_arrow_pinned_to_right():
     assert 'position: absolute;' in CSS
     assert 'right: 15px;' in CSS
     assert 'pointer-events: none;' in CSS
-    assert 'tm-detail-wholesale.css?v=mobile-actions-2' in HTML
+    assert 'tm-detail-wholesale.css?v=orange-unified-2' in HTML
 
 
 def test_wholesale_modal_and_favorite_state_are_preserved():

@@ -1,0 +1,91 @@
+/* Homepage bulk-pricing invitation; the request form keeps its own layout. */
+.tm-wholesale.tm-wholesale-home {
+  padding: 32px 0;
+  border: 0;
+  background: #f4f8fd;
+}
+.tm-wholesale-home .tm-wholesale-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  align-items: center;
+  gap: clamp(28px, 4vw, 56px);
+  padding: 32px 36px;
+  border: 1px solid #cddfee;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #fff, #edf5fd);
+  box-shadow: 0 8px 24px #123f7008;
+}
+.tm-wholesale-home .tm-wholesale-copy { max-width: 640px; }
+.tm-wholesale-home .section-kicker {
+  display: block;
+  color: var(--tm-navy) !important;
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+}
+.tm-wholesale-home h2 {
+  margin: 12px 0 16px;
+  color: #0b2b50;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+}
+.tm-wholesale-home h2 em { display: block; color: var(--tm-navy); text-decoration: underline var(--tm-orange); text-underline-offset: 0.12em; }
+.tm-wholesale-home .tm-wholesale-copy > p {
+  max-width: 570px;
+  margin: 0;
+  color: #46627e;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.tm-wholesale-home .tm-wholesale-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+.tm-wholesale-home .tm-wholesale-link {
+  align-self: stretch;
+  justify-content: center;
+  min-height: 52px;
+  padding: 14px 20px;
+  border-color: #123f70;
+  background: #123f70;
+  color: #fff;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: normal;
+}
+.tm-wholesale-home .tm-wholesale-link:hover {
+  border-color: #1a5088;
+  background: #1a5088;
+}
+.tm-wholesale-home .tm-wholesale-link:focus-visible {
+  outline: 3px solid var(--tm-orange);
+  outline-offset: 4px;
+}
+.tm-wholesale-home .tm-wholesale-note {
+  margin: 0;
+  color: #4b617a;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .tm-wholesale-home .tm-wholesale-inner { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .tm-wholesale-home .tm-wholesale-actions { max-width: 320px; justify-self: center; }
+}
+@media (max-width: 600px) {
+  .tm-wholesale.tm-wholesale-home { padding: 24px 0; }
+  .tm-wholesale-home .tm-wholesale-inner { padding: 24px 18px; border-radius: 16px; }
+  .tm-wholesale-home h2 { font-size: clamp(1.625rem, 7.2vw, 2rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tm-wholesale-home .tm-wholesale-link { transition: none; }
+  .tm-wholesale-home .tm-wholesale-link:hover { transform: none; }
+}

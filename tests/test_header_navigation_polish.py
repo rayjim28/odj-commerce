@@ -14,7 +14,7 @@ WHOLESALE = (ROOT / 'frontend/templates/wholesale.html').read_text()
 def test_only_existing_navigation_templates_load_header_polish():
     for template in (HOME, PRODUCT, WHOLESALE):
         Environment().parse(template)
-        assert template.count('/static/truemerit-header-polish.css?v=1') == 1
+        assert template.count('/static/truemerit-header-polish.css?v=orange-unified-2') == 1
         assert template.index('truemerit-theme.css') < template.index('truemerit-header-polish.css')
         assert template.index('truemerit-sticky-nav.css') < template.index('truemerit-header-polish.css')
         assert '<header class="site-header"' in template
@@ -40,7 +40,7 @@ def test_mobile_tap_targets_and_cart_badge_are_compact():
     assert 'min-height: 44px;' in CSS
     assert '.site-header .nav-actions .cart-trigger b {' in CSS
     assert 'position: absolute;' in CSS
-    assert 'background: #ff821c;' in CSS
+    assert 'background: var(--tm-orange);' in CSS
     assert 'border-radius: 999px;' in CSS
     assert '@media (max-width: 360px)' in CSS
 

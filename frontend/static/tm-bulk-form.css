@@ -33,7 +33,7 @@
     display:block;
     font-size:10px;
     letter-spacing:.14em;
-    color:#ed7c17;
+    color:var(--tm-navy);
     font-weight:800;
 }
 .tm-bulk-dialog h2 {
@@ -44,8 +44,10 @@
 }
 .tm-bulk-dialog h2 em {
     font-family:Georgia,serif;
-    color:#ff821c;
+    color:var(--tm-navy);
     font-weight:400;
+  text-decoration:underline var(--tm-orange);
+  text-underline-offset:0.12em;
 }
 .tm-bulk-dialog>p {
     font-size:13px;
@@ -102,7 +104,7 @@
     border:0;
     border-radius:10px;
     padding:14px 16px;
-    background:#ff821c;
+    background:var(--tm-orange);
     color:#0a2a50;
     font-weight:800;
     cursor:pointer;
@@ -239,11 +241,11 @@
     cursor:pointer;
 }
 .tm-wholesale-reply-send {
-    border:1px solid #ff821c;
-    background:#ff821c;
+    border:1px solid var(--tm-orange);
+    background:var(--tm-orange);
     color:#082956;
 }
-.tm-wholesale-reply-send:hover {background:#ff9a42}
+.tm-wholesale-reply-send:hover {background:var(--tm-orange-hover)}
 .tm-wholesale-reply-cancel {
     border:1px solid #bcd4e8;
     background:white;

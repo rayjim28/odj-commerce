@@ -84,7 +84,7 @@ def test_layered_fan_matches_reference_and_uses_real_catalog():
     assert '--fan-angle:-24deg' in css
     assert '--fan-angle:20deg' in css
     assert 'hero-stack-dots' in html
-    assert 'src="/static/js/hero-stack.js?v=1"' in html
+    assert 'src="/static/js/hero-stack.js?v=2"' in html
     assert 'event.preventDefault()' in js
     assert 'event.key === "ArrowRight"' in js
     assert 'hero-featured-price' not in html
