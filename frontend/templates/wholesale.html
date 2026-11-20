@@ -8,7 +8,7 @@
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/style.css?v=7-4">
 <link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="stylesheet" href="/static/truemerit-sticky-nav.css?v=1">
-<link rel="stylesheet" href="/static/truemerit-header-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-header-polish.css?v=1"><link rel="stylesheet" href="/static/truemerit-header-dropdown.css?v=1">
 <link rel="stylesheet" href="/static/tm-wholesale-page.css?v=contact-centered-3">
 </head>
 <body class="tm-bulk-page">
@@ -30,14 +30,16 @@ alt="TrueMerit Cleaning Supplies" width="218" height="74">
 </a>
 <nav class="main-nav" aria-label="Main navigation">
 <a href="/">Home</a>
-<a href="/#shop">Shop all</a>
+<button type="button" class="tm-shop-dropdown-trigger" data-tm-menu-trigger aria-expanded="false" aria-controls="tm-header-menu">Shop <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></button>
 <a href="/wholesale" aria-current="page"
 class="nav-active">Bulk pricing</a>
 </nav>
 <div class="nav-actions">
 <a href="/#shop" class="tm-wp-return">Return to shop <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a>
+<button type="button" class="tm-menu-trigger" data-tm-menu-trigger aria-label="Open navigation menu" aria-expanded="false" aria-controls="tm-header-menu"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
 </div>
 </div>
+{% include "_header_shop_dropdown.html" %}
 </header>
 
 <main class="tm-wp-main">
@@ -148,5 +150,6 @@ role="status" aria-live="polite" hidden></div>
 </div>
 </main>
 <script src="/static/js/tm-wholesale-page.js?v=1" defer></script>
+<script src="/static/js/truemerit-header-dropdown.js?v=1" defer></script>
 </body>
 </html>
