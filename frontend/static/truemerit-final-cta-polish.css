@@ -1,0 +1,49 @@
+/* Closing shop invitation: one clear action, stacked comfortably on phones. */
+#shopconfidently { padding: 40px 0; background: #f4f8fd; text-align: left; }
+#shopconfidently .tm-final-shop-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  align-items: center;
+  gap: 32px;
+  padding: 32px;
+  border: 1px solid #385f83;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #0a2b52, #10385e);
+  color: #fff;
+}
+#shopconfidently .tm-final-shop-copy { min-width: 0; }
+#shopconfidently .section-kicker { color: var(--tm-orange) !important; font-size: 0.875rem; font-weight: 750; line-height: 1.5; letter-spacing: 0.08em; }
+#shopconfidently h2 { margin: 12px 0; color: #fff; font-size: clamp(2rem, 3.4vw, 2.75rem); line-height: 1.12; letter-spacing: -0.045em; }
+#shopconfidently h2 em { display: inline-block; color: var(--tm-orange); text-decoration: none; letter-spacing: -0.035em; }
+#shopconfidently p { max-width: 600px; margin: 0; color: #d3e3f3; font-size: 1rem; line-height: 1.65; }
+#shopconfidently .tm-final-shop-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid var(--tm-orange);
+  border-radius: 10px;
+  background: var(--tm-orange);
+  color: var(--tm-navy);
+  font-size: 0.875rem;
+  font-weight: 750;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: normal;
+}
+#shopconfidently .tm-final-shop-link:hover { background: var(--tm-orange-hover); border-color: var(--tm-orange-hover); transform: none; }
+#shopconfidently .tm-final-shop-link:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+@media (max-width: 850px) {
+  #shopconfidently .tm-final-shop-card { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  #shopconfidently .tm-final-shop-link { max-width: 320px; }
+}
+@media (max-width: 600px) {
+  #shopconfidently { padding: 32px 0; }
+  #shopconfidently .tm-final-shop-card { padding: 24px 20px; border-radius: 16px; }
+  #shopconfidently .tm-final-shop-link { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { #shopconfidently .tm-final-shop-link { transition: none; } }
