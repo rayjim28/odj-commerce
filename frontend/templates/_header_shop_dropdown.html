@@ -1,0 +1,20 @@
+{# Shared, click-operated header dropdown. Categories are catalog-derived on the homepage. #}
+<div class="tm-header-menu" id="tm-header-menu" hidden aria-label="Shop and site links">
+  <div class="tm-header-menu-inner">
+    <p class="tm-header-menu-heading">EXPLORE TRUEMERIT</p>
+    <a class="tm-header-menu-home" href="/">Home</a>
+    <a href="/#shop">Shop all products</a>
+    {% if categories is defined and categories %}
+    <span class="tm-header-menu-label">SHOP BY CATEGORY</span>
+    {% for category in categories %}
+    <a href="/#shop" data-tm-nav-category="{{category}}">{{category}}</a>
+    {% endfor %}
+    {% else %}
+    <a href="/#shop">Browse categories</a>
+    {% endif %}
+    <div class="tm-header-menu-separator" aria-hidden="true"></div>
+    <a href="/#collections">Find your routine</a>
+    <a href="/wholesale">Bulk pricing</a>
+    <a href="/#faq">FAQs &amp; help</a>
+  </div>
+</div>

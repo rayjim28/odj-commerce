@@ -12,7 +12,7 @@
 {% if canonical_url %}<script type="application/ld+json">{{ {'@context':'https://schema.org','@type':'Product','name':product.name,'description':product.description or product.name,'image':seo_images,'sku':product.sku or '', 'offers':{'@type':'Offer','url':canonical_url,'priceCurrency':'USD','price':'%.2f'|format(product.price_cents / 100),'availability':'https://schema.org/InStock' if product.stock > 0 else 'https://schema.org/OutOfStock'}}|tojson }}</script>{% endif %}
 <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/style.css?v=7-4"><link rel="stylesheet" href="/static/truemerit-theme.css?v=9"><link rel="stylesheet" href="/static/truemerit-sticky-nav.css?v=1">
-<link rel="stylesheet" href="/static/truemerit-header-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-header-polish.css?v=1"><link rel="stylesheet" href="/static/truemerit-header-dropdown.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-product-polish.css?v=detail-footer-navy-4">
 <link rel="stylesheet" href="/static/tm-detail-wholesale.css?v=mobile-actions-2">
 <link rel="stylesheet" href="/static/tm-bulk-form.css?v=1">
@@ -23,9 +23,10 @@
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
 <header class="site-header"><div class="container nav-wrap">
 <a class="brand" href="/" aria-label="TrueMerit Cleaning Supplies home"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a>
-<nav class="main-nav" aria-label="Main navigation"><a href="/">Home</a><a class="nav-active" href="/#shop">Shop all</a><a href="/#about">Our promise</a></nav>
-<div class="nav-actions">{% if not public_preview or account_testing %}<a class="account-nav" href="/account" aria-label="{% if customer %}My account{% else %}Sign in{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 21c0-5.5 14.4-5.5 14.4 0"/></svg><span>{% if customer %}My account{% else %}Sign in{% endif %}</span></a>{% endif %}<a class="product-bag-link" href="/?cart=1" aria-label="Open shopping bag">Bag <span id="detail-bag-count">0</span></a></div>
-</div></header>
+<nav class="main-nav" aria-label="Main navigation"><a href="/">Home</a><button type="button" class="tm-shop-dropdown-trigger" data-tm-menu-trigger aria-expanded="false" aria-controls="tm-header-menu">Shop <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></button><a href="/#about">Our promise</a></nav>
+<div class="nav-actions">{% if not public_preview or account_testing %}<a class="account-nav" href="/account" aria-label="{% if customer %}My account{% else %}Sign in{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.8 21c0-5.5 14.4-5.5 14.4 0"/></svg><span>{% if customer %}My account{% else %}Sign in{% endif %}</span></a>{% endif %}<a class="product-bag-link" href="/?cart=1" aria-label="Open shopping bag">Bag <span id="detail-bag-count">0</span></a><button type="button" class="tm-menu-trigger" data-tm-menu-trigger aria-label="Open navigation menu" aria-expanded="false" aria-controls="tm-header-menu"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
+</div>{% include "_header_shop_dropdown.html" %}
+</header>
 <main>
 <div class="container"><nav class="product-crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/#shop">Shop</a><span>/</span><span aria-current="page">{{product.name}}</span></nav></div>
 <section class="container product-detail-shell">
@@ -98,4 +99,5 @@
 <script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/product.js?v=detail-heart-3" defer></script>
 <script src="/static/js/truemerit-suggested-products.js?v=1" defer></script>
 <script src="/static/js/tm-bulk-form.js?v=1" defer></script>
+<script src="/static/js/truemerit-header-dropdown.js?v=1" defer></script>
 </body></html>
