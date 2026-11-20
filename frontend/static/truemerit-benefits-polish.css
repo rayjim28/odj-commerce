@@ -1,0 +1,62 @@
+/* The three shopping benefits directly below the homepage hero. */
+.tm-benefits {
+  background: #f4f8fd;
+  border-block: 1px solid #d4e2ef;
+}
+.tm-benefits .v71-benefit-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-block: 0;
+  padding: 0;
+  list-style: none;
+}
+.tm-benefits .tm-benefit {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  padding: 24px;
+}
+.tm-benefits .tm-benefit:first-child { padding-left: 0; }
+.tm-benefits .tm-benefit:last-child { padding-right: 0; }
+.tm-benefits .tm-benefit + .tm-benefit { border-left: 1px solid #d4e2ef; }
+.tm-benefits .tm-benefit-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #f7d7ba;
+  border-radius: 12px;
+  background: #fff1e5;
+  color: #123f70;
+}
+.tm-benefits .tm-benefit-icon svg { display: block; width: 24px; height: 24px; }
+.tm-benefits .tm-benefit-copy { min-width: 0; }
+.tm-benefits strong {
+  display: block;
+  margin: 0;
+  color: #0b2b50;
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+}
+.tm-benefits p {
+  margin: 6px 0 0;
+  color: #4b617a;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+@media (min-width: 651px) and (max-width: 1050px) {
+  .tm-benefits .tm-benefit { flex-direction: column; gap: 12px; padding: 22px 20px; }
+}
+@media (max-width: 650px) {
+  .tm-benefits .v71-benefit-grid { grid-template-columns: 1fr; }
+  .tm-benefits .tm-benefit,
+  .tm-benefits .tm-benefit:first-child,
+  .tm-benefits .tm-benefit:last-child { padding: 20px 0; }
+  .tm-benefits .tm-benefit + .tm-benefit {
+    border-left: 0;
+    border-top: 1px solid #d4e2ef;
+  }
+}
