@@ -18,7 +18,7 @@
 .tm-wholesale-home .tm-wholesale-copy { max-width: 640px; }
 .tm-wholesale-home .section-kicker {
   display: block;
-  color: #a24d09 !important;
+  color: var(--tm-navy) !important;
   font-size: 0.875rem;
   font-weight: 800;
   line-height: 1.5;
@@ -31,7 +31,7 @@
   line-height: 1.15;
   letter-spacing: -0.045em;
 }
-.tm-wholesale-home h2 em { display: block; color: #b65a0e; }
+.tm-wholesale-home h2 em { display: block; color: var(--tm-navy); text-decoration: underline var(--tm-orange); text-underline-offset: 0.12em; }
 .tm-wholesale-home .tm-wholesale-copy > p {
   max-width: 570px;
   margin: 0;
@@ -66,7 +66,7 @@
   background: #1a5088;
 }
 .tm-wholesale-home .tm-wholesale-link:focus-visible {
-  outline: 3px solid #d66c13;
+  outline: 3px solid var(--tm-orange);
   outline-offset: 4px;
 }
 .tm-wholesale-home .tm-wholesale-note {

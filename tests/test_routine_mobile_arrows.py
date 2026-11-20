@@ -26,7 +26,7 @@ def test_routine_arrow_sizes_are_consistent():
     assert '.v71-collection-more b .tm-routine-diagonal-arrow' in CSS
     assert 'width: 15px;' in CSS
     assert 'width: 16px;' in CSS
-    assert '/static/truemerit-routine-modern.css?v=responsive-routine-3' in HTML
+    assert '/static/truemerit-routine-modern.css?v=orange-unified-2' in HTML
 
 
 def test_manual_navigation_enhances_server_rendered_collections():

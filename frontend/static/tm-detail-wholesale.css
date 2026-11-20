@@ -53,7 +53,7 @@
 }
 
 .product-page-body .tm-wholesale-request:focus-visible {
-    outline:3px solid #ff821c;
+    outline:3px solid var(--tm-orange);
     outline-offset:3px;
 }
 

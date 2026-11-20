@@ -1,9 +1,9 @@
 /* Homepage catalog: readable cards, clear filters and comfortable controls. */
 #shop { padding: 48px 0 56px; background: #f7faff; }
 #shop .shop-top { display: block; margin: 0 0 24px; }
-#shop .section-kicker { color: #a94c08 !important; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0.08em; }
+#shop .section-kicker { color: var(--tm-navy) !important; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0.08em; }
 #shop h2 { margin: 12px 0; font-size: clamp(2rem, 3.4vw, 2.75rem); line-height: 1.12; letter-spacing: -0.045em; }
-#shop h2 em { color: #a94c08; }
+#shop h2 em { color: var(--tm-navy); text-decoration: underline var(--tm-orange); text-underline-offset: 0.12em; }
 #shop .shop-top p { max-width: 640px; margin: 0; color: #4b617a; font-size: 1rem; line-height: 1.65; }
 #shop .shop-toolbar { display: flex; flex-direction: column; align-items: stretch; gap: 16px; margin: 0 0 24px; padding: 0 0 20px; border-color: #d3e2ef; }
 #shop .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; padding: 0; }

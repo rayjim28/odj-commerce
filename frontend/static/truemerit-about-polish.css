@@ -2,22 +2,22 @@
 #about { padding: 48px 0; background: #0a2b52; color: #fff; scroll-margin-top: 100px; }
 #about .editorial-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); grid-template-areas: "promise copy"; align-items: center; gap: 40px; }
 #about .editorial-copy { grid-area: copy; width: 100%; max-width: none; min-width: 0; padding: 0; }
-#about .section-kicker { color: #ffb575 !important; font-size: 0.875rem; font-weight: 750; line-height: 1.5; letter-spacing: 0.08em; }
+#about .section-kicker { color: var(--tm-orange) !important; font-size: 0.875rem; font-weight: 750; line-height: 1.5; letter-spacing: 0.08em; }
 #about .editorial-copy h2 { margin: 12px 0; font-size: clamp(2rem, 3.4vw, 2.75rem); line-height: 1.12; letter-spacing: -0.045em; }
-#about .editorial-copy h2 em { display: inline-block; color: #ffb575; }
+#about .editorial-copy h2 em { display: inline-block; color: var(--tm-orange); }
 #about .editorial-copy > p { max-width: 520px; margin: 0; color: #d3e3f3; font-size: 1rem; line-height: 1.65; }
 #about .editorial-signature { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 20px 0; }
 #about .editorial-signature .signature-mark { color: #fff; font-size: 1.25rem; font-weight: 800; line-height: 1.4; letter-spacing: -0.025em; }
 #about .editorial-signature > span:last-child { padding: 0; border: 0; color: #c1d5e8; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0; }
-#about .tm-about-shop { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; border: 1px solid #ffb575; border-radius: 10px; background: #ffb575; color: #0b2b50; font-size: 0.875rem; font-weight: 750; line-height: 1.5; letter-spacing: 0; text-align: center; white-space: normal; }
-#about .tm-about-shop:hover { background: #ffd0a7; border-color: #ffd0a7; transform: none; }
+#about .tm-about-shop { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; border: 1px solid var(--tm-orange); border-radius: 10px; background: var(--tm-orange); color: #0b2b50; font-size: 0.875rem; font-weight: 750; line-height: 1.5; letter-spacing: 0; text-align: center; white-space: normal; }
+#about .tm-about-shop:hover { background: var(--tm-orange-hover); border-color: var(--tm-orange-hover); transform: none; }
 #about .tm-about-shop:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 #about .editorial-promise-panel { grid-area: promise; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 20px; position: relative; width: 100%; max-width: 100%; min-width: 0; height: auto; min-height: 0; padding: 28px; border: 1px solid #527da4; border-radius: 20px; background: radial-gradient(ellipse at 85% 12%, #248ad52b, transparent 55%), linear-gradient(135deg, #184879, #0b2c52); overflow: hidden; }
 #about .editorial-promise-panel::before { width: 260px; height: 260px; top: -150px; right: -90px; border-color: #8bc5ec40; box-shadow: none; pointer-events: none; }
 #about .editorial-promise-kicker { color: #d3e3f3; font-size: 0.875rem; font-weight: 750; line-height: 1.5; letter-spacing: 0.08em; }
 #about .editorial-promise-content { align-self: stretch; width: 100%; max-width: 100%; margin: 0; padding: 0; text-align: center; }
 #about .editorial-promise-content strong { display: block; margin: 0; color: #fff; font-size: clamp(1.75rem, 2.6vw, 2.125rem); font-weight: 750; line-height: 1.2; letter-spacing: -0.035em; text-align: center; overflow-wrap: anywhere; }
-#about .editorial-promise-content strong em { display: inline-block; max-width: 100%; color: #ffb575; font-weight: 500; letter-spacing: -0.025em; }
+#about .editorial-promise-content strong em { display: inline-block; max-width: 100%; color: var(--tm-orange); font-weight: 500; letter-spacing: -0.025em; }
 #about .editorial-promise-content p { margin: 16px 0 0; color: #d3e3f3; font-size: 1rem; line-height: 1.65; }
 #about .editorial-image-overlay { position: relative; inset: auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 0; padding-top: 16px; border-top: 1px solid #527da4; color: #c1d5e8; font-size: 0.875rem; font-weight: 600; line-height: 1.5; letter-spacing: 0; text-align: center; }
 @media (max-width: 900px) {

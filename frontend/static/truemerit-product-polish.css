@@ -73,7 +73,7 @@
 }
 
 .product-page-body .product-detail-overline {
-  color:#e87818;
+  color:var(--tm-navy);
   font-size:10px;
 }
 
@@ -91,7 +91,7 @@
 }
 
 .product-page-body .product-detail-rating-line span {
-  color:#ff821c;
+  color:var(--tm-orange);
 }
 
 .product-page-body .product-detail-price {
@@ -151,14 +151,14 @@
   min-height:54px;
   padding:13px 20px;
   border-radius:12px;
-  background:#ff821c;
-  border:1px solid #ff821c;
+  background:var(--tm-orange);
+  border:1px solid var(--tm-orange);
   color:#092b50;
   box-shadow:0 7px 17px rgba(255,130,28,.14);
 }
 
 .product-page-body .detail-add:hover:not(:disabled) {
-  background:#ffa045;
+  background:var(--tm-orange-hover);
 }
 
 /* Save to favorites */
@@ -212,7 +212,7 @@
 }
 
 .product-page-body .product-bag-link #detail-bag-count {
-  background:#ff9b37;
+  background:var(--tm-orange);
   color:#092b50;
   border-radius:999px;
 }
@@ -366,13 +366,13 @@
   color: #ffffff;
 }
 .product-page-body .product-detail-footer .footer-brand span {
-  color: #ff821c;
+  color: var(--tm-orange);
 }
 .product-page-body .product-detail-footer p,
 .product-page-body .product-detail-footer .container > span {
   color: #b1c9e4;
 }
 .product-page-body .product-detail-footer .footer-brand:focus-visible {
-  outline: 2px solid #ff821c;
+  outline: 2px solid var(--tm-orange);
   outline-offset: 5px;
 }

@@ -32,7 +32,7 @@
   margin-top: 12px;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: #ffb575;
+  color: var(--tm-orange);
 }
 .hero .hero-ctas { flex-wrap: wrap; gap: 8px 24px; margin-top: 22px; }
 .hero .hero-ctas a {
@@ -54,8 +54,8 @@
   text-decoration-color: #aac6e080;
   text-underline-offset: 5px;
 }
-.hero .hero-ctas .text-link:hover { text-decoration-color: #ff9a36; }
-.hero .hero-ctas a:focus-visible { outline: 3px solid #ffb575; outline-offset: 5px; }
+.hero .hero-ctas .text-link:hover { text-decoration-color: var(--tm-orange); }
+.hero .hero-ctas a:focus-visible { outline: 3px solid var(--tm-orange); outline-offset: 5px; }
 .hero .hero-stack { height: auto; touch-action: pan-y pinch-zoom; }
 .hero .hero-stack-stage { height: 340px; }
 .hero .hero-stack-card {
@@ -105,7 +105,7 @@
   border-radius: 20px;
   background: #4e7799;
 }
-.hero .hero-stack-dots button[aria-pressed="true"]::after { width: 24px; border-color: #ff963b; background: #ff963b; }
+.hero .hero-stack-dots button[aria-pressed="true"]::after { width: 24px; border-color: var(--tm-orange); background: var(--tm-orange); }
 @media (max-width: 1100px) and (min-width: 901px) {
   .hero .hero-inner { gap: 20px; }
   .hero h1 { font-size: clamp(2.25rem, 4.3vw, 3rem); }

@@ -1,22 +1,22 @@
 /* More catalog suggestions: compact horizontal cards with room for real names. */
 #explore { padding: 40px 0; background: #0a2b52; color: #fff; scroll-margin-top: 100px; }
 #explore .v71-section-head { display: block; margin: 0 0 24px; }
-#explore .section-kicker { color: #ffb575 !important; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0.08em; }
+#explore .section-kicker { color: var(--tm-orange) !important; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0.08em; }
 #explore .v71-section-head h2 { margin: 12px 0; font-size: clamp(2rem, 3.4vw, 2.75rem); line-height: 1.12; letter-spacing: -0.045em; }
-#explore .v71-section-head h2 em { display: inline-block; color: #ffb575; }
+#explore .v71-section-head h2 em { display: inline-block; color: var(--tm-orange); }
 #explore .v71-section-head p { max-width: 700px; margin: 0; color: #d3e3f3; font-size: 1rem; line-height: 1.65; }
 #explore .v71-companion-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 0; padding: 0; list-style: none; }
 #explore .v71-companion-grid > li { display: flex; flex: 0 1 calc((100% - 32px) / 3); min-width: 0; }
 #explore .v71-companion-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: 16px; width: 100%; min-width: 0; min-height: 0; padding: 16px; border: 1px solid #527da4; border-radius: 16px; background: linear-gradient(145deg, #184879, #11365f); box-shadow: 0 6px 18px #001b331a; transform: none; }
-#explore .v71-companion-card:hover { background: linear-gradient(145deg, #1d5186, #153e6c); border-color: #ffb575; transform: none; }
-#explore .v71-companion-card:focus-visible { outline: 3px solid #ffcf9f; outline-offset: 3px; }
+#explore .v71-companion-card:hover { background: linear-gradient(145deg, #1d5186, #153e6c); border-color: var(--tm-orange-hover); transform: none; }
+#explore .v71-companion-card:focus-visible { outline: 3px solid var(--tm-orange); outline-offset: 3px; }
 #explore .v71-companion-image { display: flex; align-items: center; justify-content: center; width: 112px; height: 112px; min-height: 0; padding: 10px; border: 1px solid #b9d4e9; border-radius: 12px; background: #eaf4fc; overflow: hidden; }
 #explore .v71-companion-image img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; filter: none; transform: none; }
 #explore .v71-companion-info { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 112px; padding: 0; }
 #explore .tm-companion-category { color: #d3e3f3; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0.02em; overflow-wrap: anywhere; }
 #explore .v71-companion-info h3 { margin: 0; color: #fff; font-size: 1.125rem; font-weight: 750; line-height: 1.35; letter-spacing: -0.015em; overflow-wrap: anywhere; }
 #explore .tm-companion-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; margin-top: auto; }
-#explore .tm-companion-meta strong { color: #ffd0a7; font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
+#explore .tm-companion-meta strong { color: #fff; font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
 #explore .tm-companion-link { color: #d3e3f3; font-size: 0.875rem; font-weight: 700; line-height: 1.5; text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 1050px) {
   #explore .v71-companion-grid > li { flex-basis: calc((100% - 16px) / 2); }

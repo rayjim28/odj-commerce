@@ -30,7 +30,7 @@
   display:block;
   font-size:10px;
   letter-spacing:.16em;
-  color:#e47517;
+  color:var(--tm-navy);
   font-weight:850;
 }
 .tm-wp-intro h1 {
@@ -43,7 +43,9 @@
 .tm-wp-intro h1 em {
   font-family:Georgia,serif;
   font-weight:400;
-  color:#ff821c;
+  color:var(--tm-navy);
+  text-decoration:underline var(--tm-orange);
+  text-underline-offset:0.12em;
 }
 .tm-wp-intro p {
   font-size:14px;
@@ -170,7 +172,7 @@
   box-sizing:border-box;
   border:0;
   border-radius:12px;
-  background:#ff821c;
+  background:var(--tm-orange);
   color:#0b2c50!important;
   padding:15px 19px;
   min-height:48px;
@@ -179,7 +181,7 @@
   font-weight:850;
   cursor:pointer;
 }
-.tm-wp-send:hover {background:#ffa04b}
+.tm-wp-send:hover {background:var(--tm-orange-hover)}
 .tm-wp-send:disabled {opacity:.6;cursor:wait}
 .tm-wp-disclaimer {
   font-size:11px;

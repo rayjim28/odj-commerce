@@ -12,7 +12,7 @@
   border-top: 1px solid #cddfec;
 }
 .product-page-body .tm-suggested-head .section-kicker {
-  color: #f17b19;
+  color: var(--tm-navy);
   font-size: 10px;
   letter-spacing: .16em;
 }
@@ -25,7 +25,7 @@
   font-weight: 800;
 }
 .product-page-body .tm-suggested-head h2 em {
-  color: #ff821c;
+  color: var(--tm-orange);
   font-weight: 500;
 }
 .product-page-body .tm-suggested-head p {
@@ -78,9 +78,9 @@
   transition: background .18s, border-color .18s, transform .18s;
 }
 .product-page-body .tm-suggested-controls .tm-suggested-next:not(:disabled) {
-  background: #ff821c;
+  background: var(--tm-orange);
   color: #082956;
-  border-color: #ff821c;
+  border-color: var(--tm-orange);
 }
 .product-page-body .tm-suggested-controls button:hover:not(:disabled) {
   transform: translateY(-1px);
@@ -88,8 +88,8 @@
   background: #eaf6ff;
 }
 .product-page-body .tm-suggested-controls .tm-suggested-next:hover:not(:disabled) {
-  border-color: #ff9a40;
-  background: #ff9a40;
+  border-color: var(--tm-orange-hover);
+  background: var(--tm-orange-hover);
 }
 .product-page-body .tm-suggested-controls button:disabled {
   opacity: .35;
