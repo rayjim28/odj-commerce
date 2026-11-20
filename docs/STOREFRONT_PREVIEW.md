@@ -10,7 +10,24 @@ Keep all further section changes on this branch. Review one section at a time
 at phone and desktop widths. Merge into `main` once the complete storefront
 work is finished and reviewed; do not merge individual sections as they land.
 
-## Review environments
+## Local browser review
+
+Use the Mac terminal and the local browser for section reviews. The existing
+hosted preview is optional; it is not the primary review workflow.
+
+```sh
+cd ~/personal_projects/truemerit-release2-review
+git fetch origin
+git switch feature/truemerit-storefront-polish
+git pull --ff-only
+source .venv/bin/activate
+APP_ENV=development PAYMENT_MODE=demo python -m uvicorn main:app --reload --port 8002
+```
+
+Open `http://localhost:8002`. Once the server is running, pull later branch
+updates in a second terminal tab and refresh the browser.
+
+## Existing hosted environments
 
 | Purpose | Location |
 | --- | --- |

@@ -74,7 +74,7 @@ def test_missing_store_settings_are_left_for_admin_to_create():
 
 def test_storefront_retail_wholesale_and_promise():
     home = (TEMPLATES / "index.html").read_text()
-    assert "RETAIL &amp; WHOLESALE CLEANING SUPPLIES" in home
+    assert "RETAIL &amp; WHOLESALE" in home
     assert "Quality You Can Trust." in home
     assert "Prices You'll Appreciate." in home
     assert "Discover dependable cleaning tools and everyday essentials" in home

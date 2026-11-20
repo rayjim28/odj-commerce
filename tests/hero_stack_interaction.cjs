@@ -27,6 +27,7 @@ function fixture(count) {
         const event = {
           key: "",
           preventDefault() { prevented = true; },
+          stopPropagation() {},
           ...extra,
         };
         this.listeners[name]?.(event);
@@ -88,8 +89,41 @@ for (const count of [1, 2, 3, 4, 5]) {
   }
 }
 
+// Horizontal swipes rotate; scrolling, small taps and mouse drags do not.
+for (const count of [2, 3, 4, 5]) {
+  const { stack, cards, dots } = fixture(count);
+  stack.dispatch("pointerdown", { pointerType: "touch", clientX: 200, clientY: 100 });
+  assert.equal(stack.dispatch("pointerup", { clientX: 110, clientY: 108 }), true);
+  assert.equal(cards[1].getAttribute("aria-current"), "true");
+  assert.equal(dots[1].getAttribute("aria-pressed"), "true");
+  assert.equal(stack.dispatch("click"), true);
+  stack.dispatch("pointerdown", { pointerType: "touch", clientX: 110, clientY: 100 });
+  stack.dispatch("pointerup", { clientX: 200, clientY: 100 });
+  assert.equal(cards[0].getAttribute("aria-current"), "true");
+  for (const [pointerType, endX, endY] of [
+    ["touch", 190, 110], ["touch", 130, 210], ["mouse", 110, 100],
+  ]) {
+    stack.dispatch("pointerdown", { pointerType, clientX: 200, clientY: 100 });
+    assert.equal(stack.dispatch("pointerup", { clientX: endX, clientY: endY }), false);
+    assert.equal(cards[0].getAttribute("aria-current"), "true");
+    assert.equal(stack.dispatch("click"), false);
+  }
+  stack.dispatch("pointerdown", { pointerType: "touch", clientX: 200, clientY: 100 });
+  stack.dispatch("pointercancel");
+  assert.equal(stack.dispatch("pointerup", { clientX: 110, clientY: 100 }), false);
+}
+
+// A one-card hero keeps ordinary tap navigation.
+{
+  const { stack, cards } = fixture(1);
+  stack.dispatch("pointerdown", { pointerType: "touch", clientX: 200, clientY: 100 });
+  assert.equal(stack.dispatch("pointerup", { clientX: 110, clientY: 100 }), false);
+  assert.equal(stack.dispatch("click"), false);
+  assert.equal(cards[0].dispatch("click"), false);
+}
+
 // No catalog should not throw or create fake clickable product cards.
 const emptyDocument = { querySelector: () => null };
 assert.doesNotThrow(() => vm.runInNewContext(script, { document: emptyDocument }));
 
-console.log("hero-stack: real card links, rear selection, dots, arrow keys, and 0-5 cards PASS");
+console.log("hero-stack: links, rear cards, dots, keys, swipes, vertical scrolling and 0-5 cards PASS");
