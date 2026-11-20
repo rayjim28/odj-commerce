@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="/static/tm-detail-wholesale.css?v=orange-unified-2">
 <link rel="stylesheet" href="/static/tm-bulk-form.css?v=orange-unified-2">
 <link rel="stylesheet" href="/static/truemerit-suggested-products.css?v=orange-unified-2">
+<link rel="stylesheet" href="/static/truemerit-product-overview-polish.css?v=1">
 </head>
 <body class="product-page-body">
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
@@ -29,12 +30,12 @@
 </header>
 <main>
 <div class="container"><nav class="product-crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/#shop">Shop</a><span>/</span><span aria-current="page">{{product.name}}</span></nav></div>
-<section class="container product-detail-shell">
+<section class="container product-detail-shell" id="productoverview" aria-labelledby="product-title">
  <div class="product-detail-gallery"><div class="product-detail-image"><span class="product-badge">{{product.badge or ('FEATURED ITEM' if product.featured else 'EVERYDAY ESSENTIAL')}}</span><img src="{{product.image_url or '/static/images/default.svg'}}" alt="{{product.name}}" id="detail-image" fetchpriority="high" decoding="async"></div>
  {% if product.additional_images %}<div class="product-image-thumbs" aria-label="Product photo gallery"><button type="button" class="detail-thumbnail selected" data-image="{{product.image_url or '/static/images/default.svg'}}" aria-label="View main product photo" aria-pressed="true"><img src="{{product.image_url or '/static/images/default.svg'}}" alt=""></button>{% for photo in product.additional_images %}<button type="button" class="detail-thumbnail" data-image="{{photo}}" aria-label="View product photo {{loop.index + 1}}" aria-pressed="false"><img src="{{photo}}" alt=""></button>{% endfor %}</div>{% endif %}
- <div class="product-image-note"><span>✦ THE TRUEMERIT COLLECTION</span><span>CURATED FOR EVERYDAY</span></div></div>
- <div class="product-detail-panel"><div class="product-detail-overline"><span class="detail-gold-line"></span>{{product.category | upper}} <span class="overline-index">/ TRUEMERIT CLEANING SUPPLIES</span></div>
-  <h1>{{product.name}}</h1><div class="product-detail-rating-line"><span>✦</span> CLEANING ESSENTIALS / PRODUCTS YOU CAN TRUST</div>
+ </div>
+ <div class="product-detail-panel"><div class="product-detail-overline"><span class="detail-gold-line" aria-hidden="true"></span>{{product.category | upper}}</div>
+  <h1 id="product-title">{{product.name}}</h1>
   <div class="product-detail-price">${{ '%.2f'|format(product.price_cents / 100) }}</div>
   {% if product.is_bundle %}<div class="v72-bundle-details"><strong>YOUR BUNDLE INCLUDES</strong>
   {% for part in product.components %}<div><span>{{ part.qty }} × {{ part.name }}</span></div>{% endfor %}

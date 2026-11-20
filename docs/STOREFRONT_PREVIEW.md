@@ -2,13 +2,12 @@
 
 ## Working branch
 
-Use `feature/truemerit-storefront-polish` for the continuing storefront work.
-It starts from `003153fcc26dcbaed5e5cf7aea914c3b3dc21a5e`, including the approved
-header, Shop dropdown alignment and homepage hero refinements.
+The reviewed homepage work was merged into `main` in PR #43 at
+`1d856c41131ddba6603ec60826c9f9eb89ccd7cb`.
 
-Keep all further section changes on this branch. Review one section at a time
-at phone and desktop widths. Merge into `main` once the complete storefront
-work is finished and reviewed; do not merge individual sections as they land.
+Use `feature/truemerit-product-page-polish` for the continuing product-page work.
+It starts from that reviewed merge. Review one section at a time at phone and
+desktop widths, then merge the next set of changes after review.
 
 ## Local browser review
 
@@ -18,7 +17,7 @@ hosted preview is optional; it is not the primary review workflow.
 ```sh
 cd ~/personal_projects/truemerit-release2-review
 git fetch origin
-git switch feature/truemerit-storefront-polish
+git switch feature/truemerit-product-page-polish
 git pull --ff-only
 source .venv/bin/activate
 APP_ENV=development PAYMENT_MODE=demo python -m uvicorn main:app --reload --port 8002
@@ -35,9 +34,10 @@ updates in a second terminal tab and refresh the browser.
 | Preview | https://truemerit-pr19-stage-26.onrender.com |
 | Preview service | `truemerit-pr19-stage-26` in the existing ODJ workspace |
 
-The preview service deploys `feature/truemerit-storefront-polish` with automatic
-deployments on commits. Keep production on `main` and keep the release pull
-request in draft while sections are being reviewed.
+The optional preview service still deploys the completed
+`feature/truemerit-storefront-polish` branch. Use local review for the new
+product-page branch. Keep production on `main` and the new pull request in draft
+while its sections are being reviewed.
 
 The preview uses a disposable SQLite database at
 `sqlite:////tmp/truemerit-preview.sqlite3`, its own media directory and generated
