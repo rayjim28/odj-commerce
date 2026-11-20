@@ -1156,7 +1156,7 @@ def test_r2_flag_off_preserves_legacy_checkout_behavior(client,monkeypatch):
       'shipping_address':{'name':'Sample Guest','line1':'One Main Street',
         'city':'Baltimore','state':'MD','postal_code':'21201'}}).status_code == 401
     homepage=client.get('/').text
-    assert "Yes. You can explore products and build a bag as a guest" in homepage
+    assert "Sign in or create an account before placing an order." in homepage
     assert 'window.ODJ_GUEST_CHECKOUT_ENABLED = false' in homepage
 
 

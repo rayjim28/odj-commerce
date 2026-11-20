@@ -129,7 +129,7 @@ def test_rebranded_all_page_stylesheets_and_no_guest_checkout_claim():
         if page == 'checkout.html':
             assert 'truemerit-theme.css?v=release2-2' in markup
     home = (TEMPLATES / "index.html").read_text()
-    assert "Yes. You can explore products and build a bag as a guest" in home
+    assert "Sign in or create an account before placing an order." in home
     app = (ROOT / "backend" / "app.py").read_text()
     assert "RedirectResponse('/account?next=checkout'" in app
 

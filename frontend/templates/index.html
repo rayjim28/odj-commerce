@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="/static/truemerit-benefits-polish.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-wholesale-polish.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-shop-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-faq-polish.css?v=1">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -188,12 +189,29 @@
  {% endfor %}</div>
 </div></section>
 {% endif %}
-<section class="v71-faq" id="faq" aria-labelledby="v71-faq-heading"><div class="container v71-faq-grid"><div class="v71-faq-intro"><span class="section-kicker">GOOD TO KNOW</span><h2 id="v71-faq-heading">Questions?<br><em>We've got answers.</em></h2><p>Just the basics to help you shop with confidence. Need something specific? Reach out to TrueMerit</p><a href="/information/contact" class="btn btn-outline-dark">Contact TrueMerit <span aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></a></div><div class="v71-faq-questions">
- <details><summary>Do I need an account to purchase? <span aria-hidden="true">+</span></summary><p>{% if public_preview %}Orders and account registration are not available during our public preview.{% else %}{% if guest_checkout_enabled %}No. You can shop and complete your purchase as a guest. Creating an account is optional.{% else %}Yes. You can explore products and build a bag as a guest, but you'll need to sign in or create an account to place an order.{% endif %}{% endif %}</p></details>
- <details><summary>How do I find the right replacement part? <span aria-hidden="true">+</span></summary><p>Review the product description and specifications for compatibility. If you're unsure about a handle, bucket, or mop head, <a href="/information/contact">contact us before ordering</a>.</p></details>
- <details><summary>Where do I see shipping costs? <span aria-hidden="true">+</span></summary><p>{% if public_preview %}Online orders are not available yet. You can explore products while we finish preparing checkout.{% else %}Available shipping choices and their costs appear at checkout. You can also review the <a href="/information/shipping">shipping information</a>. Orders will be processed securely through Stripe when the store opens.{% endif %}</p></details>
- <details><summary>What is the return policy? <span aria-hidden="true">+</span></summary><p>Please check our current <a href="/information/returns">returns and refunds information</a> for the policy set by TrueMerit Cleaning Supplies.</p></details>
- </div></div></section>
+<section class="v71-faq" id="faq" aria-labelledby="v71-faq-heading">
+ <div class="container v71-faq-grid">
+  <div class="v71-faq-intro"><span class="section-kicker">GOOD TO KNOW</span><h2 id="v71-faq-heading">Questions? <em>We've got answers.</em></h2><p>Find answers about checkout, replacement parts, shipping, and returns.</p><a href="/information/contact" class="btn btn-outline-dark tm-faq-contact">Contact TrueMerit</a></div>
+  <div class="v71-faq-questions">
+   <details>
+    <summary><span class="tm-faq-question">Do I need an account to purchase?</span><span class="tm-faq-toggle" aria-hidden="true"></span></summary>
+    <p>{% if public_preview %}You can browse supplies during our public preview. Online ordering is not available during the preview.{% elif not checkout_open %}You can browse supplies and build a bag without signing in. Online ordering is currently unavailable.{% elif guest_checkout_enabled %}No. You can check out as a guest. Creating an account is optional.{% else %}You can browse supplies and build a bag without an account. Sign in or create an account before placing an order.{% endif %}</p>
+   </details>
+   <details>
+    <summary><span class="tm-faq-question">How do I find the right replacement part?</span><span class="tm-faq-toggle" aria-hidden="true"></span></summary>
+    <p>Check the product description and specifications for compatibility. If you're unsure about a handle, bucket, or mop head, <a href="/information/contact">contact us before ordering</a>.</p>
+   </details>
+   <details>
+    <summary><span class="tm-faq-question">Where do I see shipping costs?</span><span class="tm-faq-toggle" aria-hidden="true"></span></summary>
+    <p>{% if public_preview or not checkout_open %}Online ordering is currently unavailable. Review our <a href="/information/shipping">shipping information</a> for the store's current shipping policy.{% else %}Available shipping options and their costs appear at checkout, before you pay. You can also review our <a href="/information/shipping">shipping information</a>.{% endif %}</p>
+   </details>
+   <details>
+    <summary><span class="tm-faq-question">What is the return policy?</span><span class="tm-faq-toggle" aria-hidden="true"></span></summary>
+    <p>Review our current <a href="/information/returns">returns and refunds information</a> before ordering.</p>
+   </details>
+  </div>
+ </div>
+</section>
 <section class="editorial" id="about"><div class="container editorial-grid"><div class="editorial-image editorial-promise-panel">
     <div class="editorial-promise-kicker">OUR PROMISE <span aria-hidden="true">✦</span></div>
     <div class="editorial-promise-content"><span>RELIABLE SUPPLIES. EVERYDAY VALUE.</span><strong>Quality You Can Trust.<br><em>Prices You'll Appreciate.</em></strong><p>For homes, businesses, and everyday cleaning needs.</p></div>
