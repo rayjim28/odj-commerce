@@ -60,3 +60,11 @@ do not modify production.
 For each section, check phone and desktop layout, readable text, alignment,
 touch targets, links and any related menu or carousel behavior. Preserve
 previously approved sections while applying the next change.
+
+### Featured picks
+
+Best Seller and New Arrivals use published, in-stock products with a positive
+price, the Featured setting enabled, and a matching `Best Seller` or `New`
+badge. Empty groups are hidden. A single product does not need navigation
+controls; multiple products support buttons, keyboard navigation and native
+horizontal scrolling. Product links and details render without JavaScript.

@@ -1,4 +1,5 @@
 """Catalog-driven homepage selections and suggestions."""
+import re
 
 
 def build_home_merchandising(products):
@@ -6,6 +7,18 @@ def build_home_merchandising(products):
     available = [p for p in products if p['stock'] > 0]
     highlighted = sorted(available, key=lambda p: (not p['featured'], p['id']))
     spotlight = highlighted[0] if highlighted else None
+
+    # Only the owner's featured, available listings qualify for these groups.
+    promoted = [p for p in products if p.get('featured') is True
+                and p.get('active', True) and p.get('stock', 0) > 0
+                and p.get('price_cents', 0) > 0]
+    featured_picks = {
+        key: [p for p in promoted if re.search(pattern, str(p.get('badge') or ''), re.I)]
+        for key, pattern in (
+            ('best', r'\bBEST\s*SELLERS?\b'),
+            ('new', r'\bNEW\b'),
+        )
+    }
 
     # Show the first five eligible products already in storefront order.
     # Uploaded products appear automatically after the owner publishes them;
@@ -45,4 +58,4 @@ def build_home_merchandising(products):
     # or a discount. Restrict to listed, currently in-stock items.
     companion = [p for p in highlighted if spotlight and p['id'] != spotlight['id']]
     return {'spotlight': spotlight, 'guides': guides, 'companions': companion[:3],
-            'hero_products': hero_products}
+            'hero_products': hero_products, 'featured_picks': featured_picks}

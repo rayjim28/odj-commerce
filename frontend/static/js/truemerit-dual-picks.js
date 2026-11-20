@@ -1,65 +1,52 @@
+/* The server renders product links; this adds controls to the native scroll rails. */
+(() => {
+  "use strict";
+  const root = document.getElementById("tm-dual-picks");
+  if (!root) return;
 
-(()=>{
-"use strict";
-const root=document.getElementById("tm-dual-picks");
-if(!root)return;
+  root.querySelectorAll("[data-pick-group]").forEach(panel => {
+    const rail = panel.querySelector("[data-pick-rail]");
+    const cards = [...rail.querySelectorAll("[data-pick-card]")];
+    const controls = panel.querySelector("[data-pick-controls]");
+    const previous = panel.querySelector('[data-pick-step="-1"]');
+    const next = panel.querySelector('[data-pick-step="1"]');
+    const status = panel.querySelector("[data-pick-status]");
+    if (!cards.length) return;
+    let announced = -1;
 
-const catalog=Array.isArray(window.ODJ_PRODUCTS)
- ? window.ODJ_PRODUCTS : [];
-
-const featured=catalog.filter(p=>
- p.featured===true && p.active!==false &&
- Number(p.stock)>0 && Number(p.price_cents)>0
-);
-
-const badge=p=>String(p.badge||"").trim().toUpperCase();
-
-const sets={
- best:featured.filter(p=>/BEST\s*SELLER/.test(badge(p))),
- new:featured.filter(p=>/\bNEW\b/.test(badge(p)))
-};
-
-const money=new Intl.NumberFormat("en-US",{
- style:"currency",currency:"USD"
-});
-
-root.querySelectorAll("[data-pick-group]").forEach(panel=>{
- const items=sets[panel.dataset.pickGroup]||[];
- const content=panel.querySelector("[data-pick-content]");
- const empty=panel.querySelector("[data-pick-empty]");
- const buttons=[...panel.querySelectorAll("[data-pick-step]")];
-
- if(!items.length){
-  empty.hidden=false;
-  buttons.forEach(b=>b.disabled=true);
-  return;
- }
-
- let index=0;
- content.hidden=false;
- buttons.forEach(b=>b.disabled=items.length<2);
-
- function show(i){
-  index=(i+items.length)%items.length;
-  const p=items[index];
-  const path="/products/"+encodeURIComponent(p.id);
-  const img=panel.querySelector("[data-pick-image]");
-
-  img.src=p.image_url||"/static/images/default.svg";
-  img.alt=p.name;
-  panel.querySelector("[data-pick-image-link]").href=path;
-  panel.querySelector("[data-pick-name]").textContent=p.name;
-  panel.querySelector("[data-pick-description]").textContent=
-   p.description||"Explore this product and its details.";
-  panel.querySelector("[data-pick-price]").textContent=
-   money.format(Number(p.price_cents)/100);
-  panel.querySelector("[data-pick-link]").href=path;
- }
-
- buttons.forEach(btn=>btn.addEventListener("click",()=>{
-  show(index+Number(btn.dataset.pickStep));
- }));
-
- show(0);
-});
+    const position = card => card.offsetLeft - cards[0].offsetLeft;
+    function currentIndex() {
+      return cards.reduce((closest, card, i) =>
+        Math.abs(position(card) - rail.scrollLeft) < Math.abs(position(cards[closest]) - rail.scrollLeft)
+          ? i : closest, 0);
+    }
+    function sync() {
+      const max = Math.max(0, rail.scrollWidth - rail.clientWidth);
+      controls.hidden = cards.length < 2 || max <= 2;
+      previous.disabled = rail.scrollLeft <= 2;
+      next.disabled = rail.scrollLeft >= max - 2;
+      const index = currentIndex();
+      if (index !== announced) {
+        status.textContent = cards[index].dataset.pickTitle;
+        announced = index;
+      }
+    }
+    function select(index) {
+      const target = Math.max(0, Math.min(cards.length - 1, index));
+      rail.scrollTo({ left: position(cards[target]) });
+    }
+    previous.addEventListener("click", () => select(currentIndex() - 1));
+    next.addEventListener("click", () => select(currentIndex() + 1));
+    rail.addEventListener("scroll", sync, { passive: true });
+    rail.addEventListener("keydown", event => {
+      if (event.target !== rail || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      const index = currentIndex();
+      const targets = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: cards.length - 1 };
+      if (!(event.key in targets)) return;
+      event.preventDefault();
+      select(targets[event.key]);
+    });
+    window.addEventListener("resize", sync);
+    sync();
+  });
 })();
