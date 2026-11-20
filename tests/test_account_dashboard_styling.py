@@ -11,7 +11,7 @@ STYLES = ROOT / "frontend" / "static" / "truemerit-account-dashboard.css"
 def test_dashboard_styles_load_only_for_signed_in_customer():
     markup = ACCOUNT.read_text()
     Environment().parse(markup)
-    assert '{% if customer %}<link rel="stylesheet" href="/static/truemerit-account-dashboard.css?v=1">{% endif %}' in markup
+    assert '{% if customer %}<link rel="stylesheet" href="/static/truemerit-account-dashboard.css?v=orange-unified-2">{% endif %}' in markup
     assert 'class="account-body{% if customer %} tm-account-signed-in{% endif %}"' in markup
 
 
@@ -40,5 +40,5 @@ def test_dashboard_has_modern_scoped_controls():
     assert ".tm-account-signed-in .account-empty" in css
     assert ".tm-account-signed-in .v73-fav-item" in css
     assert "border-radius" in css
-    assert "#ff821c" in css
+    assert "var(--tm-orange)" in css
     assert "@media (max-width: 600px)" in css

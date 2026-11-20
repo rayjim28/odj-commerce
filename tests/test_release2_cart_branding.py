@@ -9,11 +9,11 @@ STORE_JS = (ROOT / "frontend/static/js/store.js").read_text()
 
 
 def test_cart_theme_loads_after_legacy_css_and_uses_truemerit_palette():
-    assert 'href="/static/truemerit-cart.css?v=green-arrow-1"' in HOME
+    assert 'href="/static/truemerit-cart.css?v=orange-unified-2"' in HOME
     theme = re.search(r'truemerit-theme\.css\?v=[^" ]+', HOME)
     assert theme, 'Homepage must load the TrueMerit stylesheet'
     assert HOME.index('style.css?v=7-4') < theme.start()
-    assert theme.start() < HOME.index('truemerit-cart.css?v=green-arrow-1')
+    assert theme.start() < HOME.index('truemerit-cart.css?v=orange-unified-2')
     assert 'TRUEMERIT / YOUR BAG' in HOME
     assert re.search(r'src="/static/js/store\.js\?v=[^"]+"', HOME)
     for selector in (
@@ -36,7 +36,7 @@ def test_cart_theme_loads_after_legacy_css_and_uses_truemerit_palette():
         assert selector in CART, f"Missing new TrueMerit styling for {selector}"
     assert "background:#f2f8fe;" in CART
     assert "background:#fff;" in CART
-    assert "background:#ff821c;" in CART
+    assert "background:var(--tm-orange);" in CART
     assert "background:linear-gradient(125deg,#082956,#10457a);" in CART
     assert "#fbfaf7" not in CART
     assert "#bd955c" not in CART

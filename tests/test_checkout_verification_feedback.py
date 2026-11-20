@@ -20,7 +20,7 @@ def test_stripe_arrow_is_green_across_all_interaction_states():
     assert 'background:#116b38' in hover
     assert 'background: #82a892;' in disabled
     assert 'color:#fff;' in base
-    assert 'background:#ff821c' in CSS  # Main button remains orange.
+    assert 'background:var(--tm-orange)' in CSS  # Main button remains orange.
 
 
 def test_hosted_payment_wording_is_accurate_and_clear():
@@ -58,6 +58,6 @@ def test_stripe_button_errors_survive_quote_refresh_instead_of_disappearing():
 
 def test_checkout_assets_are_fresh_not_cached_blue_arrow_js():
     assert '/static/js/checkout.js?v=feedback-green-2' in TEMPLATE
-    assert '/static/truemerit-checkout.css?v=feedback-green-2' in TEMPLATE
+    assert '/static/truemerit-checkout.css?v=orange-unified-2' in TEMPLATE
     assert 'checkout-submit' in TEMPLATE
     assert 'checkout-feedback' in TEMPLATE
