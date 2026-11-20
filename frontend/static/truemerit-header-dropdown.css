@@ -1,0 +1,167 @@
+/* TrueMerit Section 1 — compact click/tap dropdown, no catalog/layout changes. */
+.site-header .main-nav .tm-shop-dropdown-trigger {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #3a526e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .055em;
+  cursor: pointer;
+}
+.site-header .main-nav .tm-shop-dropdown-trigger:hover,
+.site-header .main-nav .tm-shop-dropdown-trigger[aria-expanded="true"] {
+  color: #f17617;
+}
+.site-header .main-nav .tm-shop-dropdown-trigger:focus-visible,
+.site-header .nav-actions .tm-menu-trigger:focus-visible,
+.site-header .tm-header-menu a:focus-visible {
+  outline: 2px solid #1e70ad;
+  outline-offset: 3px;
+}
+.site-header .tm-shop-dropdown-trigger svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform .15s ease;
+}
+.site-header .tm-shop-dropdown-trigger[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.site-header .nav-actions .tm-menu-trigger {
+  display: none;
+}
+.site-header .tm-header-menu[hidden] {
+  display: none !important;
+}
+.site-header .tm-header-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-24%);
+  width: min(335px, calc(100vw - 32px));
+  max-height: min(68vh, 500px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px;
+  border: 1px solid #d5e3f1;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 48px rgba(8, 41, 86, .18);
+  z-index: 90;
+}
+.site-header .tm-header-menu-inner {
+  display: grid;
+  gap: 2px;
+}
+.site-header .tm-header-menu-heading,
+.site-header .tm-header-menu-label {
+  margin: 0;
+  padding: 12px 11px 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  color: #7086a0;
+}
+.site-header .tm-header-menu-label {
+  padding-top: 15px;
+}
+.site-header .tm-header-menu a {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  text-decoration: none;
+  color: #12365f;
+  font-size: 13px;
+  font-weight: 650;
+  transition: background-color .16s ease, color .16s ease;
+}
+.site-header .tm-header-menu a:hover {
+  background: #edf5fd;
+  color: #0c5b9a;
+}
+.site-header .tm-header-menu .tm-header-menu-home {
+  display: none;
+}
+.site-header .tm-header-menu-separator {
+  height: 1px;
+  margin: 10px 8px 4px;
+  background: #e3ebf4;
+}
+@media (max-width: 940px) {
+  .site-header .nav-actions .tm-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #082956;
+    cursor: pointer;
+  }
+  .site-header .nav-actions .tm-menu-trigger:hover,
+  .site-header .nav-actions .tm-menu-trigger[aria-expanded="true"] {
+    background: #edf5fd;
+  }
+  .site-header .nav-actions .tm-menu-trigger svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+  .site-header .tm-header-menu {
+    right: 16px;
+    left: auto;
+    transform: none;
+    width: min(340px, calc(100vw - 32px));
+  }
+  .site-header .tm-header-menu .tm-header-menu-home {
+    display: flex;
+  }
+}
+@media (max-width: 750px) {
+  .site-header .nav-actions .tm-menu-trigger {
+    flex: 0 0 44px;
+    min-width: 44px;
+    margin: 0;
+  }
+}
+@media (max-width: 420px) {
+  .site-header .tm-brand-logo {
+    width: 136px;
+    height: 52px;
+  }
+  .site-header .nav-actions {
+    gap: 2px;
+  }
+}
+@media (max-width: 360px) {
+  .site-header .tm-brand-logo {
+    width: 112px;
+    height: 50px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header .tm-shop-dropdown-trigger svg,
+  .site-header .tm-header-menu a {
+    transition: none;
+  }
+}
