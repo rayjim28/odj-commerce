@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="/static/truemerit-about-polish.css?v=orange-unified-2">
 <link rel="stylesheet" href="/static/truemerit-newsletter-polish.css?v=orange-unified-2">
 <link rel="stylesheet" href="/static/truemerit-final-cta-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-footer-polish.css?v=1">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -251,7 +252,18 @@
  </div>
 </section>
 </main>
-<footer class="footer"><div class="container"><div class="footer-top"><div><a class="footer-brand" href="#top">TrueMerit<span>.</span></a><p>Quality You Can Trust. Prices You'll Appreciate.<br>Retail and wholesale cleaning supplies.<br>Operated by ODJ Group LLC</p></div><div class="footer-links"><div><strong>EXPLORE</strong><a href="#shop">Shop all</a><a href="#about">Our promise</a><a href="#wholesale">Wholesale inquiries</a><a href="#top">Back to top</a></div><div><strong>INFORMATION</strong><a href="/information/contact">Customer support</a><a href="/information/shipping">Shipping policy</a><a href="/information/returns">Returns &amp; refunds</a><a href="mailto:truemeritsupplies@gmail.com">Contact TrueMerit</a></div></div></div><div class="footer-bottom"><span>© <span id="copyright-year">2026</span> TrueMerit Cleaning Supplies. Operated by ODJ Group LLC.</span><span>SECURE CHECKOUT VIA STRIPE <span class="footer-sparkle">✦</span></span></div></div></footer>
+<footer class="footer" id="sitefooter">
+ <div class="container">
+  <div class="footer-top">
+   <div class="tm-footer-identity"><a class="footer-brand" href="#top" aria-label="TrueMerit Cleaning Supplies home">TrueMerit<span>.</span></a><p class="tm-footer-promise">Quality You Can Trust.<br>Prices You'll Appreciate.</p><p>Retail and wholesale cleaning supplies.</p></div>
+   <nav class="footer-links" aria-label="Footer navigation">
+    <div class="tm-footer-group"><h2>Explore</h2><ul role="list"><li><a href="#shop">Shop all</a></li><li><a href="#about">Our promise</a></li><li><a href="#wholesale">Wholesale inquiries</a></li><li><a href="#top">Back to top</a></li></ul></div>
+    <div class="tm-footer-group"><h2>Information</h2><ul role="list"><li><a href="/information/contact">Customer support</a></li><li><a href="/information/shipping">Shipping policy</a></li><li><a href="/information/returns">Returns &amp; refunds</a></li><li><a href="mailto:truemeritsupplies@gmail.com">Email TrueMerit</a></li></ul></div>
+   </nav>
+  </div>
+  <div class="footer-bottom"><p>© <span id="copyright-year">2026</span> TrueMerit Cleaning Supplies. Operated by ODJ Group LLC.</p><p>Checkout powered by Stripe.</p></div>
+ </div>
+</footer>
 <div class="drawer-backdrop" id="drawer-backdrop" hidden></div><aside class="cart-drawer" id="cart-drawer" aria-label="Shopping cart" aria-modal="true" role="dialog" aria-hidden="true"><div class="drawer-head"><div><small>TRUEMERIT / YOUR BAG</small><h2>Shopping bag <span id="drawer-count">(0)</span></h2></div><button class="close-cart" id="close-cart" aria-label="Close cart">×</button></div><div class="drawer-items" id="drawer-items"></div><div class="drawer-bottom"><div class="drawer-subtotal"><span>Subtotal</span><strong id="cart-subtotal">$0.00</strong></div><p>{% if not checkout_open %}Online orders are not available yet.{% else %}Shipping and applicable tax calculated at checkout.{% endif %}</p><button class="btn btn-gold checkout-button" id="checkout-button" type="button">Secure checkout <span class="checkout-arrow" aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></button><div id="checkout-message" class="checkout-message" role="status"></div><div class="payments-caption">🔒 Secure checkout powered by Stripe</div></div></aside>
 <div class="toast" id="toast" aria-live="polite"></div>
 <script>window.ODJ_PRODUCTS = {{products | tojson}}; window.ODJ_CUSTOMER = {{customer_json | tojson}}; window.ODJ_PUBLIC_PREVIEW = {{public_preview | tojson}}; window.ODJ_CHECKOUT_OPEN = {{checkout_open | tojson}}; window.ODJ_GUEST_CHECKOUT_ENABLED = {{guest_checkout_enabled | tojson}};</script><script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/store.js?v=shop-polish-3" defer></script><script src="/static/js/hero-stack.js?v=2" defer></script>
