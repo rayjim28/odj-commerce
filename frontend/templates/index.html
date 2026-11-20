@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="/static/truemerit-routine-modern.css?v=mobile-svg-arrows-1">
 <link rel="stylesheet" href="/static/tm-wholesale-page.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-favorite-hearts.css?v=red-saved-2">
+<link rel="stylesheet" href="/static/truemerit-hero-polish.css?v=1">
 </head><body>
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
 <div class="announcement"><span class="announcement-dot"></span> CLEAN SPACES. BETTER DAYS. <span class="announcement-divider">/</span> EVERYDAY ESSENTIALS, ELEVATED <span class="announcement-dot"></span></div>
@@ -45,7 +46,7 @@
     <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> RETAIL &amp; WHOLESALE CLEANING SUPPLIES </div>
       <h1>A better clean<br>starts with the<br><em>right tools.</em></h1>
       <p>Dependable cleaning supplies for homes, businesses, and bulk buyers—all in one place.</p><p class="hero-promise-line">Quality You Can Trust. <span>Prices You'll Appreciate.</span></p>
-      <div class="hero-ctas"><a class="btn btn-gold" href="#shop">Shop cleaning essentials <span><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></a><a class="text-link" href="#collections">Explore collections <span><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></a></div>
+      <div class="hero-ctas"><a class="btn btn-gold" href="#shop">Shop cleaning essentials</a><a class="text-link" href="#collections">Explore collections</a></div>
       
     </div>
     {% if merch.hero_products %}
@@ -61,11 +62,13 @@
         </a>
         {% endfor %}
       </div>
-      <div class="hero-stack-dots" aria-label="Select a product to view">
+      {% if merch.hero_products|length > 1 %}
+      <div class="hero-stack-dots" role="group" aria-label="Select a product to view">
         {% for product in merch.hero_products %}
         <button type="button" data-hero-dot="{{ loop.index0 }}" aria-label="Show {{ product.name }}" aria-pressed="{{ 'true' if loop.first else 'false' }}"></button>
         {% endfor %}
       </div>
+      {% endif %}
     </div>
     {% else %}
     <div class="hero-art hero-abstract-art" aria-label="Browse cleaning essentials">
