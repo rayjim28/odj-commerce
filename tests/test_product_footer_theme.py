@@ -25,6 +25,6 @@ def test_recommendation_carousel_stays_unchanged():
     assert 'data-recommendation-carousel' in PAGE
     assert 'id="tm-suggested-track"' in PAGE
     assert 'truemerit-suggested-products.css?v=orange-unified-2' in PAGE
-    assert 'truemerit-suggested-products.js?v=1' in PAGE
+    assert 'truemerit-suggested-products.js?v=2' in PAGE
     assert PAGE.index('id="tm-suggested-track"') < PAGE.index('class="product-detail-footer"')
     assert '<footer class="product-detail-footer">' in PAGE

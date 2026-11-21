@@ -1,0 +1,58 @@
+/* Suggested products: complete cards, readable details and manual browsing. */
+#productrecommendations { padding-bottom: 40px; }
+#productrecommendations .tm-suggested-head { align-items: flex-end; gap: 24px; padding-top: 32px; margin-bottom: 24px; }
+#productrecommendations .tm-suggested-head > div:first-child { min-width: 0; }
+#productrecommendations .section-kicker { color: var(--tm-navy) !important; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0.08em; }
+#productrecommendations h2 { margin: 12px 0; font-size: clamp(2rem, 3.4vw, 2.75rem); line-height: 1.12; letter-spacing: -0.045em; }
+#productrecommendations h2 em { color: var(--tm-navy); text-decoration: underline var(--tm-orange); text-underline-offset: 0.12em; }
+#productrecommendations .tm-suggested-head p { max-width: 640px; color: #4b617a; font-size: 1rem; line-height: 1.65; }
+#productrecommendations .tm-suggested-head-actions { gap: 16px; }
+#productrecommendations .tm-suggested-shop { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 0; border: 0; font-size: 0.875rem; line-height: 1.5; text-decoration: underline; text-underline-offset: 4px; white-space: normal; }
+#productrecommendations .tm-suggested-controls { gap: 8px; }
+#productrecommendations .tm-suggested-controls button { width: 44px; height: 44px; border: 1px solid var(--tm-orange); border-radius: 10px; background: var(--tm-orange); color: var(--tm-navy); }
+#productrecommendations .tm-suggested-controls svg { display: block; width: 20px; height: 20px; }
+#productrecommendations .tm-suggested-controls button:hover:not(:disabled) { background: var(--tm-orange-hover); border-color: var(--tm-orange-hover); transform: none; }
+#productrecommendations .tm-suggested-controls button:disabled { background: #edf2f7; border-color: #d3e2ef; color: #526c85; opacity: 1; }
+#productrecommendations .tm-suggested-viewport { overflow: visible; }
+#productrecommendations .tm-suggested-track {
+  --related-visible: min(var(--related-count, 4), 4);
+  grid-auto-columns: min(340px, calc((100% - (var(--related-visible) - 1) * 16px) / var(--related-visible)));
+  gap: 16px;
+  padding: 4px 0 12px;
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: #9ab9d3 transparent;
+}
+#productrecommendations .tm-suggested-track::-webkit-scrollbar { display: block; height: 6px; }
+#productrecommendations .tm-suggested-track::-webkit-scrollbar-thumb { background: #9ab9d3; border-radius: 8px; }
+#productrecommendations .tm-suggested-item { display: flex; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+#productrecommendations .tm-suggested-card { width: 100%; border-color: #d3e2ef; border-radius: 16px; box-shadow: none; scroll-snap-align: none; }
+#productrecommendations .tm-suggested-card:hover { transform: none; border-color: #8bafce; box-shadow: none; }
+#productrecommendations .tm-suggested-card .tm-suggested-image { height: 188px; flex: none; padding: 16px; background: #edf5fc; }
+#productrecommendations .tm-suggested-stock { max-width: calc(100% - 20px); color: #254f75; font-size: 0.75rem; line-height: 1.4; }
+#productrecommendations .tm-suggested-card .tm-suggested-info { gap: 12px; padding: 16px; }
+#productrecommendations .tm-suggested-info > div { min-width: 0; width: 100%; }
+#productrecommendations .tm-suggested-info small { color: #526c85; font-size: 0.875rem; line-height: 1.5; letter-spacing: 0.02em; text-transform: none; overflow-wrap: anywhere; }
+#productrecommendations .tm-suggested-info h3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; margin: 8px 0 0; overflow: hidden; color: #0b2b50; font-size: 1.125rem; line-height: 1.35; letter-spacing: -0.015em; }
+#productrecommendations .tm-suggested-info strong { padding-top: 4px; color: #123f70; font-size: 1.125rem; line-height: 1.4; }
+#productrecommendations .tm-suggested-link { justify-content: flex-start; min-height: 44px; margin: 0 16px 16px; padding-top: 12px; color: #15549c; font-size: 0.875rem; line-height: 1.5; }
+#productrecommendations .tm-suggested-empty { padding: 24px; border-color: #c5d8e9; background: #edf5fc; color: #4b617a; font-size: 1rem; line-height: 1.65; }
+#productrecommendations .tm-suggested-empty a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 0; font-size: 0.875rem; line-height: 1.5; text-decoration: underline; text-underline-offset: 4px; }
+#productrecommendations a:focus-visible, #productrecommendations button:focus-visible, #productrecommendations .tm-suggested-track:focus-visible { outline: 3px solid #123f70; outline-offset: 3px; }
+#productrecommendations .tm-suggested-card:focus-visible, #productrecommendations .tm-suggested-track:focus-visible { outline-offset: -3px; }
+@media (max-width: 1100px) { #productrecommendations .tm-suggested-track { --related-visible: min(var(--related-count, 3), 3); } }
+@media (max-width: 790px) {
+  #productrecommendations .tm-suggested-head { flex-direction: column; align-items: stretch; }
+  #productrecommendations .tm-suggested-head-actions { flex-direction: row; justify-content: space-between; align-items: center; width: 100%; }
+  #productrecommendations .tm-suggested-track { --related-visible: min(var(--related-count, 2), 2); }
+}
+@media (max-width: 600px) {
+  #productrecommendations { padding-bottom: 32px; }
+  #productrecommendations .tm-suggested-head { gap: 16px; padding-top: 24px; }
+  #productrecommendations .tm-suggested-track { --related-visible: 1; grid-auto-columns: 100%; }
+  #productrecommendations .tm-suggested-card .tm-suggested-image { height: 200px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #productrecommendations .tm-suggested-track { scroll-behavior: auto; }
+  #productrecommendations a, #productrecommendations button { transition: none; }
+}
