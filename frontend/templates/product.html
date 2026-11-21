@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="/static/truemerit-suggested-products.css?v=orange-unified-2">
 <link rel="stylesheet" href="/static/truemerit-product-overview-polish.css?v=1">
 <link rel="stylesheet" href="/static/truemerit-related-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-product-footer-polish.css?v=1">
 </head>
 <body class="product-page-body">
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
@@ -97,7 +98,15 @@
   {% endif %}
 </section>
 </main>
-<footer class="product-detail-footer"><div class="container"><a href="/" class="footer-brand">TrueMerit<span>.</span></a><p>PRODUCTS YOU CAN TRUST. EVERY SINGLE DAY.</p><span>© TRUEMERIT CLEANING SUPPLIES · {{ now_year or '2026' }}</span></div></footer>
+<footer class="product-detail-footer" id="productfooter">
+ <div class="container">
+  <div class="tm-product-footer-top">
+   <div class="tm-product-footer-identity"><a href="/" class="footer-brand" aria-label="TrueMerit Cleaning Supplies home">TrueMerit<span>.</span></a><p>Quality You Can Trust.<br>Prices You'll Appreciate.</p></div>
+   <nav class="tm-product-footer-nav" aria-label="Footer navigation"><h2>Helpful links</h2><ul role="list"><li><a href="/#shop">Shop all products</a></li><li><a href="/information/contact">Customer support</a></li><li><a href="/information/shipping">Shipping policy</a></li><li><a href="/information/returns">Returns &amp; refunds</a></li></ul></nav>
+  </div>
+  <div class="tm-product-footer-bottom"><p>© {{ now_year or '2026' }} TrueMerit Cleaning Supplies. Operated by ODJ Group LLC.</p><p>Checkout powered by Stripe.</p></div>
+ </div>
+</footer>
 <script>window.ODJ_DETAIL_PRODUCT = {{ product | tojson }};</script>
 <script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/product.js?v=detail-heart-3" defer></script>
 <script src="/static/js/truemerit-suggested-products.js?v=2" defer></script>
