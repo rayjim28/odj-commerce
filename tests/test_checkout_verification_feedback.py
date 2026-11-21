@@ -57,7 +57,7 @@ def test_stripe_button_errors_survive_quote_refresh_instead_of_disappearing():
 
 
 def test_checkout_assets_are_fresh_not_cached_blue_arrow_js():
-    assert '/static/js/checkout.js?v=feedback-green-2' in TEMPLATE
-    assert '/static/truemerit-checkout.css?v=orange-unified-2' in TEMPLATE
+    assert '/static/js/checkout.js?v=confirmation-1' in TEMPLATE
+    assert '/static/truemerit-checkout.css?v=checkout-polish-3' in TEMPLATE
     assert 'checkout-submit' in TEMPLATE
     assert 'checkout-feedback' in TEMPLATE

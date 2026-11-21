@@ -134,7 +134,7 @@ async def protect_private_pages(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['Referrer-Policy'] = ('no-referrer' if path.startswith(
+    response.headers['Referrer-Policy'] = ('no-referrer' if path == '/success' or path.startswith(
         ('/guest/orders/', '/demo-order/')) else 'strict-origin-when-cross-origin')
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
@@ -147,7 +147,7 @@ async def protect_private_pages(request: Request, call_next):
     if path == '/admin' or path.startswith('/api/admin/'):
         response.headers['Cache-Control'] = 'no-store, private'
         response.headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive'
-    elif path.startswith('/newsletter/') or path in ('/account', '/checkout') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/','/guest/','/api/guest/')):
+    elif path.startswith('/newsletter/') or path in ('/account', '/checkout', '/success') or path.startswith(('/account/', '/api/store/')) or path.startswith(('/api/account/','/api/checkout/','/demo-order/','/guest/','/api/guest/')):
         response.headers['Cache-Control'] = 'no-store, private'
     return response
 
@@ -1103,9 +1103,13 @@ def checkout_page(request: Request):
     customer = signed_in_customer(request)
     if not customer and not guest_checkout_enabled():
         return RedirectResponse('/account?next=checkout', status_code=303)
+    with SessionLocal() as db:
+        settings = store_settings(db)
     return templates.TemplateResponse(request, 'checkout.html', {
         'customer':customer, 'demo':payment_mode() == 'demo',
-        'guest':customer is None
+        'guest':customer is None,
+        'shipping_rates':{'standard':settings['standard_shipping_cents'],
+                          'express':settings['express_shipping_cents']},
     })
 
 @app.post('/api/checkout/quote')
@@ -1170,7 +1174,8 @@ def demo_confirmation(order_id: str, request: Request, access: str = ''):
         info = serialize_order(order)
         guest = order.customer_id is None
     response = templates.TemplateResponse(request, 'demo_order.html', {
-        'order':info, 'guest':guest
+        'order':info, 'guest':guest,
+        'detail_url':'/guest/orders/'+access if guest else '/account/orders/'+order.id,
     })
     response.headers['Cache-Control'] = 'no-store, private'
     response.headers['Referrer-Policy'] = 'no-referrer'
@@ -1234,7 +1239,7 @@ async def checkout(payload: CheckoutRequest, request: Request):
         o = db.get(Order, order_id)
         o.stripe_session_id = session_data['id']
         db.commit()
-    return {'url':session_data['url']}
+    return {'url':session_data['url'], 'session_id':session_data['id']}
 
 
 # Stripe event timestamps have one-second precision. Within a shared second,
@@ -1335,13 +1340,19 @@ async def stripe_webhook(request: Request):
 @app.get('/success', response_class=HTMLResponse)
 def success(request: Request, session_id: str = ''):
     # Do not claim an order is paid solely from the redirect; webhook determines status.
-    status = 'confirming'
+    status = 'unknown'
     if session_id:
         with SessionLocal() as db:
             o = db.scalar(select(Order).where(Order.stripe_session_id == session_id))
             if o:
                 status = o.status
-    return templates.TemplateResponse(request, 'success.html', {'status':status})
+    response = templates.TemplateResponse(request, 'success.html', {
+        'status':status, 'session_id':session_id,
+    })
+    response.headers['Cache-Control'] = 'no-store, private'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['X-Robots-Tag'] = 'noindex'
+    return response
 
 
 # Guest order history uses signed, expiring links; order IDs alone are never

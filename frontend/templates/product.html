@@ -17,6 +17,9 @@
 <link rel="stylesheet" href="/static/tm-detail-wholesale.css?v=orange-unified-2">
 <link rel="stylesheet" href="/static/tm-bulk-form.css?v=orange-unified-2">
 <link rel="stylesheet" href="/static/truemerit-suggested-products.css?v=orange-unified-2">
+<link rel="stylesheet" href="/static/truemerit-product-overview-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-related-polish.css?v=1">
+<link rel="stylesheet" href="/static/truemerit-product-footer-polish.css?v=1">
 </head>
 <body class="product-page-body">
 {% if public_preview %}<div class="announcement" role="status">TRUEMERIT CLEANING SUPPLIES IS OPEN FOR BROWSING — ONLINE ORDERS COMING SOON</div>{% endif %}
@@ -29,12 +32,12 @@
 </header>
 <main>
 <div class="container"><nav class="product-crumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/#shop">Shop</a><span>/</span><span aria-current="page">{{product.name}}</span></nav></div>
-<section class="container product-detail-shell">
+<section class="container product-detail-shell" id="productoverview" aria-labelledby="product-title">
  <div class="product-detail-gallery"><div class="product-detail-image"><span class="product-badge">{{product.badge or ('FEATURED ITEM' if product.featured else 'EVERYDAY ESSENTIAL')}}</span><img src="{{product.image_url or '/static/images/default.svg'}}" alt="{{product.name}}" id="detail-image" fetchpriority="high" decoding="async"></div>
  {% if product.additional_images %}<div class="product-image-thumbs" aria-label="Product photo gallery"><button type="button" class="detail-thumbnail selected" data-image="{{product.image_url or '/static/images/default.svg'}}" aria-label="View main product photo" aria-pressed="true"><img src="{{product.image_url or '/static/images/default.svg'}}" alt=""></button>{% for photo in product.additional_images %}<button type="button" class="detail-thumbnail" data-image="{{photo}}" aria-label="View product photo {{loop.index + 1}}" aria-pressed="false"><img src="{{photo}}" alt=""></button>{% endfor %}</div>{% endif %}
- <div class="product-image-note"><span>✦ THE TRUEMERIT COLLECTION</span><span>CURATED FOR EVERYDAY</span></div></div>
- <div class="product-detail-panel"><div class="product-detail-overline"><span class="detail-gold-line"></span>{{product.category | upper}} <span class="overline-index">/ TRUEMERIT CLEANING SUPPLIES</span></div>
-  <h1>{{product.name}}</h1><div class="product-detail-rating-line"><span>✦</span> CLEANING ESSENTIALS / PRODUCTS YOU CAN TRUST</div>
+ </div>
+ <div class="product-detail-panel"><div class="product-detail-overline"><span class="detail-gold-line" aria-hidden="true"></span>{{product.category | upper}}</div>
+  <h1 id="product-title">{{product.name}}</h1>
   <div class="product-detail-price">${{ '%.2f'|format(product.price_cents / 100) }}</div>
   {% if product.is_bundle %}<div class="v72-bundle-details"><strong>YOUR BUNDLE INCLUDES</strong>
   {% for part in product.components %}<div><span>{{ part.qty }} × {{ part.name }}</span></div>{% endfor %}
@@ -54,7 +57,7 @@
   <div class="product-detail-promise"><div><span>✧</span><div><strong>Quality selected</strong><small>Everyday essentials for your space</small></div></div>{% if not public_preview %}<div><span>◇</span><div><strong>Secure checkout</strong><small>Stripe payment processing</small></div></div><div><span><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span><div><strong>{% if guest_checkout_enabled %}Guest checkout available{% else %}Customer account{% endif %}</strong><small>{% if customer %}You're signed in{% elif guest_checkout_enabled %}No account required to purchase{% else %}<a href="/account">Sign in</a> to complete checkout{% endif %}</small></div></div>{% endif %}</div>
  </div>
 </section>
-<section class="container related-products tm-suggested-products" data-recommendation-carousel aria-labelledby="tm-suggested-title">
+<section class="container related-products tm-suggested-products" id="productrecommendations" data-recommendation-carousel aria-labelledby="tm-suggested-title">
   <div class="related-products-head tm-suggested-head">
     <div>
       <span class="section-kicker">DISCOVER MORE FROM TRUEMERIT</span>
@@ -62,20 +65,21 @@
       <p>Explore similar supplies and useful additions to your cleaning routine.</p>
     </div>
     <div class="tm-suggested-head-actions">
-      <a class="tm-suggested-shop" href="/#shop">Shop all products <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a>
+      <a class="tm-suggested-shop" href="/#shop">Shop all products</a>
       {% if related|length > 1 %}
-      <div class="tm-suggested-controls" hidden aria-label="Browse suggested products">
-        <button type="button" class="tm-suggested-prev" aria-label="Previous suggested products" disabled><span aria-hidden="true">←</span></button>
-        <button type="button" class="tm-suggested-next" aria-label="Next suggested products"><span aria-hidden="true">→</span></button>
+      <div class="tm-suggested-controls" hidden role="group" aria-label="Browse suggested products">
+        <button type="button" class="tm-suggested-prev" aria-label="Previous suggested products" aria-controls="tm-suggested-track" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button type="button" class="tm-suggested-next" aria-label="Next suggested products" aria-controls="tm-suggested-track"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
       </div>
       {% endif %}
     </div>
   </div>
   {% if related %}
   <div class="tm-suggested-viewport">
-    <div class="related-product-grid tm-suggested-track" id="tm-suggested-track" aria-label="Suggested products">
+    <p class="sr-only" id="tm-suggested-help">Use Left and Right arrow keys to browse, Home for the first products, and End for the last.</p>
+    <ul class="related-product-grid tm-suggested-track" id="tm-suggested-track" role="list" aria-label="Suggested products" aria-describedby="tm-suggested-help" tabindex="0" style="--related-count: {{ related|length }}">
       {% for item in related %}
-      <a class="related-product-card tm-suggested-card" href="/products/{{item.id}}">
+      <li class="tm-suggested-item"><a class="related-product-card tm-suggested-card" href="/products/{{item.id}}">
         <div class="related-product-image tm-suggested-image">
           <img src="{{item.image_url or '/static/images/default.svg'}}" alt="{{item.name}}" loading="lazy" decoding="async">
           {% if item.stock == 0 %}<span class="tm-suggested-stock">Sold out</span>{% endif %}
@@ -84,20 +88,28 @@
           <div><small>{{item.category}}</small><h3>{{item.name}}</h3></div>
           <strong>${{ '%.2f'|format(item.price_cents / 100) }}</strong>
         </div>
-        <span class="tm-suggested-link">View product <span aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></span>
-      </a>
+        <span class="tm-suggested-link">View product</span>
+      </a></li>
       {% endfor %}
-    </div>
+    </ul>
   </div>
   {% else %}
   <div class="tm-suggested-empty"><p>More cleaning essentials are on the way.</p><a href="/#shop">Explore the collection <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a></div>
   {% endif %}
 </section>
 </main>
-<footer class="product-detail-footer"><div class="container"><a href="/" class="footer-brand">TrueMerit<span>.</span></a><p>PRODUCTS YOU CAN TRUST. EVERY SINGLE DAY.</p><span>© TRUEMERIT CLEANING SUPPLIES · {{ now_year or '2026' }}</span></div></footer>
+<footer class="product-detail-footer" id="productfooter">
+ <div class="container">
+  <div class="tm-product-footer-top">
+   <div class="tm-product-footer-identity"><a href="/" class="footer-brand" aria-label="TrueMerit Cleaning Supplies home">TrueMerit<span>.</span></a><p>Quality You Can Trust.<br>Prices You'll Appreciate.</p></div>
+   <nav class="tm-product-footer-nav" aria-label="Footer navigation"><h2>Helpful links</h2><ul role="list"><li><a href="/#shop">Shop all products</a></li><li><a href="/information/contact">Customer support</a></li><li><a href="/information/shipping">Shipping policy</a></li><li><a href="/information/returns">Returns &amp; refunds</a></li></ul></nav>
+  </div>
+  <div class="tm-product-footer-bottom"><p>© {{ now_year or '2026' }} TrueMerit Cleaning Supplies. Operated by ODJ Group LLC.</p><p>Checkout powered by Stripe.</p></div>
+ </div>
+</footer>
 <script>window.ODJ_DETAIL_PRODUCT = {{ product | tojson }};</script>
 <script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/product.js?v=detail-heart-3" defer></script>
-<script src="/static/js/truemerit-suggested-products.js?v=1" defer></script>
+<script src="/static/js/truemerit-suggested-products.js?v=2" defer></script>
 <script src="/static/js/tm-bulk-form.js?v=1" defer></script>
 <script src="/static/js/truemerit-header-dropdown.js?v=1" defer></script>
 </body></html>

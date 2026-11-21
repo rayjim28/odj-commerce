@@ -75,7 +75,7 @@ def test_manual_slider_is_responsive_with_hidden_unneeded_arrows():
         'aria-label="Previous suggested products"',
         'aria-label="Next suggested products"',
         'truemerit-suggested-products.css?v=orange-unified-2',
-        'truemerit-suggested-products.js?v=1',
+        'truemerit-suggested-products.js?v=2',
     ):
         assert token in PAGE
     assert 'controls.hidden = remaining <= 2' in JS

@@ -9,11 +9,11 @@ STORE_JS = (ROOT / "frontend/static/js/store.js").read_text()
 
 
 def test_cart_theme_loads_after_legacy_css_and_uses_truemerit_palette():
-    assert 'href="/static/truemerit-cart.css?v=orange-unified-2"' in HOME
+    assert 'href="/static/truemerit-cart.css?v=bag-polish-1"' in HOME
     theme = re.search(r'truemerit-theme\.css\?v=[^" ]+', HOME)
     assert theme, 'Homepage must load the TrueMerit stylesheet'
     assert HOME.index('style.css?v=7-4') < theme.start()
-    assert theme.start() < HOME.index('truemerit-cart.css?v=orange-unified-2')
+    assert theme.start() < HOME.index('truemerit-cart.css?v=bag-polish-1')
     assert 'TRUEMERIT / YOUR BAG' in HOME
     assert re.search(r'src="/static/js/store\.js\?v=[^"]+"', HOME)
     for selector in (

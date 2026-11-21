@@ -44,10 +44,13 @@ def test_main_shopping_routes_have_accessible_vector_icons():
 
 def test_dynamic_cart_account_admin_wholesale_icons_are_html_not_raw_text():
     for script in (
-        'store.js', 'account.js', 'admin.js', 'checkout.js',
+        'store.js', 'account.js', 'admin.js',
         'tm-bulk-admin.js', 'tm-bulk-form.js'
     ):
         assert 'class="tm-arrow-icon"' in (SCRIPTS / script).read_text(), script
+
+    # Checkout's remaining arrow is server-rendered on the primary action;
+    # its dynamic empty-state link uses plain text.
 
     admin = (SCRIPTS / 'tm-bulk-admin.js').read_text()
     bulk = (SCRIPTS / 'tm-bulk-form.js').read_text()

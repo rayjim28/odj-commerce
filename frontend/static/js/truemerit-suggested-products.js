@@ -36,6 +36,19 @@
 
     previous.addEventListener('click', () => move(-1));
     next.addEventListener('click', () => move(1));
+    track.addEventListener('keydown', event => {
+      if (event.target !== track || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        move(event.key === 'ArrowRight' ? 1 : -1);
+      } else {
+        track.scrollTo({
+          left: event.key === 'Home' ? 0 : Math.max(0, track.scrollWidth - track.clientWidth),
+          behavior: reducedMotion.matches ? 'auto' : 'smooth'
+        });
+      }
+    });
     track.addEventListener('scroll', updateControls, {passive: true});
     window.addEventListener('resize', updateControls);
     window.addEventListener('load', updateControls, {once: true});

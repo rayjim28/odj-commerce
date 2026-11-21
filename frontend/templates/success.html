@@ -1,1 +1,57 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TrueMerit Cleaning Supplies | Order confirmation</title><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/truemerit-theme.css?v=orange-unified-2"></head><body class="confirmation-body"><div class="confirmation-card"><a class="brand" href="/"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><div class="confirmation-emblem">✦</div>{% if status == 'paid' %}<h1>Order <em>confirmed.</em></h1><p>Thank you for shopping with TrueMerit. Your payment is confirmed and your order is in our system.</p>{% else %}<h1>Thank you for<br><em>your order.</em></h1><p>We're confirming the payment with our checkout provider. Payment status can take a moment to update. Keep your Stripe confirmation for your records.</p>{% endif %}<p>{% if status == 'paid' %}If you checked out as a guest, a secure order link will be sent to the email you entered on Stripe (when email delivery is configured).{% endif %}</p><a class="btn btn-gold" href="/">Back to the shop <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a><a class="v6-outline-link" href="/guest/order-lookup">Guest order lookup <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a><small>TRUEMERIT CLEANING SUPPLIES / PRODUCTS YOU CAN TRUST</small></div><script>try{localStorage.removeItem('odj-cart-v1')}catch(e){}</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">
+<title>Order confirmation | TrueMerit Cleaning Supplies</title>
+<link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css?v=7-4">
+<link rel="stylesheet" href="/static/truemerit-theme.css?v=orange-unified-2">
+<link rel="stylesheet" href="/static/truemerit-confirmation.css?v=2">
+</head>
+<body class="tm-confirmation-body">
+<header class="tm-confirmation-header"><a class="brand" href="/" aria-label="TrueMerit Cleaning Supplies home"><img src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><a class="tm-confirmation-header-link" href="/information/contact">Order help</a></header>
+{% set confirmed = status == 'paid' %}
+{% set pending = status in ['pending', 'confirming'] %}
+{% set refunded = status in ['refunded', 'partially_refunded'] %}
+{% set incomplete = status in ['checkout_error', 'expired', 'cancelled', 'canceled', 'failed'] %}
+<main class="tm-confirmation-wrap" id="order-confirmation" data-payment-status="{{ status }}" data-session-id="{{ session_id }}">
+  <section class="tm-confirmation-intro" aria-labelledby="confirmation-title">
+    <div class="tm-confirmation-icon{% if confirmed %} is-confirmed{% endif %}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{% if confirmed %}<path d="m6 12 4 4 8-8"/>{% elif pending %}<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>{% else %}<circle cx="12" cy="12" r="8"/><path d="M12 11v6M12 7h.01"/>{% endif %}</svg></div>
+    <div>
+      <p class="tm-confirmation-kicker">TRUEMERIT / ORDER STATUS</p>
+      <h1 id="confirmation-title">{% if confirmed %}Order <em>confirmed.</em>{% elif pending %}Confirming <em>your payment.</em>{% elif status == 'refunded' %}Order <em>refunded.</em>{% elif status == 'partially_refunded' %}Partially <em>refunded.</em>{% elif incomplete %}Payment <em>not completed.</em>{% else %}Check <em>your order.</em>{% endif %}</h1>
+      <p class="tm-confirmation-description">{% if confirmed %}Thank you for shopping with TrueMerit. Your payment is confirmed and your order is in our system.{% elif pending %}Your payment status is still updating. Check again in a moment before placing another order.{% elif refunded %}This order has a recorded refund. Open your order details or contact TrueMerit for help with the refund.{% elif incomplete %}Payment has not been confirmed for this checkout. Review your bag or contact us if you need help.{% else %}We couldn't confirm a payment from this link. Keep any payment confirmation you received and contact us if you need help finding your order.{% endif %}</p>
+    </div>
+  </section>
+  <div class="tm-confirmation-grid">
+    <section class="tm-confirmation-panel" aria-labelledby="confirmation-next-title">
+      <div class="tm-confirmation-status{% if confirmed %} is-confirmed{% endif %}">{% if confirmed %}Payment confirmed{% elif pending %}Payment confirmation pending{% elif refunded %}Refund recorded{% elif incomplete %}Checkout incomplete{% else %}Confirmation unavailable{% endif %}</div>
+      <h2 id="confirmation-next-title">{% if pending %}What to do now{% else %}What happens next{% endif %}</h2>
+      <div class="tm-confirmation-actions tm-confirmation-main-actions">
+        {% if pending %}<button class="tm-confirmation-primary" id="confirmation-refresh" type="button">Check payment status</button><noscript><p>Refresh this page to check the latest payment status.</p></noscript>
+        {% elif confirmed %}<a class="tm-confirmation-primary" href="/#shop">Continue shopping <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a>
+        {% elif incomplete %}<a class="tm-confirmation-primary" href="/?cart=1">Review your bag</a>
+        {% else %}<a class="tm-confirmation-primary" href="/information/contact">Contact order support</a>{% endif %}
+        <a class="tm-confirmation-secondary" href="/guest/order-lookup">Guest order lookup</a>
+      </div>
+      <ul class="tm-confirmation-next">
+        <li><h3>{% if pending %}Check the latest status{% else %}Keep your confirmation{% endif %}</h3><p>{% if pending %}Select Check payment status to refresh this page. Your bag stays available while payment is pending.{% else %}Save your payment confirmation and full order ID for your records.{% endif %}</p></li>
+        <li><h3>Find your order details</h3><p>View signed-in orders in <a href="/account">My account</a>. Guest orders use <a href="/guest/order-lookup">guest order lookup</a> with the full order ID and checkout email.</p></li>
+        {% if confirmed %}<li><h3>Review delivery information</h3><p>Check our <a href="/information/shipping">shipping policy</a> for delivery information. Contact us with your order ID if you need help.</p></li>{% endif %}
+      </ul>
+
+      <p class="tm-confirmation-note">Order details are available through your account or a secure guest order link.</p>
+    </section>
+    <aside class="tm-confirmation-panel tm-confirmation-support" aria-labelledby="confirmation-help-title">
+      <p class="tm-confirmation-eyebrow">HERE TO HELP</p><h2 id="confirmation-help-title">Questions about your order?</h2>
+      <p>Have your full order ID and checkout email ready when contacting TrueMerit.</p>
+      <nav aria-label="Order support"><a href="/information/contact">Contact TrueMerit</a><a href="/information/shipping">Shipping information</a><a href="/information/returns">Returns &amp; refunds</a></nav>
+      <p class="tm-confirmation-promise">Quality You Can Trust.<br><em>Prices You'll Appreciate.</em></p>
+    </aside>
+  </div>
+  <footer class="tm-confirmation-footer"><p>TrueMerit Cleaning Supplies</p><a href="/">Back to the shop</a></footer>
+</main>
+<script src="/static/js/confirmation.js?v=1" defer></script>
+</body>
+</html>

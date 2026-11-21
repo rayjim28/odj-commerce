@@ -1,0 +1,26 @@
+/* Product-page footer: useful shopping links and readable store information. */
+#productfooter { padding: 40px 0 24px; background: var(--tm-deep); color: #fff; }
+#productfooter > .container { display: block; }
+#productfooter .tm-product-footer-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 40px; padding-bottom: 28px; }
+#productfooter .tm-product-footer-identity { min-width: 0; }
+#productfooter .footer-brand { display: inline-flex; align-items: center; min-height: 48px; color: #fff; font-size: clamp(2rem, 2.8vw, 2.25rem); font-weight: 800; line-height: 1.2; letter-spacing: -0.055em; }
+#productfooter .footer-brand span { color: var(--tm-orange); }
+#productfooter p { display: block; max-width: 38ch; margin: 12px 0 0; color: #d3e3f3; font-size: 1rem; line-height: 1.65; letter-spacing: 0; }
+#productfooter .tm-product-footer-nav { min-width: 0; }
+#productfooter .tm-product-footer-nav h2 { margin: 0 0 12px; color: var(--tm-orange); font-size: 0.875rem; font-weight: 750; line-height: 1.5; letter-spacing: 0.08em; text-transform: uppercase; }
+#productfooter .tm-product-footer-nav ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; margin: 0; padding: 0; list-style: none; }
+#productfooter .tm-product-footer-nav li { min-width: 0; }
+#productfooter .tm-product-footer-nav a { display: flex; align-items: center; width: fit-content; max-width: 100%; min-height: 44px; padding: 10px 0; color: #d3e3f3; font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
+#productfooter .tm-product-footer-nav a:hover { color: #fff; text-decoration: underline var(--tm-orange); text-underline-offset: 4px; }
+#productfooter a:focus-visible { outline: 3px solid var(--tm-orange); outline-offset: 4px; border-radius: 4px; }
+#productfooter .tm-product-footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; padding-top: 20px; border-top: 1px solid #385f83; }
+#productfooter .tm-product-footer-bottom p { max-width: none; min-width: 0; margin: 0; color: #c1d5e8; font-size: 0.875rem; line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  #productfooter .tm-product-footer-top { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+@media (max-width: 600px) {
+  #productfooter { padding: 32px 0 24px; }
+  #productfooter .tm-product-footer-top { padding-bottom: 24px; }
+  #productfooter .tm-product-footer-nav ul { column-gap: 16px; }
+  #productfooter .tm-product-footer-bottom { flex-direction: column; align-items: flex-start; }
+}

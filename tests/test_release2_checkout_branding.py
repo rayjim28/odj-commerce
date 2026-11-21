@@ -40,8 +40,8 @@ def test_full_true_merit_checkout_theme():
     css_path = ROOT / "frontend/static/truemerit-checkout.css"
     assert css_path.exists()
     css = css_path.read_text()
-    assert '/static/truemerit-checkout.css?v=orange-unified-2' in template
-    assert template.index('truemerit-theme.css?v=orange-unified-2') < template.index('truemerit-checkout.css?v=orange-unified-2')
+    assert '/static/truemerit-checkout.css?v=checkout-polish-3' in template
+    assert template.index('truemerit-theme.css?v=orange-unified-2') < template.index('truemerit-checkout.css?v=checkout-polish-3')
     required = (
         ".checkout-body",
         ".checkout-body .checkout-simulation",
