@@ -13,6 +13,9 @@
   let searchTerm = '';
   let curatedIds = null;
   let toastTimeout;
+  let cartReturnFocus;
+  let cartBodyOverflow = '';
+  let cartBackground = [];
 
   function save() { try { localStorage.setItem(key, JSON.stringify(cart)); } catch {} updateCounters(); }
   function validLines(){
@@ -34,12 +37,26 @@
   function changeQty(id,step){
     const p=productById(id);if(!p)return;
     let next=Number(cart[id]||0)+step;
-    if(next>p.stock){toast('No more stock is currently available.');next=p.stock;}
+    if(step>0 && next>p.stock){toast('No more stock is currently available.');return;}
     if(next<=0) delete cart[id];else cart[id]=next;
     save();renderDrawer();
+    announceCart(next>0 ? `${p.name}: ${next} in your bag.` : `${p.name} removed from your bag.`);
+  }
+  function announceCart(message){
+    byId('cart-status').textContent=`${message} Subtotal ${byId('cart-subtotal').textContent}.`;
+  }
+  function restoreCartControl(control){
+    if(!control)return;
+    const row=byId('drawer-items').querySelector(`[data-cart-id="${control.id}"]`);
+    const matching=row?.querySelector(control.step ? `[data-step="${control.step}"]` : '[data-remove]');
+    const fallback=row?.querySelector('button:not(:disabled)') || byId('drawer-items').querySelector('button:not(:disabled)') || byId('close-cart');
+    (matching && !matching.disabled ? matching : fallback).focus({preventScroll:true});
   }
   function renderDrawer(){
+    const active=document.activeElement;
+    const focusedControl=byId('drawer-items').contains(active) && active.closest('[data-cart-id]') ? {id:active.closest('[data-cart-id]').dataset.cartId,step:active.dataset.step} : null;
     const lines=validLines();
+    const stockIssue=lines.some(({product,qty})=>qty>product.stock);
     const total=lines.reduce((sum,l)=>sum+l.qty*l.product.price_cents,0);
     byId('cart-subtotal').textContent=money(total);
     if (window.ODJ_PUBLIC_PREVIEW === true || window.ODJ_CHECKOUT_OPEN === false) {
@@ -47,18 +64,46 @@
       byId('checkout-message').textContent = 'Ordering will open soon. No purchases are being accepted.';
       byId('checkout-button').textContent = 'Checkout coming soon';
     } else {
-      byId('checkout-button').disabled=!lines.length;
-      byId('checkout-message').textContent='';
+      byId('checkout-button').disabled=!lines.length || stockIssue;
+      byId('checkout-message').textContent=stockIssue ? 'Update the highlighted items before continuing.' : '';
       byId('checkout-button').innerHTML = (window.ODJ_GUEST_CHECKOUT_ENABLED || (window.ODJ_CUSTOMER && window.ODJ_CUSTOMER.signedIn)) ? 'Review checkout <span class="checkout-arrow" aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span>' : 'Sign in to checkout <span class="checkout-arrow" aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span>';
     }
-    if(!lines.length){byId('drawer-items').innerHTML='<div class="cart-empty"><div class="cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.3 13H4.7L6 7Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></div><h3>Your bag is feeling empty.</h3><p>Find dependable cleaning essentials for your home or business.</p><button class="cart-empty-shop-link" type="button">Explore cleaning supplies <span aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></button></div>';return;}
-    byId('drawer-items').innerHTML=lines.map(({product:p,qty})=>`<div class="cart-line">
-      <img alt="${esc(p.name)}" src="${esc(p.image_url||'/static/images/default.svg')}">
-      <div class="cart-line-body"><strong>${esc(p.name)}</strong><small>${esc(p.category)}</small><div class="cart-line-price">${money(p.price_cents*qty)}</div>
-      <div class="qty-row"><div class="quantity-controls"><button data-qty="${p.id}" data-step="-1" aria-label="Remove one ${esc(p.name)}">−</button><span>${qty}</span><button data-qty="${p.id}" data-step="1" aria-label="Add one ${esc(p.name)}">+</button></div><button class="remove-line" data-remove="${p.id}">Remove</button></div></div></div>`).join('');
+    if(!lines.length){byId('drawer-items').innerHTML='<div class="cart-empty"><div class="cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.3 13H4.7L6 7Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></div><h3>Your bag is feeling empty.</h3><p>Find dependable cleaning essentials for your home or business.</p><button class="cart-empty-shop-link" type="button">Explore cleaning supplies <span aria-hidden="true"><svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></span></button></div>';restoreCartControl(focusedControl);return;}
+    byId('drawer-items').innerHTML=lines.map(({product:p,qty})=>`<div class="cart-line${qty>p.stock?' has-stock-issue':''}" data-cart-id="${p.id}">
+      <img alt="${esc(p.name)}" src="${esc(p.image_url||'/static/images/default.svg')}" width="88" height="100">
+      <div class="cart-line-body"><strong><a href="/products/${p.id}">${esc(p.name)}</a></strong><small>${esc(p.category)}</small>
+      <div class="cart-line-prices"><span class="cart-unit-price">${money(p.price_cents)} each</span><span class="cart-line-price" aria-label="Item total ${money(p.price_cents*qty)}">${money(p.price_cents*qty)}</span></div>
+      <div class="qty-row"><div class="quantity-controls" role="group" aria-label="${esc(p.name)} quantity"><button type="button" data-qty="${p.id}" data-step="-1" aria-label="Remove one ${esc(p.name)}">−</button><span aria-label="${qty} in your bag">${qty}</span><button type="button" data-qty="${p.id}" data-step="1" aria-label="Add one ${esc(p.name)}" ${qty>=p.stock?'disabled':''}>+</button></div><button type="button" class="remove-line" data-remove="${p.id}" aria-label="Remove ${esc(p.name)} from your bag">Remove</button></div>
+      ${p.stock<=0?'<p class="cart-stock-note">Out of stock. Please remove this item.</p>':qty>p.stock?`<p class="cart-stock-note">Only ${p.stock} available. Reduce your quantity to continue.</p>`:qty===p.stock?'<p class="cart-stock-note cart-stock-limit">Maximum available quantity in your bag.</p>':''}</div></div>`).join('');
+    restoreCartControl(focusedControl);
   }
-  function openCart(){byId('drawer-backdrop').hidden=false;byId('cart-drawer').classList.add('open');byId('cart-drawer').setAttribute('aria-hidden','false');document.body.style.overflow='hidden';renderDrawer();}
-  function closeCart(){byId('cart-drawer').classList.remove('open');byId('cart-drawer').setAttribute('aria-hidden','true');byId('drawer-backdrop').hidden=true;document.body.style.overflow='';}
+  function openCart(){
+    if(byId('cart-drawer').classList.contains('open'))return;
+    cartReturnFocus=document.activeElement;
+    cartBodyOverflow=document.body.style.overflow;
+    renderDrawer();
+    byId('drawer-backdrop').hidden=false;
+    byId('cart-drawer').inert=false;
+    byId('cart-drawer').classList.add('open');
+    byId('cart-drawer').setAttribute('aria-hidden','false');
+    byId('cart-trigger').setAttribute('aria-expanded','true');
+    document.body.style.overflow='hidden';
+    byId('close-cart').focus({preventScroll:true});
+    cartBackground=Array.from(document.querySelectorAll('body > main, body > header, body > footer, body > .announcement, body > .v6-announcement')).filter(node=>!node.inert);
+    cartBackground.forEach(node=>{node.inert=true;});
+  }
+  function closeCart(){
+    if(!byId('cart-drawer').classList.contains('open'))return;
+    byId('cart-drawer').classList.remove('open');
+    byId('drawer-backdrop').hidden=true;
+    cartBackground.forEach(node=>{node.inert=false;});
+    cartBackground=[];
+    document.body.style.overflow=cartBodyOverflow;
+    (cartReturnFocus?.isConnected && cartReturnFocus!==document.body ? cartReturnFocus : byId('cart-trigger')).focus({preventScroll:true});
+    byId('cart-drawer').inert=true;
+    byId('cart-drawer').setAttribute('aria-hidden','true');
+    byId('cart-trigger').setAttribute('aria-expanded','false');
+  }
   function productCard(p){
     const sold=p.stock===0;
     return `<article class="product-card" data-product-id="${p.id}"><div class="product-image"><a class="product-image-link" href="/products/${p.id}" aria-label="View details for ${esc(p.name)}"><img src="${esc(p.image_url||'/static/images/default.svg')}" alt="${esc(p.name)}" loading="lazy" decoding="async"><span class="product-badge">${esc(p.badge||(p.featured?'FEATURED ITEM':'EVERYDAY ESSENTIAL'))}</span></a><button type="button" class="product-quick-add tm-favorite-heart" data-favorite="${p.id}" aria-label="Save ${esc(p.name)} to favorites" aria-pressed="false" title="Save to favorites"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.8 4.8a5.6 5.6 0 0 0-7.9 0L12 5.7l-.9-.9a5.6 5.6 0 0 0-7.9 7.9L12 21l8.8-8.3a5.6 5.6 0 0 0 0-7.9Z"/></svg></button></div><div class="product-info"><span class="product-category">${esc(p.category)}</span><div class="product-name-row"><h3><a class="product-title-link" href="/products/${p.id}">${esc(p.name)}</a></h3><strong>${money(p.price_cents)}</strong></div><p>${esc(p.description)}</p>${p.is_bundle&&p.save_cents>0?`<div class="v72-card-save">Bundle savings ${money(p.save_cents)} vs individual items</div>`:''}<div class="product-card-actions"><a class="product-view-link" href="/products/${p.id}">View details</a><button class="add-button" data-add="${p.id}" ${sold?'disabled':''} aria-label="${sold?'Sold out: ':'Add to bag: '}${esc(p.name)}">${sold?'Sold out':'Add to bag'}</button></div></div></article>`;
@@ -138,7 +183,17 @@
   byId('cart-trigger').addEventListener('click',openCart);
   byId('close-cart').addEventListener('click',closeCart);
   byId('drawer-backdrop').addEventListener('click',closeCart);
-  window.addEventListener('keydown',e=>{if(e.key==='Escape')closeCart();});
+  window.addEventListener('keydown',e=>{
+    const drawer=byId('cart-drawer');
+    if(!drawer.classList.contains('open'))return;
+    if(e.key==='Escape'){e.preventDefault();closeCart();}
+    if(e.key==='Tab'){
+      const controls=Array.from(drawer.querySelectorAll('button:not(:disabled), a[href]')).filter(node=>node.getClientRects().length);
+      const first=controls[0],last=controls[controls.length-1];
+      if(e.shiftKey && (document.activeElement===first || !drawer.contains(document.activeElement))){e.preventDefault();last.focus();}
+      else if(!e.shiftKey && (document.activeElement===last || !drawer.contains(document.activeElement))){e.preventDefault();first.focus();}
+    }
+  });
   byId('drawer-items').addEventListener('click',e=>{
     const btn=e.target.closest('button');if(!btn)return;
     if(btn.classList.contains('cart-empty-shop-link')){
@@ -147,7 +202,7 @@
       return;
     }
     if(btn.dataset.qty)changeQty(btn.dataset.qty,Number(btn.dataset.step));
-    if(btn.dataset.remove){delete cart[btn.dataset.remove];save();renderDrawer();}
+    if(btn.dataset.remove){const p=productById(btn.dataset.remove);delete cart[btn.dataset.remove];save();renderDrawer();announceCart(`${p.name} removed from your bag.`);}
   });
   function markCategoryButtons(){
     document.querySelectorAll('.filter').forEach(button=>{
@@ -276,6 +331,7 @@
   });
   byId('checkout-button').addEventListener('click', () => {
     if(window.ODJ_PUBLIC_PREVIEW === true || window.ODJ_CHECKOUT_OPEN === false){toast('Online orders will open soon.');return;}
+    if(validLines().some(({product,qty})=>qty>product.stock)){toast('Update the highlighted items before continuing.');return;}
     if(!window.ODJ_GUEST_CHECKOUT_ENABLED && (!window.ODJ_CUSTOMER || !window.ODJ_CUSTOMER.signedIn)){
       window.location.assign('/account?next=checkout');return;
     }

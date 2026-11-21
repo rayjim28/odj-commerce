@@ -5,7 +5,8 @@
 The reviewed homepage work was merged into `main` in PR #43 at
 `1d856c41131ddba6603ec60826c9f9eb89ccd7cb`.
 
-Use `feature/truemerit-product-page-polish` for the continuing product-page work.
+Use `feature/truemerit-product-page-polish` for the continuing product-page and
+shopping-bag work.
 It starts from that reviewed merge. Review one section at a time at phone and
 desktop widths, then merge the next set of changes after review.
 
@@ -64,6 +65,29 @@ previously approved sections while applying the next change.
 Include conditional sections such as Explore what goes next even when the
 current catalog hides them. Use clearly labeled local test catalogs to review
 one, two, and three suggestions without changing the owner's listings.
+
+### Current review checklist
+
+| Section | Status |
+| --- | --- |
+| Homepage sections and orange accents | Reviewed; merged in PR #43 |
+| Product overview | Reviewed; on the continuing branch |
+| Related products | Reviewed; on the continuing branch |
+| Product footer | Reviewed; on the continuing branch |
+| Shopping bag | Ready for desktop and mobile review |
+| Checkout | Next after shopping-bag review; not started |
+
+For the shopping bag, open **Cart** from the storefront. Check item names,
+unit prices and line totals, quantity and Remove controls, the empty state,
+and the summary while scrolling. Quantity controls stop at available stock;
+cached unavailable or excess quantities show a correction message before the
+customer can continue. Existing guest/account and ordering-availability rules
+still determine the checkout action. Keyboard users can close with Escape,
+stay inside the open dialog with Tab, and return to the cart trigger on close.
+
+Local layout checks use sample listings and the existing product illustration,
+without changing the owner's catalog, browser bag, or checkout pages. Review
+the cart at phone and desktop widths before beginning checkout.
 
 ### Featured picks
 
