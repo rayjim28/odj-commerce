@@ -67,7 +67,10 @@ def test_checkout_owner_controlled_live_routes_tax_shipping_refunds(monkeypatch)
         approval=client.post("/api/admin/sales",json={"enabled":True,"acknowledged":True})
         assert approval.status_code==200,approval.text
         assert main.production_sales_ready()
-        assert client.get("/checkout").status_code==200
+        checkout_page=client.get("/checkout")
+        assert checkout_page.status_code==200
+        assert 'id="standard-rate">$14.95</b>' in checkout_page.text
+        assert 'id="express-rate">$21.25</b>' in checkout_page.text
         standard=client.post("/api/checkout/quote",json={"items":cart["items"],"shipping_option":"standard"})
         express=client.post("/api/checkout/quote",json=cart)
         assert standard.json()["shipping_cents"]==1495

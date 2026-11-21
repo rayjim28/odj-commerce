@@ -1103,9 +1103,13 @@ def checkout_page(request: Request):
     customer = signed_in_customer(request)
     if not customer and not guest_checkout_enabled():
         return RedirectResponse('/account?next=checkout', status_code=303)
+    with SessionLocal() as db:
+        settings = store_settings(db)
     return templates.TemplateResponse(request, 'checkout.html', {
         'customer':customer, 'demo':payment_mode() == 'demo',
-        'guest':customer is None
+        'guest':customer is None,
+        'shipping_rates':{'standard':settings['standard_shipping_cents'],
+                          'express':settings['express_shipping_cents']},
     })
 
 @app.post('/api/checkout/quote')

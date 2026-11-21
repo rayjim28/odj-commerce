@@ -5,8 +5,8 @@
 The reviewed homepage work was merged into `main` in PR #43 at
 `1d856c41131ddba6603ec60826c9f9eb89ccd7cb`.
 
-Use `feature/truemerit-product-page-polish` for the continuing product-page and
-shopping-bag work.
+Use `feature/truemerit-product-page-polish` for the continuing product-page,
+shopping-bag, and checkout work.
 It starts from that reviewed merge. Review one section at a time at phone and
 desktop widths, then merge the next set of changes after review.
 
@@ -21,7 +21,7 @@ git fetch origin
 git switch feature/truemerit-product-page-polish
 git pull --ff-only
 source .venv/bin/activate
-APP_ENV=development PAYMENT_MODE=demo python -m uvicorn main:app --reload --port 8002
+APP_ENV=development PAYMENT_MODE=demo GUEST_CHECKOUT_ENABLED=true python -m uvicorn main:app --reload --port 8002
 ```
 
 Open `http://localhost:8002`. Once the server is running, pull later branch
@@ -74,8 +74,9 @@ one, two, and three suggestions without changing the owner's listings.
 | Product overview | Reviewed; on the continuing branch |
 | Related products | Reviewed; on the continuing branch |
 | Product footer | Reviewed; on the continuing branch |
-| Shopping bag | Ready for desktop and mobile review |
-| Checkout | Next after shopping-bag review; not started |
+| Shopping bag | Reviewed; on the continuing branch |
+| Checkout | Ready for desktop and mobile review |
+| Order confirmation | Next after checkout review; not started |
 
 For the shopping bag, open **Cart** from the storefront. Check item names,
 unit prices and line totals, quantity and Remove controls, the empty state,
@@ -85,9 +86,23 @@ customer can continue. Existing guest/account and ordering-availability rules
 still determine the checkout action. Keyboard users can close with Escape,
 stay inside the open dialog with Tab, and return to the cart trigger on close.
 
-Local layout checks use sample listings and the existing product illustration,
-without changing the owner's catalog, browser bag, or checkout pages. Review
-the cart at phone and desktop widths before beginning checkout.
+Local layout checks use isolated sample listings and the existing product
+illustration without changing the owner's catalog or browser bag.
+
+For checkout, add a product and continue from **Cart**, or open `/checkout`.
+Both shipping prices come from the store's saved rates and display before a
+service is selected. Check item quantities, the selected delivery service,
+the subtotal and total before tax, and the main action. Desktop keeps the
+summary alongside the items; phones include a **View summary** shortcut.
+Payment details and the final tax calculation continue on Stripe.
+
+The local command above enables guest demo checkout. Demo delivery fields use
+readable labels, autocomplete, inline validation, and keyboard submission.
+Payment, inventory, and total-calculation errors preserve the bag and offer
+retry where applicable. Browser checks use simulated payment responses, so
+they create no orders. Controller regressions also cover outdated quote
+responses, repeated submit clicks, quantity limits, and payment destinations.
+Review checkout before proceeding to order confirmation.
 
 ### Featured picks
 

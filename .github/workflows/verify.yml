@@ -38,6 +38,7 @@ jobs:
       - run: node tests/hero_stack_interaction.cjs
       - run: node tests/dual_picks_interaction.cjs
       - run: node tests/routine_interaction.cjs
+      - run: node tests/checkout_interaction.cjs
       # Final all-modules pass: keep isolated SQLite databases per module.
       - name: Run complete Python test inventory
         run: |
