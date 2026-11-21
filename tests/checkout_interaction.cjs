@@ -7,7 +7,7 @@ const source = fs.readFileSync(require('node:path').join(__dirname, '../frontend
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return {promise, resolve}; };
 
-function fixture({qty = 2, stock = 8, quoteHandler, paymentUrl} = {}) {
+function fixture({qty = 2, stock = 8, quoteHandler, paymentUrl, paymentSessionId} = {}) {
   const nodes = new Map(), calls = [], destinations = [], storage = new Map([['odj-cart-v1', JSON.stringify({1:qty})]]);
   function node(id) {
     if (id === 'shipping-address' || id === 'shipping-fields' || id === 'guest-email') return null;
@@ -39,7 +39,7 @@ function fixture({qty = 2, stock = 8, quoteHandler, paymentUrl} = {}) {
         const result = {subtotal_cents:subtotal,shipping_cents:shipping,total_before_tax_cents:subtotal+shipping,tax_note:'Tax is calculated before payment.'};
         return quoteHandler ? quoteHandler(data,result,response) : response(result);
       }
-      if (path === '/api/checkout') return paymentUrl ? response({url:paymentUrl}) : response({detail:'Payment is temporarily unavailable. Please try again.'},503);
+      if (path === '/api/checkout') return paymentUrl ? response({url:paymentUrl,session_id:paymentSessionId}) : response({detail:'Payment is temporarily unavailable. Please try again.'},503);
       throw Error('Unexpected request: '+path);
     },
   });
@@ -98,9 +98,13 @@ function fixture({qty = 2, stock = 8, quoteHandler, paymentUrl} = {}) {
   assert.equal(low.node('checkout-total').textContent,'$19.95','Cached excess stock can be reduced one step at a time');
 
   const safeUrl='https://checkout.stripe.com/c/pay/local-controller-test';
-  const handoff=fixture({paymentUrl:safeUrl});await tick();
+  const handoff=fixture({paymentUrl:safeUrl,paymentSessionId:'cs_test_controller_receipt'});await tick();
   await handoff.node('checkout-submit').listeners.click();
   assert.deepEqual(handoff.destinations,[safeUrl]);
+  const snapshot=JSON.parse(handoff.storage.get('truemerit-checkout-bags-v1')).cs_test_controller_receipt;
+  assert.deepEqual(snapshot.items,[{id:1,qty:2}]);
+  assert.ok(snapshot.createdAt<=Date.now());
+  assert.equal(JSON.parse(handoff.storage.get('odj-cart-v1'))[1],2,'Keep the bag until payment is confirmed');
   const invalid=fixture({paymentUrl:'https://example.com/unexpected'});await tick();
   await invalid.node('checkout-submit').listeners.click();
   assert.equal(invalid.destinations.length,0);

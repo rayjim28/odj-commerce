@@ -269,6 +269,18 @@
         location.assign(result.url);
       } else {
         if (!result.url || !result.url.startsWith('https://checkout.stripe.com/')) throw Error('Unexpected payment destination.');
+        // Confirmation removes only this session's purchased quantities after payment.
+        // Keep the bag available if checkout is canceled or payment remains pending.
+        if (typeof result.session_id === 'string' && /^cs_[A-Za-z0-9_-]{1,250}$/.test(result.session_id)) {
+          try {
+            const saved = JSON.parse(localStorage.getItem('truemerit-checkout-bags-v1') || '{}');
+            const entries = saved && typeof saved === 'object' && !Array.isArray(saved) ? Object.entries(saved) : [];
+            const recent = entries.filter(([,record]) => record && Number.isFinite(record.createdAt) && record.createdAt > Date.now() - 7*24*60*60*1000).sort((a,b) => a[1].createdAt-b[1].createdAt).slice(-9);
+            const pending = Object.fromEntries(recent);
+            pending[result.session_id] = {items:lines,createdAt:Date.now()};
+            localStorage.setItem('truemerit-checkout-bags-v1', JSON.stringify(pending));
+          } catch { /* A storage failure must not prevent secure payment. */ }
+        }
         location.assign(result.url);
       }
     } catch (err) {

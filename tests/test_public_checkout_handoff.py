@@ -85,6 +85,7 @@ def test_checkout_owner_controlled_live_routes_tax_shipping_refunds(monkeypatch)
             assert order and order.shipping_details["service"]=="express"
             assert db.get(Product,pid).stock==3
             oid,sid=order.id,order.stripe_session_id
+        assert created.json()['session_id']==sid
         total=1200+2125+153
         paid={"id":"evt_fake_handoff_paid","type":"checkout.session.completed","data":{"object":{
             "id":sid,"client_reference_id":oid,"amount_total":total,"payment_status":"paid",

@@ -91,6 +91,6 @@
 </main>
 <div class="sr-only" id="checkout-announcement" role="status" aria-live="polite" aria-atomic="true"></div>
 <script>window.ODJ_CHECKOUT_MODE = {{ ('demo' if demo else 'stripe') | tojson }}; window.ODJ_GUEST_CHECKOUT = {{ guest | tojson }}; window.ODJ_CHECKOUT_EMAIL_VERIFIED = {{ (customer.email_verified if customer else true) | tojson }};</script>
-<script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/checkout.js?v=checkout-polish-2" defer></script>
+<script src="/static/js/analytics.js?v=7-4" defer></script><script src="/static/js/checkout.js?v=confirmation-1" defer></script>
 </body>
 </html>

@@ -6,7 +6,7 @@ The reviewed homepage work was merged into `main` in PR #43 at
 `1d856c41131ddba6603ec60826c9f9eb89ccd7cb`.
 
 Use `feature/truemerit-product-page-polish` for the continuing product-page,
-shopping-bag, and checkout work.
+shopping-bag, checkout, and confirmation work.
 It starts from that reviewed merge. Review one section at a time at phone and
 desktop widths, then merge the next set of changes after review.
 
@@ -75,8 +75,10 @@ one, two, and three suggestions without changing the owner's listings.
 | Related products | Reviewed; on the continuing branch |
 | Product footer | Reviewed; on the continuing branch |
 | Shopping bag | Reviewed; on the continuing branch |
-| Checkout | Ready for desktop and mobile review |
-| Order confirmation | Next after checkout review; not started |
+| Checkout | Reviewed; on the continuing branch |
+| Order confirmation | Ready for desktop and mobile review |
+| Guest order lookup | Next after confirmation review; not started |
+| Order details and delivery tracking | After guest lookup; not started |
 
 For the shopping bag, open **Cart** from the storefront. Check item names,
 unit prices and line totals, quantity and Remove controls, the empty state,
@@ -103,6 +105,24 @@ retry where applicable. Browser checks use simulated payment responses, so
 they create no orders. Controller regressions also cover outdated quote
 responses, repeated submit clicks, quantity limits, and payment destinations.
 Review checkout before proceeding to order confirmation.
+
+For order confirmation, place a local **demo order** from checkout and inspect
+the saved confirmation. It shows the full test order ID, saved date, subtotal,
+shipping, discount when applicable, and demo total. Its primary action opens the
+same protected order details available to that customer or signed guest link.
+
+The payment return page distinguishes confirmed, pending, incomplete, refunded,
+and unknown payments. Only the stored payment state determines its message.
+Pending customers can check the status again; a missing or unknown checkout
+link does not claim that payment succeeded. The public return page does not
+display customer information or private order contents. Order lookup and
+support actions appear near the status, before the longer help text.
+
+A confirmed payment removes only the quantities saved for the matching checkout
+session. Pending payments, unrelated items, later additions, and repeated
+receipt visits keep the appropriate bag contents. Browser checks use isolated
+sample records and storage, with no real purchases or messages. Review this
+section before continuing to guest order lookup and then order details.
 
 ### Featured picks
 

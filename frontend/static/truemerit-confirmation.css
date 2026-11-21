@@ -1,0 +1,84 @@
+/* Order confirmation only. Preserve the reviewed shop, bag and checkout. */
+.tm-confirmation-body{margin:0;min-height:100vh;background:linear-gradient(180deg,#071e3e,#082956);color:#fff;font-family:var(--font,'Manrope',Arial,sans-serif);font-size:1rem;line-height:1.6}
+.tm-confirmation-body *{box-sizing:border-box}
+.tm-confirmation-body .tm-confirmation-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px max(24px,4vw);background:#081f40;border-bottom:1px solid #285681}
+.tm-confirmation-body .tm-confirmation-header .brand{display:flex;align-items:center;min-width:0}
+.tm-confirmation-body .tm-confirmation-header .brand img{display:block;width:208px;max-width:100%;height:74px;padding:5px 10px;background:#fff;border-radius:6px;object-fit:contain}
+.tm-confirmation-body .tm-confirmation-header-link{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;border:1px solid #698baa;border-radius:8px;color:#deedfa;font-size:.875rem;text-decoration:none;text-align:center}
+.tm-confirmation-body .tm-confirmation-header-link:hover{background:#17416c;color:#fff;border-color:var(--tm-orange)}
+.tm-confirmation-body .tm-confirmation-wrap{max-width:1100px;margin:auto;padding:44px 24px 28px}
+.tm-confirmation-body .tm-confirmation-intro{display:flex;align-items:flex-start;gap:24px;max-width:920px;margin-bottom:32px}
+.tm-confirmation-body .tm-confirmation-icon{display:grid;place-items:center;flex:0 0 64px;width:64px;height:64px;border:1px solid #d8e7f4;border-radius:50%;background:#eaf3fc;color:#12528a;margin-top:4px}
+.tm-confirmation-body .tm-confirmation-icon svg{width:34px;height:34px}
+.tm-confirmation-body .tm-confirmation-icon.is-confirmed{color:#178447;background:#edf8f0}
+.tm-confirmation-body .tm-confirmation-kicker{color:var(--tm-orange);font-size:.75rem;font-weight:800;letter-spacing:.14em;line-height:1.5;margin:0 0 10px}
+.tm-confirmation-body h1{color:#fff;font-size:clamp(2.25rem,4.6vw,3.25rem);line-height:1.12;letter-spacing:-.045em;margin:0 0 14px;font-weight:800;overflow-wrap:anywhere}
+.tm-confirmation-body h1 em{color:var(--tm-orange);font-family:var(--serif,Georgia,serif);font-weight:500}
+.tm-confirmation-body .tm-confirmation-description{max-width:700px;color:#d1e1f1;font-size:1rem;line-height:1.7;margin:0}
+.tm-confirmation-body .tm-confirmation-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:24px;align-items:start}
+.tm-confirmation-body .tm-confirmation-panel{min-width:0;background:#f8fbff;border:1px solid #c8dbea;border-radius:14px;padding:28px;color:#123557;box-shadow:0 8px 24px #00112c12}
+.tm-confirmation-body .tm-confirmation-status{display:inline-flex;align-items:center;padding:6px 12px;margin-bottom:18px;max-width:100%;border:1px solid #afcbe0;border-radius:7px;background:#eaf3fc;color:#174c77;font-size:.875rem;line-height:1.5;font-weight:750}
+.tm-confirmation-body .tm-confirmation-status.is-confirmed{background:#edf8f0;border-color:#a4cfb2;color:#176334}
+.tm-confirmation-body h2{color:#102f52;font-size:1.5rem;font-weight:800;line-height:1.3;letter-spacing:-.025em;margin:0 0 18px}
+.tm-confirmation-body h3{color:#123557;font-size:1rem;font-weight:800;line-height:1.5;margin:0 0 6px}
+.tm-confirmation-body .tm-confirmation-panel p{font-size:1rem;line-height:1.65;color:#506b83;margin:0 0 16px}
+.tm-confirmation-body .tm-confirmation-next{list-style:none;margin:0;padding:0}
+.tm-confirmation-body .tm-confirmation-next li{padding:18px 0;border-bottom:1px solid #d5e3ef}
+.tm-confirmation-body .tm-confirmation-next li:first-child{padding-top:0}
+.tm-confirmation-body .tm-confirmation-next li:last-child{border-bottom:0;padding-bottom:0}
+.tm-confirmation-body .tm-confirmation-next p{margin:0}
+.tm-confirmation-body .tm-confirmation-panel a{color:#125b93;text-underline-offset:3px}
+.tm-confirmation-body .tm-confirmation-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.tm-confirmation-body .tm-confirmation-main-actions{margin:4px 0 22px}
+.tm-confirmation-body .tm-confirmation-actions .tm-confirmation-primary,.tm-confirmation-body .tm-confirmation-actions .tm-confirmation-secondary{display:inline-flex;align-items:center;justify-content:center;gap:18px;min-height:48px;padding:12px 18px;border:1px solid #9cbcd5;border-radius:8px;font:800 .875rem/1.5 var(--font,'Manrope',Arial,sans-serif);text-decoration:none;text-align:center;white-space:normal;cursor:pointer}
+.tm-confirmation-body .tm-confirmation-actions .tm-confirmation-primary{color:#082956;background:var(--tm-orange);border-color:var(--tm-orange);font-size:1rem}
+.tm-confirmation-body .tm-confirmation-primary:hover:not(:disabled){background:var(--tm-orange-hover);border-color:var(--tm-orange-hover)}
+.tm-confirmation-body .tm-confirmation-primary:disabled{background:#edf2f7;border-color:#d3e2ef;color:#526c85;cursor:wait}
+.tm-confirmation-body .tm-confirmation-secondary{background:#fff;color:#125b93}
+.tm-confirmation-body .tm-confirmation-secondary:hover{background:#e5f3ff}
+.tm-confirmation-body .tm-confirmation-panel .tm-confirmation-note{font-size:.875rem;line-height:1.6;color:#526c85;margin:16px 0 0}
+.tm-confirmation-body .tm-confirmation-panel .tm-confirmation-eyebrow{font-size:.75rem;font-weight:800;letter-spacing:.12em;color:#235784;margin:0 0 12px}
+.tm-confirmation-body .tm-confirmation-support nav{display:grid;gap:4px;margin-top:20px}
+.tm-confirmation-body .tm-confirmation-support nav a{display:flex;align-items:center;min-height:44px;font-size:.875rem;font-weight:700;padding:9px 0;border-bottom:1px solid #d5e3ef;text-decoration:underline}
+.tm-confirmation-body .tm-confirmation-support nav a:last-child{border-bottom:0}
+.tm-confirmation-body .tm-confirmation-panel .tm-confirmation-promise{color:#123557;font-size:1rem;line-height:1.6;font-weight:750;margin:24px 0 0;padding-top:20px;border-top:1px solid #d5e3ef}
+.tm-confirmation-body .tm-confirmation-promise em{color:#123557;font-family:var(--serif,Georgia,serif);font-weight:500}
+.tm-confirmation-body .tm-confirmation-reference{display:grid;gap:14px;margin:0 0 22px;padding:0 0 20px;border-bottom:1px solid #d5e3ef}
+.tm-confirmation-body .tm-confirmation-reference dt{font-size:.875rem;color:#526c85;margin-bottom:4px}
+.tm-confirmation-body .tm-confirmation-reference dd{margin:0;color:#123557;font-size:1rem;font-weight:750}
+.tm-confirmation-body .tm-confirmation-order-id{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.875rem!important;overflow-wrap:anywhere;user-select:all}
+.tm-confirmation-body .tm-confirmation-totals{margin:0}
+.tm-confirmation-body .tm-confirmation-totals>div{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #d5e3ef;color:#3e5d78;font-size:1rem}
+.tm-confirmation-body .tm-confirmation-totals dd{color:#102f52;flex:none;margin:0;font-weight:800}
+.tm-confirmation-body .tm-confirmation-totals .tm-confirmation-total{color:#102f52;font-weight:800;border-bottom:0;padding-top:20px}
+.tm-confirmation-body .tm-confirmation-total dd{font-size:1.75rem;letter-spacing:-.035em}
+.tm-confirmation-body .tm-confirmation-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 20px;margin-top:28px;padding-top:16px;border-top:1px solid #36577e;color:#c4d8eb;font-size:.8125rem;line-height:1.6}
+.tm-confirmation-body .tm-confirmation-footer p{margin:0}
+.tm-confirmation-body .tm-confirmation-footer a{display:inline-flex;align-items:center;min-height:44px;padding:8px 0;color:#deedfa;font-size:.875rem;text-underline-offset:3px}
+.tm-confirmation-body a:focus-visible,.tm-confirmation-body button:focus-visible{outline:3px solid #21649a;outline-offset:3px}
+.tm-confirmation-body .tm-confirmation-header a:focus-visible,.tm-confirmation-body .tm-confirmation-footer a:focus-visible{outline-color:var(--tm-orange)}
+@media(max-width:760px){
+ .tm-confirmation-body .tm-confirmation-wrap{padding:30px 20px 24px}
+ .tm-confirmation-body .tm-confirmation-grid{grid-template-columns:minmax(0,1fr);gap:20px}
+ .tm-confirmation-body .tm-confirmation-intro{gap:18px;margin-bottom:24px}
+ .tm-confirmation-body .tm-confirmation-icon{flex-basis:52px;width:52px;height:52px}
+ .tm-confirmation-body .tm-confirmation-icon svg{width:28px;height:28px}
+}
+@media(max-width:550px){
+ .tm-confirmation-body .tm-confirmation-header{padding:12px 16px;gap:12px}
+ .tm-confirmation-body .tm-confirmation-header .brand img{width:154px;height:58px;padding:4px 6px}
+ .tm-confirmation-body .tm-confirmation-header-link{padding:8px 10px}
+ .tm-confirmation-body .tm-confirmation-wrap{padding:28px 16px 20px}
+ .tm-confirmation-body .tm-confirmation-intro{display:block}
+ .tm-confirmation-body .tm-confirmation-icon{margin:0 0 18px}
+ .tm-confirmation-body .tm-confirmation-panel{padding:22px 18px}
+ .tm-confirmation-body .tm-confirmation-actions{flex-direction:column}
+ .tm-confirmation-body .tm-confirmation-actions a,.tm-confirmation-body .tm-confirmation-actions button{width:100%}
+ .tm-confirmation-body .tm-confirmation-footer{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:360px){
+ .tm-confirmation-body .tm-confirmation-header .brand img{width:140px;height:54px}
+ .tm-confirmation-body .tm-confirmation-panel{padding:20px 16px}
+ .tm-confirmation-body .tm-confirmation-totals>div{gap:10px}
+ .tm-confirmation-body .tm-confirmation-total dd{font-size:1.5rem}
+}

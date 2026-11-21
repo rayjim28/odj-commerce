@@ -1,1 +1,43 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="referrer" content="no-referrer"><title>Demo Order | TrueMerit</title><link rel="stylesheet" href="/static/style.css?v=7-3"><link rel="stylesheet" href="/static/truemerit-theme.css?v=orange-unified-2"></head><body class="checkout-body"><header class="checkout-top"><a class="brand" href="/"><img class="tm-brand-logo" src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><a class="checkout-back" href="{% if guest %}/{% else %}/account{% endif %}">{% if guest %}Back to shop{% else %}My account{% endif %} →</a></header><main class="demo-confirmation"><span class="demo-check">✓</span><div class="section-kicker gold">TEST ORDER / NO REAL PAYMENT</div><h1>Demo order <em>saved.</em></h1><p>You've tested the complete shopping flow. This order is clearly marked as a simulation: no card was charged and stock was not reduced.</p><div class="demo-confirmation-details"><div><span>TEST ORDER ID</span><strong>#{{order.id[:8]|upper}}</strong></div><div><span>STATUS</span><strong>DEMO / NOT PAID</strong></div><div><span>TOTAL BEFORE TAX</span><strong>${{'%.2f'|format((order.subtotal_cents + order.shipping_cents - order.discount_cents)/100)}}</strong></div></div><div class="demo-confirmation-actions">{% if guest %}<a class="btn btn-gold" href="/">Return to the shop <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a>{% else %}<a class="btn btn-gold" href="/account">View order history <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a>{% endif %}<a class="btn btn-outline" href="/">Return to store</a></div></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">
+<title>Demo order saved | TrueMerit Cleaning Supplies</title>
+<link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css?v=7-4">
+<link rel="stylesheet" href="/static/truemerit-theme.css?v=orange-unified-2">
+<link rel="stylesheet" href="/static/truemerit-confirmation.css?v=2">
+</head>
+<body class="tm-confirmation-body">
+<header class="tm-confirmation-header"><a class="brand" href="/" aria-label="TrueMerit Cleaning Supplies home"><img src="/static/images/truemerit-logo.svg" alt="TrueMerit Cleaning Supplies" width="218" height="74"></a><a class="tm-confirmation-header-link" href="{% if guest %}/{% else %}/account{% endif %}">{% if guest %}Back to shop{% else %}My account{% endif %}</a></header>
+<main class="tm-confirmation-wrap">
+  <section class="tm-confirmation-intro" aria-labelledby="confirmation-title">
+    <div class="tm-confirmation-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12 4 4 8-8"/><circle cx="12" cy="12" r="9"/></svg></div>
+    <div><p class="tm-confirmation-kicker">TEST ORDER / NO REAL PAYMENT</p><h1 id="confirmation-title">Demo order <em>saved.</em></h1><p class="tm-confirmation-description">You've tested the shopping flow. No card was charged, no stock was reduced, and no real delivery is scheduled.</p></div>
+  </section>
+  <div class="tm-confirmation-grid">
+    <section class="tm-confirmation-panel" aria-labelledby="demo-summary-title">
+      <div class="tm-confirmation-status">DEMO / NOT PAID</div><h2 id="demo-summary-title">Your test order</h2>
+      <dl class="tm-confirmation-reference"><div><dt>Full order ID</dt><dd class="tm-confirmation-order-id">{{ order.id }}</dd></div><div><dt>Saved</dt><dd>{{ order.created_at[:10] }}</dd></div></dl>
+      <dl class="tm-confirmation-totals">
+        <div><dt>Items subtotal</dt><dd>{{ '${:,.2f}'.format(order.subtotal_cents / 100) }}</dd></div>
+        {% if order.discount_cents %}<div><dt>Discount</dt><dd>−{{ '${:,.2f}'.format(order.discount_cents / 100) }}</dd></div>{% endif %}
+        <div><dt>Shipping</dt><dd>{{ '${:,.2f}'.format(order.shipping_cents / 100) }}</dd></div>
+        <div class="tm-confirmation-total"><dt>Demo total</dt><dd>{{ '${:,.2f}'.format((order.subtotal_cents + order.shipping_cents - (order.discount_cents or 0)) / 100) }}</dd></div>
+      </dl>
+      <p class="tm-confirmation-note">Test amounts only. No money was collected.</p>
+      <div class="tm-confirmation-actions"><a class="tm-confirmation-primary" href="{{ detail_url }}">View test order <svg class="tm-arrow-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg></a><a class="tm-confirmation-secondary" href="/#shop">Continue shopping</a></div>
+    </section>
+    <aside class="tm-confirmation-panel tm-confirmation-support" aria-labelledby="demo-next-title">
+      <p class="tm-confirmation-eyebrow">WHAT HAPPENS NEXT</p><h2 id="demo-next-title">Review your test order.</h2>
+      <p>Open the saved order to check its items and sample delivery details.</p>
+      <p>This is a demo confirmation. It doesn't confirm a payment or schedule a shipment.</p>
+      <nav aria-label="After your test order">{% if not guest %}<a href="/account">View order history</a>{% endif %}<a href="/information/contact">Contact TrueMerit</a><a href="/">Back to the shop</a></nav>
+      <p class="tm-confirmation-promise">Quality You Can Trust.<br><em>Prices You'll Appreciate.</em></p>
+    </aside>
+  </div>
+  <footer class="tm-confirmation-footer"><p>TrueMerit Cleaning Supplies</p><p>Demo order · no payment collected</p></footer>
+</main>
+</body>
+</html>
